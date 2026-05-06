@@ -1,0 +1,125 @@
+{% extends "base/dashboard_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Academic Years" %} | School Link{% endblock %}
+
+{% block page_title %}{% trans "Academic Years" %}{% endblock %}
+{% block page_subtitle %}{% trans "Create and manage school academic years." %}{% endblock %}
+
+{% block content %}
+
+<div class="row g-3">
+  {% if "academics.manage" in current_user_permissions %}
+    <div class="col-lg-4">
+      <div class="sl-card">
+        <div class="sl-card-body">
+          <h5 class="fw-bold mb-3">{% trans "Add Academic Year" %}</h5>
+
+          <form method="post" action="{% url 'academic_year_create' %}">
+            {% csrf_token %}
+
+            <div class="mb-3">
+              <label class="form-label small fw-bold">{% trans "Name" %}</label>
+              {{ form.name }}
+            </div>
+
+            <div class="row g-2">
+              <div class="col-md-6">
+                <label class="form-label small fw-bold">{% trans "Start Date" %}</label>
+                {{ form.start_date }}
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label small fw-bold">{% trans "End Date" %}</label>
+                {{ form.end_date }}
+              </div>
+            </div>
+
+            <div class="form-check mt-3 mb-3">
+              {{ form.is_current }}
+              <label class="form-check-label small fw-bold">{% trans "Current Year" %}</label>
+            </div>
+
+            {% if form.errors %}
+              <div class="alert alert-danger small">
+                {{ form.errors }}
+              </div>
+            {% endif %}
+
+            <button class="btn btn-sl-primary w-100">{% trans "Save Academic Year" %}</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="{% if 'academics.manage' in current_user_permissions %}col-lg-8{% else %}col-12{% endif %}">
+    <div class="sl-card">
+      <div class="sl-card-body">
+        <h5 class="fw-bold mb-3">{% trans "Academic Years" %}</h5>
+
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th>{% trans "Name" %}</th>
+                <th>{% trans "Start Date" %}</th>
+                <th>{% trans "End Date" %}</th>
+                <th>{% trans "Status" %}</th>
+                {% if "academics.manage" in current_user_permissions %}
+                  <th class="text-end">{% trans "Action" %}</th>
+                {% endif %}
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for year in academic_years %}
+                <tr>
+                  <td class="fw-bold">{{ year.name }}</td>
+                  <td>{{ year.start_date }}</td>
+                  <td>{{ year.end_date }}</td>
+                  <td>
+                    {% if year.is_current %}
+                      <span class="badge badge-soft-success">{% trans "Current" %}</span>
+                    {% else %}
+                      <span class="badge badge-soft-primary">{% trans "Normal" %}</span>
+                    {% endif %}
+                  </td>
+
+                  {% if "academics.manage" in current_user_permissions %}
+                    <td class="text-end">
+                      <div class="d-inline-flex gap-1">
+                        <a href="{% url 'academic_year_update' year.pk %}" class="btn btn-light border btn-sm">
+                          {% trans "Edit" %}
+                        </a>
+
+                        {% trans "Delete this academic year? Only delete if it was created by mistake." as delete_message %}
+                        <form method="post"
+                              action="{% url 'academic_year_delete' year.pk %}"
+                              onsubmit="return confirm('{{ delete_message|escapejs }}');">
+                          {% csrf_token %}
+                          <button class="btn btn-outline-danger btn-sm">
+                            {% trans "Delete" %}
+                          </button>
+                        </form>
+                      </div>
+                    </td>
+                  {% endif %}
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="5" class="text-center text-muted py-4">
+                    {% trans "No academic years added yet." %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

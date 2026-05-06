@@ -1,0 +1,87 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}{{ title }} | School Link{% endblock %}
+
+{% block page_title %}{{ title }}{% endblock %}
+{% block page_subtitle %}
+  {% if is_update %}
+    Update class, subject, teacher, room, day, and time slot.
+  {% else %}
+    Assign class, subject, teacher, room, day, and time slot.
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+
+<div class="sl-card">
+  <div class="sl-card-body">
+    <form method="post">
+      {% csrf_token %}
+
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Class</label>
+          {{ form.class_level }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Stream</label>
+          {{ form.stream }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Day</label>
+          {{ form.day }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Time Slot</label>
+          {{ form.time_slot }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Subject</label>
+          {{ form.subject }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Teacher</label>
+          {{ form.teacher }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Room</label>
+          {{ form.room }}
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label small fw-bold">Note</label>
+          {{ form.note }}
+        </div>
+
+        <div class="col-md-2 d-flex align-items-end">
+          <div class="form-check mb-2">
+            {{ form.is_active }}
+            <label class="form-check-label small fw-bold">Active</label>
+          </div>
+        </div>
+      </div>
+
+      {% if form.errors %}
+        <div class="alert alert-danger small mt-3">
+          {{ form.errors }}
+        </div>
+      {% endif %}
+
+      <div class="d-flex justify-content-between mt-4">
+        <a href="{% url 'timetable_entry_list' %}" class="btn btn-light border">Cancel</a>
+
+        <button class="btn btn-sl-primary">
+          {{ button_text|default:"Save Timetable Entry" }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

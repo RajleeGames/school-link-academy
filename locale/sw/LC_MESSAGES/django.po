@@ -1,0 +1,1592 @@
+# Swahili translations for School Link.
+# Copyright (C) 2026 School Link
+# This file is distributed under the same license as the School Link package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: School Link 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-05-02 19:35+0300\n"
+"PO-Revision-Date: 2026-05-02 19:20+0300\n"
+"Last-Translator: School Link Admin\n"
+"Language-Team: Swahili\n"
+"Language: sw\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: .\templates\academics\academic_form.html:7
+msgid "Update academic setup information safely."
+msgstr "Sasisha taarifa za mipangilio ya masomo kwa usalama."
+
+#: .\templates\academics\academic_form.html:61
+msgid "Cancel"
+msgstr "Ghairi"
+
+#: .\templates\academics\academic_year_list.html:4
+#: .\templates\academics\academic_year_list.html:6
+#: .\templates\academics\academic_year_list.html:59
+#: .\templates\academics\home.html:15 .\templates\academics\home.html:62
+#: .\templates\base\dashboard_base.html:415
+msgid "Academic Years"
+msgstr "Miaka ya Masomo"
+
+#: .\templates\academics\academic_year_list.html:7
+msgid "Create and manage school academic years."
+msgstr "Unda na simamia miaka ya masomo ya shule."
+
+#: .\templates\academics\academic_year_list.html:16
+msgid "Add Academic Year"
+msgstr "Ongeza Mwaka wa Masomo"
+
+#: .\templates\academics\academic_year_list.html:22
+#: .\templates\academics\academic_year_list.html:65
+msgid "Name"
+msgstr "Jina"
+
+#: .\templates\academics\academic_year_list.html:28
+#: .\templates\academics\academic_year_list.html:66
+#: .\templates\academics\term_list.html:33
+#: .\templates\academics\term_list.html:72
+msgid "Start Date"
+msgstr "Tarehe ya Kuanza"
+
+#: .\templates\academics\academic_year_list.html:33
+#: .\templates\academics\academic_year_list.html:67
+#: .\templates\academics\term_list.html:38
+#: .\templates\academics\term_list.html:73
+msgid "End Date"
+msgstr "Tarehe ya Mwisho"
+
+#: .\templates\academics\academic_year_list.html:40
+msgid "Current Year"
+msgstr "Mwaka wa Sasa"
+
+#: .\templates\academics\academic_year_list.html:49
+msgid "Save Academic Year"
+msgstr "Hifadhi Mwaka wa Masomo"
+
+#: .\templates\academics\academic_year_list.html:68
+#: .\templates\academics\class_level_list.html:66
+#: .\templates\academics\stream_list.html:67
+#: .\templates\academics\subject_list.html:73
+#: .\templates\academics\term_list.html:74 .\templates\dashboard\home.html:249
+msgid "Status"
+msgstr "Hali"
+
+#: .\templates\academics\academic_year_list.html:70
+#: .\templates\academics\class_level_list.html:68
+#: .\templates\academics\stream_list.html:69
+#: .\templates\academics\subject_list.html:75
+#: .\templates\academics\term_list.html:76 .\templates\dashboard\home.html:250
+msgid "Action"
+msgstr "Kitendo"
+
+#: .\templates\academics\academic_year_list.html:83
+#: .\templates\academics\term_list.html:90
+msgid "Current"
+msgstr "Wa Sasa"
+
+#: .\templates\academics\academic_year_list.html:85
+#: .\templates\academics\term_list.html:92
+msgid "Normal"
+msgstr "Kawaida"
+
+#: .\templates\academics\academic_year_list.html:93
+#: .\templates\academics\class_level_list.html:91
+#: .\templates\academics\stream_list.html:92
+#: .\templates\academics\subject_list.html:105
+#: .\templates\academics\term_list.html:100
+msgid "Edit"
+msgstr "Hariri"
+
+#: .\templates\academics\academic_year_list.html:96
+msgid "Delete this academic year? Only delete if it was created by mistake."
+msgstr "Futa mwaka huu wa masomo? Futa tu kama uliundwa kwa makosa."
+
+#: .\templates\academics\academic_year_list.html:102
+#: .\templates\academics\class_level_list.html:100
+#: .\templates\academics\stream_list.html:101
+#: .\templates\academics\subject_list.html:114
+#: .\templates\academics\term_list.html:109
+msgid "Delete"
+msgstr "Futa"
+
+#: .\templates\academics\academic_year_list.html:112
+msgid "No academic years added yet."
+msgstr "Hakuna miaka ya masomo iliyoongezwa bado."
+
+#: .\templates\academics\class_level_list.html:4
+#: .\templates\academics\class_level_list.html:6
+#: .\templates\academics\home.html:43 .\templates\academics\home.html:80
+#: .\templates\academics\subject_list.html:72
+#: .\templates\base\dashboard_base.html:417 .\templates\dashboard\home.html:195
+msgid "Classes"
+msgstr "Madarasa"
+
+#: .\templates\academics\class_level_list.html:7
+msgid ""
+"Create and manage class levels for primary, secondary, and advanced levels."
+msgstr ""
+"Unda na simamia ngazi za madarasa kwa shule ya msingi, sekondari, na ngazi "
+"za juu."
+
+#: .\templates\academics\class_level_list.html:16
+msgid "Add Class"
+msgstr "Ongeza Darasa"
+
+#: .\templates\academics\class_level_list.html:22
+msgid "Class Name"
+msgstr "Jina la Darasa"
+
+#: .\templates\academics\class_level_list.html:27
+msgid "Level Type"
+msgstr "Aina ya Ngazi"
+
+#: .\templates\academics\class_level_list.html:32
+#: .\templates\academics\class_level_list.html:63
+msgid "Order"
+msgstr "Mpangilio"
+
+#: .\templates\academics\class_level_list.html:38
+#: .\templates\academics\class_level_list.html:81
+#: .\templates\academics\stream_list.html:39
+#: .\templates\academics\stream_list.html:82
+#: .\templates\academics\subject_list.html:44
+#: .\templates\academics\subject_list.html:95
+#: .\templates\dashboard\home.html:275
+msgid "Active"
+msgstr "Hai"
+
+#: .\templates\academics\class_level_list.html:47
+msgid "Save Class"
+msgstr "Hifadhi Darasa"
+
+#: .\templates\academics\class_level_list.html:57
+msgid "Class Levels"
+msgstr "Ngazi za Madarasa"
+
+#: .\templates\academics\class_level_list.html:64
+#: .\templates\academics\stream_list.html:23
+#: .\templates\academics\stream_list.html:64
+#: .\templates\dashboard\home.html:247
+msgid "Class"
+msgstr "Darasa"
+
+#: .\templates\academics\class_level_list.html:65
+msgid "Level"
+msgstr "Ngazi"
+
+#: .\templates\academics\class_level_list.html:83
+#: .\templates\academics\stream_list.html:84
+#: .\templates\academics\subject_list.html:97
+msgid "Inactive"
+msgstr "Haifanyi Kazi"
+
+#: .\templates\academics\class_level_list.html:94
+msgid "Delete this class? Only delete if it was created by mistake."
+msgstr "Futa darasa hili? Futa tu kama liliundwa kwa makosa."
+
+#: .\templates\academics\class_level_list.html:110
+msgid "No classes added yet."
+msgstr "Hakuna madarasa yaliyoongezwa bado."
+
+#: .\templates\academics\home.html:5 .\templates\academics\home.html:7
+#: .\templates\base\dashboard_base.html:398
+#: .\templates\base\dashboard_base.html:403
+msgid "Academics"
+msgstr "Masomo"
+
+#: .\templates\academics\home.html:8
+msgid "Academic setup center for years, terms, classes, streams, and subjects."
+msgstr ""
+"Kituo cha mipangilio ya masomo kwa miaka, mihula, madarasa, mikondo, na "
+"masomo."
+
+#: .\templates\academics\home.html:19
+#, python-format
+msgid "Current: %(year)s"
+msgstr "Wa sasa: %(year)s"
+
+#: .\templates\academics\home.html:21
+msgid "No current year"
+msgstr "Hakuna mwaka wa sasa"
+
+#: .\templates\academics\home.html:29 .\templates\academics\term_list.html:64
+msgid "Terms"
+msgstr "Mihula"
+
+#: .\templates\academics\home.html:33
+#, python-format
+msgid "Current: %(term)s"
+msgstr "Wa sasa: %(term)s"
+
+#: .\templates\academics\home.html:35
+msgid "No current term"
+msgstr "Hakuna muhula wa sasa"
+
+#: .\templates\academics\home.html:45
+msgid "Primary and secondary levels"
+msgstr "Ngazi za msingi na sekondari"
+
+#: .\templates\academics\home.html:51 .\templates\academics\home.html:98
+#: .\templates\academics\subject_list.html:4
+#: .\templates\academics\subject_list.html:6
+#: .\templates\academics\subject_list.html:63
+#: .\templates\base\dashboard_base.html:422 .\templates\dashboard\home.html:213
+msgid "Subjects"
+msgstr "Masomo"
+
+#: .\templates\academics\home.html:53
+msgid "School subjects"
+msgstr "Masomo ya shule"
+
+#: .\templates\academics\home.html:63
+msgid "Create and manage school years like 2026 or 2026/2027."
+msgstr "Unda na simamia miaka ya shule kama 2026 au 2026/2027."
+
+#: .\templates\academics\home.html:71 .\templates\academics\term_list.html:4
+#: .\templates\academics\term_list.html:6
+#: .\templates\base\dashboard_base.html:416
+msgid "Terms / Semesters"
+msgstr "Mihula / Semista"
+
+#: .\templates\academics\home.html:72
+msgid "Manage Term 1, Term 2, Term 3, or semester structure."
+msgstr "Simamia Muhula wa 1, Muhula wa 2, Muhula wa 3, au mfumo wa semista."
+
+#: .\templates\academics\home.html:81
+msgid "Setup Standard 1-7, Form 1-4, or Advanced levels."
+msgstr "Weka Darasa la 1-7, Kidato cha 1-4, au ngazi za juu."
+
+#: .\templates\academics\home.html:89 .\templates\academics\stream_list.html:5
+#: .\templates\academics\stream_list.html:7
+#: .\templates\academics\stream_list.html:58
+#: .\templates\base\dashboard_base.html:418 .\templates\dashboard\home.html:203
+msgid "Streams"
+msgstr "Mikondo"
+
+#: .\templates\academics\home.html:90
+msgid "Manage streams like A, B, C, Science, Arts, and Business."
+msgstr "Simamia mikondo kama A, B, C, Sayansi, Sanaa, na Biashara."
+
+#: .\templates\academics\home.html:99
+msgid "Create subjects and assign them to selected class levels."
+msgstr "Unda masomo na uyahusishe na ngazi za madarasa uliyochagua."
+
+#: .\templates\academics\stream_list.html:8
+msgid "Create streams such as A, B, C, Science, Arts, and Business."
+msgstr "Unda mikondo kama A, B, C, Sayansi, Sanaa, na Biashara."
+
+#: .\templates\academics\stream_list.html:17
+msgid "Add Stream"
+msgstr "Ongeza Mkondo"
+
+#: .\templates\academics\stream_list.html:28
+msgid "Stream Name"
+msgstr "Jina la Mkondo"
+
+#: .\templates\academics\stream_list.html:33
+#: .\templates\academics\stream_list.html:66
+msgid "Capacity"
+msgstr "Uwezo"
+
+#: .\templates\academics\stream_list.html:48
+msgid "Save Stream"
+msgstr "Hifadhi Mkondo"
+
+#: .\templates\academics\stream_list.html:65
+msgid "Stream"
+msgstr "Mkondo"
+
+#: .\templates\academics\stream_list.html:95
+msgid "Delete this stream? Only delete if it was created by mistake."
+msgstr "Futa mkondo huu? Futa tu kama uliundwa kwa makosa."
+
+#: .\templates\academics\stream_list.html:111
+msgid "No streams added yet."
+msgstr "Hakuna mikondo iliyoongezwa bado."
+
+#: .\templates\academics\subject_list.html:7
+msgid "Create subjects and assign them to class levels."
+msgstr "Unda masomo na uyahusishe na madarasa."
+
+#: .\templates\academics\subject_list.html:16
+msgid "Add Subject"
+msgstr "Ongeza Somo"
+
+#: .\templates\academics\subject_list.html:22
+msgid "Subject Name"
+msgstr "Jina la Somo"
+
+#: .\templates\academics\subject_list.html:27
+msgid "Subject Code"
+msgstr "Kodi ya Somo"
+
+#: .\templates\academics\subject_list.html:32
+msgid "Subject Type"
+msgstr "Aina ya Somo"
+
+#: .\templates\academics\subject_list.html:37
+msgid "Assign Classes"
+msgstr "Chagua Madarasa"
+
+#: .\templates\academics\subject_list.html:39
+msgid "Hold CTRL to select many classes."
+msgstr "Shikilia CTRL kuchagua madarasa mengi."
+
+#: .\templates\academics\subject_list.html:53
+msgid "Save Subject"
+msgstr "Hifadhi Somo"
+
+#: .\templates\academics\subject_list.html:69
+msgid "Subject"
+msgstr "Somo"
+
+#: .\templates\academics\subject_list.html:70
+msgid "Code"
+msgstr "Kodi"
+
+#: .\templates\academics\subject_list.html:71
+msgid "Type"
+msgstr "Aina"
+
+#: .\templates\academics\subject_list.html:90
+msgid "No class assigned"
+msgstr "Hakuna darasa lililochaguliwa"
+
+#: .\templates\academics\subject_list.html:108
+msgid "Delete this subject? Only delete if it was created by mistake."
+msgstr "Futa somo hili? Futa tu kama liliundwa kwa makosa."
+
+#: .\templates\academics\subject_list.html:124
+msgid "No subjects added yet."
+msgstr "Hakuna masomo yaliyoongezwa bado."
+
+#: .\templates\academics\term_list.html:7
+msgid "Create and manage school terms or semesters."
+msgstr "Unda na simamia mihula au semista za shule."
+
+#: .\templates\academics\term_list.html:16
+msgid "Add Term"
+msgstr "Ongeza Muhula"
+
+#: .\templates\academics\term_list.html:22
+#: .\templates\academics\term_list.html:71
+msgid "Academic Year"
+msgstr "Mwaka wa Masomo"
+
+#: .\templates\academics\term_list.html:27
+#: .\templates\academics\term_list.html:70
+msgid "Term"
+msgstr "Muhula"
+
+#: .\templates\academics\term_list.html:45
+msgid "Current Term"
+msgstr "Muhula wa Sasa"
+
+#: .\templates\academics\term_list.html:54
+msgid "Save Term"
+msgstr "Hifadhi Muhula"
+
+#: .\templates\academics\term_list.html:103
+msgid "Delete this term? Only delete if it was created by mistake."
+msgstr "Futa muhula huu? Futa tu kama uliundwa kwa makosa."
+
+#: .\templates\academics\term_list.html:119
+msgid "No terms added yet."
+msgstr "Hakuna mihula iliyoongezwa bado."
+
+#: .\templates\base\dashboard_base.html:277
+msgid "School management system"
+msgstr "Mfumo wa usimamizi wa shule"
+
+#: .\templates\base\dashboard_base.html:289
+msgid "Main"
+msgstr "Mkuu"
+
+#: .\templates\base\dashboard_base.html:295
+#: .\templates\base\dashboard_base.html:824 .\templates\dashboard\home.html:5
+#: .\templates\dashboard\home.html:29
+msgid "Dashboard"
+msgstr "Dashibodi"
+
+#: .\templates\base\dashboard_base.html:303
+msgid "Parent Portal"
+msgstr "Tovuti ya Mzazi"
+
+#: .\templates\base\dashboard_base.html:311
+msgid "School Setup"
+msgstr "Mipangilio ya Shule"
+
+#: .\templates\base\dashboard_base.html:319
+msgid "School Profile"
+msgstr "Wasifu wa Shule"
+
+#: .\templates\base\dashboard_base.html:326
+msgid "School Branches"
+msgstr "Matawi ya Shule"
+
+#: .\templates\base\dashboard_base.html:333
+msgid "System Settings"
+msgstr "Mipangilio ya Mfumo"
+
+#: .\templates\base\dashboard_base.html:340
+msgid "User Permissions"
+msgstr "Ruhusa za Watumiaji"
+
+#: .\templates\base\dashboard_base.html:345
+msgid "User Roles"
+msgstr "Majukumu ya Watumiaji"
+
+#: .\templates\base\dashboard_base.html:356
+msgid "People"
+msgstr "Watu"
+
+#: .\templates\base\dashboard_base.html:364
+msgid "Students"
+msgstr "Wanafunzi"
+
+#: .\templates\base\dashboard_base.html:371 .\templates\dashboard\home.html:123
+msgid "Parents / Guardians"
+msgstr "Wazazi / Walezi"
+
+#: .\templates\base\dashboard_base.html:378 .\templates\dashboard\home.html:133
+msgid "Teachers"
+msgstr "Walimu"
+
+#: .\templates\base\dashboard_base.html:383
+msgid "Staff Members"
+msgstr "Wafanyakazi"
+
+#: .\templates\base\dashboard_base.html:390
+msgid "Admissions"
+msgstr "Udahili"
+
+#: .\templates\base\dashboard_base.html:410
+msgid "Academic Setup"
+msgstr "Mipangilio ya Masomo"
+
+#: .\templates\base\dashboard_base.html:432
+msgid "Attendance"
+msgstr "Mahudhurio"
+
+#: .\templates\base\dashboard_base.html:437
+msgid "Attendance Overview"
+msgstr "Muhtasari wa Mahudhurio"
+
+#: .\templates\base\dashboard_base.html:438
+msgid "Daily Register"
+msgstr "Daftari la Kila Siku"
+
+#: .\templates\base\dashboard_base.html:439 .\templates\dashboard\home.html:379
+msgid "Student Attendance"
+msgstr "Mahudhurio ya Wanafunzi"
+
+#: .\templates\base\dashboard_base.html:443 .\templates\dashboard\home.html:454
+msgid "Bulk Student Attendance"
+msgstr "Mahudhurio ya Wanafunzi kwa Wingi"
+
+#: .\templates\base\dashboard_base.html:449
+msgid "Staff Attendance"
+msgstr "Mahudhurio ya Wafanyakazi"
+
+#: .\templates\base\dashboard_base.html:455
+#: .\templates\base\dashboard_base.html:771
+msgid "Attendance Reports"
+msgstr "Ripoti za Mahudhurio"
+
+#: .\templates\base\dashboard_base.html:466
+msgid "Exams & Results"
+msgstr "Mitihani na Matokeo"
+
+#: .\templates\base\dashboard_base.html:472
+msgid "Exams Overview"
+msgstr "Muhtasari wa Mitihani"
+
+#: .\templates\base\dashboard_base.html:473
+msgid "Exams List"
+msgstr "Orodha ya Mitihani"
+
+#: .\templates\base\dashboard_base.html:477
+msgid "Exam Types"
+msgstr "Aina za Mitihani"
+
+#: .\templates\base\dashboard_base.html:478
+msgid "Grading System"
+msgstr "Mfumo wa Madaraja"
+
+#: .\templates\base\dashboard_base.html:482
+msgid "Bulk Marks Entry"
+msgstr "Kuingiza Alama kwa Wingi"
+
+#: .\templates\base\dashboard_base.html:486
+msgid "Results List"
+msgstr "Orodha ya Matokeo"
+
+#: .\templates\base\dashboard_base.html:490
+msgid "Class Performance"
+msgstr "Ufaulu wa Darasa"
+
+#: .\templates\base\dashboard_base.html:497
+msgid "Finance"
+msgstr "Fedha"
+
+#: .\templates\base\dashboard_base.html:503
+msgid "Fees & Payments"
+msgstr "Ada na Malipo"
+
+#: .\templates\base\dashboard_base.html:509
+msgid "Fees Overview"
+msgstr "Muhtasari wa Ada"
+
+#: .\templates\base\dashboard_base.html:513
+msgid "Fee Categories"
+msgstr "Aina za Ada"
+
+#: .\templates\base\dashboard_base.html:514
+msgid "Fee Structure"
+msgstr "Muundo wa Ada"
+
+#: .\templates\base\dashboard_base.html:518
+msgid "Student Invoices"
+msgstr "Ankara za Wanafunzi"
+
+#: .\templates\base\dashboard_base.html:519
+msgid "Debtors"
+msgstr "Wadaiwa"
+
+#: .\templates\base\dashboard_base.html:523 .\templates\dashboard\home.html:316
+msgid "Record Payment"
+msgstr "Rekodi Malipo"
+
+#: .\templates\base\dashboard_base.html:527
+msgid "Payments / Receipts"
+msgstr "Malipo / Risiti"
+
+#: .\templates\base\dashboard_base.html:537 .\templates\dashboard\home.html:163
+msgid "Expenses"
+msgstr "Matumizi"
+
+#: .\templates\base\dashboard_base.html:542
+msgid "Expenses Overview"
+msgstr "Muhtasari wa Matumizi"
+
+#: .\templates\base\dashboard_base.html:545
+msgid "Expense Categories"
+msgstr "Aina za Matumizi"
+
+#: .\templates\base\dashboard_base.html:546
+msgid "Add Expense"
+msgstr "Ongeza Matumizi"
+
+#: .\templates\base\dashboard_base.html:549
+msgid "Expense List"
+msgstr "Orodha ya Matumizi"
+
+#: .\templates\base\dashboard_base.html:556
+msgid "Operations"
+msgstr "Uendeshaji"
+
+#: .\templates\base\dashboard_base.html:562
+msgid "Timetable"
+msgstr "Ratiba"
+
+#: .\templates\base\dashboard_base.html:567
+#: .\templates\base\dashboard_base.html:591
+#: .\templates\base\dashboard_base.html:613
+#: .\templates\base\dashboard_base.html:640
+#: .\templates\base\dashboard_base.html:663
+#: .\templates\base\dashboard_base.html:686
+#: .\templates\base\dashboard_base.html:710
+#: .\templates\base\dashboard_base.html:735
+msgid "Overview"
+msgstr "Muhtasari"
+
+#: .\templates\base\dashboard_base.html:568
+#: .\templates\base\dashboard_base.html:665
+msgid "Rooms"
+msgstr "Vyumba"
+
+#: .\templates\base\dashboard_base.html:569
+msgid "Time Slots"
+msgstr "Vipindi vya Muda"
+
+#: .\templates\base\dashboard_base.html:570
+msgid "Timetable Entries"
+msgstr "Rekodi za Ratiba"
+
+#: .\templates\base\dashboard_base.html:573
+msgid "Add Entry"
+msgstr "Ongeza Rekodi"
+
+#: .\templates\base\dashboard_base.html:576
+msgid "Class Timetable"
+msgstr "Ratiba ya Darasa"
+
+#: .\templates\base\dashboard_base.html:577
+msgid "Teacher Timetable"
+msgstr "Ratiba ya Mwalimu"
+
+#: .\templates\base\dashboard_base.html:586 .\templates\dashboard\home.html:403
+msgid "Homework"
+msgstr "Kazi za Nyumbani"
+
+#: .\templates\base\dashboard_base.html:592
+msgid "Homework List"
+msgstr "Orodha ya Kazi za Nyumbani"
+
+#: .\templates\base\dashboard_base.html:595
+msgid "Create Homework"
+msgstr "Unda Kazi ya Nyumbani"
+
+#: .\templates\base\dashboard_base.html:596
+msgid "Add Submission"
+msgstr "Ongeza Uwasilishaji"
+
+#: .\templates\base\dashboard_base.html:599
+msgid "Submissions"
+msgstr "Uwasilishaji"
+
+#: .\templates\base\dashboard_base.html:608
+msgid "Discipline"
+msgstr "Nidhamu"
+
+#: .\templates\base\dashboard_base.html:616
+#: .\templates\base\dashboard_base.html:642
+#: .\templates\base\dashboard_base.html:712
+msgid "Categories"
+msgstr "Makundi"
+
+#: .\templates\base\dashboard_base.html:617
+msgid "Add Record"
+msgstr "Ongeza Rekodi"
+
+#: .\templates\base\dashboard_base.html:620
+msgid "Records"
+msgstr "Rekodi"
+
+#: .\templates\base\dashboard_base.html:623
+msgid "Add Follow Up"
+msgstr "Ongeza Ufuatiliaji"
+
+#: .\templates\base\dashboard_base.html:626
+msgid "Follow Ups"
+msgstr "Ufuatiliaji"
+
+#: .\templates\base\dashboard_base.html:635
+msgid "Library"
+msgstr "Maktaba"
+
+#: .\templates\base\dashboard_base.html:641
+msgid "Books"
+msgstr "Vitabu"
+
+#: .\templates\base\dashboard_base.html:645
+msgid "Add Book"
+msgstr "Ongeza Kitabu"
+
+#: .\templates\base\dashboard_base.html:646
+msgid "Borrow Book"
+msgstr "Azima Kitabu"
+
+#: .\templates\base\dashboard_base.html:649
+msgid "Borrow Records"
+msgstr "Rekodi za Kuazima"
+
+#: .\templates\base\dashboard_base.html:658
+msgid "Hostel / Boarding"
+msgstr "Hosteli / Bweni"
+
+#: .\templates\base\dashboard_base.html:664
+msgid "Hostels"
+msgstr "Hosteli"
+
+#: .\templates\base\dashboard_base.html:666
+msgid "Beds"
+msgstr "Vitanda"
+
+#: .\templates\base\dashboard_base.html:669
+msgid "Allocate Student"
+msgstr "Mpangie Mwanafunzi"
+
+#: .\templates\base\dashboard_base.html:672
+msgid "Allocations"
+msgstr "Ugawaji"
+
+#: .\templates\base\dashboard_base.html:681
+msgid "Transport"
+msgstr "Usafiri"
+
+#: .\templates\base\dashboard_base.html:687
+msgid "Vehicles"
+msgstr "Magari"
+
+#: .\templates\base\dashboard_base.html:688
+msgid "Drivers"
+msgstr "Madereva"
+
+#: .\templates\base\dashboard_base.html:689
+msgid "Routes"
+msgstr "Njia"
+
+#: .\templates\base\dashboard_base.html:692
+msgid "Assign Student"
+msgstr "Mpangie Mwanafunzi"
+
+#: .\templates\base\dashboard_base.html:695
+msgid "Assignments"
+msgstr "Upangaji"
+
+#: .\templates\base\dashboard_base.html:696
+msgid "Trip Logs"
+msgstr "Kumbukumbu za Safari"
+
+#: .\templates\base\dashboard_base.html:705
+msgid "Inventory"
+msgstr "Bohari"
+
+#: .\templates\base\dashboard_base.html:711
+msgid "Items"
+msgstr "Vifaa"
+
+#: .\templates\base\dashboard_base.html:713
+msgid "Suppliers"
+msgstr "Wasambazaji"
+
+#: .\templates\base\dashboard_base.html:716
+msgid "Add Stock In"
+msgstr "Ongeza Stoo Inayoingia"
+
+#: .\templates\base\dashboard_base.html:717
+msgid "Add Stock Out"
+msgstr "Ongeza Stoo Inayotoka"
+
+#: .\templates\base\dashboard_base.html:720
+msgid "Stock In"
+msgstr "Stoo Inayoingia"
+
+#: .\templates\base\dashboard_base.html:721
+msgid "Stock Out"
+msgstr "Stoo Inayotoka"
+
+#: .\templates\base\dashboard_base.html:730
+msgid "Payroll"
+msgstr "Mishahara"
+
+#: .\templates\base\dashboard_base.html:736
+msgid "Salary Structures"
+msgstr "Miundo ya Mishahara"
+
+#: .\templates\base\dashboard_base.html:739
+msgid "Add Structure"
+msgstr "Ongeza Muundo"
+
+#: .\templates\base\dashboard_base.html:740
+msgid "Generate Payroll"
+msgstr "Tengeneza Mishahara"
+
+#: .\templates\base\dashboard_base.html:741
+msgid "Manual Record"
+msgstr "Rekodi ya Mkono"
+
+#: .\templates\base\dashboard_base.html:744
+msgid "Payroll Records"
+msgstr "Rekodi za Mishahara"
+
+#: .\templates\base\dashboard_base.html:754
+msgid "Reports"
+msgstr "Ripoti"
+
+#: .\templates\base\dashboard_base.html:759
+msgid "Reports Overview"
+msgstr "Muhtasari wa Ripoti"
+
+#: .\templates\base\dashboard_base.html:762
+msgid "Student Reports"
+msgstr "Ripoti za Wanafunzi"
+
+#: .\templates\base\dashboard_base.html:766
+msgid "Fee Reports"
+msgstr "Ripoti za Ada"
+
+#: .\templates\base\dashboard_base.html:767
+msgid "Expense Reports"
+msgstr "Ripoti za Matumizi"
+
+#: .\templates\base\dashboard_base.html:775
+msgid "Exam Reports"
+msgstr "Ripoti za Mitihani"
+
+#: .\templates\base\dashboard_base.html:781
+msgid "Account"
+msgstr "Akaunti"
+
+#: .\templates\base\dashboard_base.html:787
+msgid "Logout"
+msgstr "Toka"
+
+#: .\templates\base\dashboard_base.html:802
+msgid "System Administrator"
+msgstr "Msimamizi wa Mfumo"
+
+#: .\templates\base\dashboard_base.html:806
+msgid "Staff User"
+msgstr "Mtumiaji Mfanyakazi"
+
+#: .\templates\base\dashboard_base.html:825
+msgid "Welcome to School Link"
+msgstr "Karibu School Link"
+
+#: .\templates\base\dashboard_base.html:831
+msgid "Welcome"
+msgstr "Karibu"
+
+#: .\templates\base\dashboard_base.html:857
+msgid "Dark"
+msgstr "Giza"
+
+#: .\templates\dashboard\home.html:9
+msgid "Teacher Dashboard"
+msgstr "Dashibodi ya Mwalimu"
+
+#: .\templates\dashboard\home.html:11
+msgid "Cashier Dashboard"
+msgstr "Dashibodi ya Keshia"
+
+#: .\templates\dashboard\home.html:13
+msgid "Finance Dashboard"
+msgstr "Dashibodi ya Fedha"
+
+#: .\templates\dashboard\home.html:15
+msgid "Library Dashboard"
+msgstr "Dashibodi ya Maktaba"
+
+#: .\templates\dashboard\home.html:17
+msgid "Hostel Dashboard"
+msgstr "Dashibodi ya Hosteli"
+
+#: .\templates\dashboard\home.html:19
+msgid "Transport Dashboard"
+msgstr "Dashibodi ya Usafiri"
+
+#: .\templates\dashboard\home.html:21
+msgid "Inventory Dashboard"
+msgstr "Dashibodi ya Bohari"
+
+#: .\templates\dashboard\home.html:23
+msgid "Head Teacher Dashboard"
+msgstr "Dashibodi ya Mkuu wa Shule"
+
+#: .\templates\dashboard\home.html:25
+msgid "Academic Dashboard"
+msgstr "Dashibodi ya Masomo"
+
+#: .\templates\dashboard\home.html:27
+msgid "Secretary Dashboard"
+msgstr "Dashibodi ya Katibu"
+
+#: .\templates\dashboard\home.html:35
+msgid ""
+"View your teaching areas, students, attendance, results, timetable, and "
+"homework."
+msgstr ""
+"Tazama maeneo yako ya kufundisha, wanafunzi, mahudhurio, matokeo, ratiba, na "
+"kazi za nyumbani."
+
+#: .\templates\dashboard\home.html:37
+msgid "Manage payments, receipts, invoices, and fee balances."
+msgstr "Simamia malipo, risiti, ankara, na salio la ada."
+
+#: .\templates\dashboard\home.html:39
+msgid "Manage school finance, fees, expenses, payroll, and reports."
+msgstr "Simamia fedha za shule, ada, matumizi, mishahara, na ripoti."
+
+#: .\templates\dashboard\home.html:41
+msgid "Manage books, borrowing records, returns, and library operations."
+msgstr ""
+"Simamia vitabu, kumbukumbu za kuazima, marejesho, na shughuli za maktaba."
+
+#: .\templates\dashboard\home.html:43
+msgid "Overview of academics, students, staff, attendance, and exams."
+msgstr "Muhtasari wa masomo, wanafunzi, wafanyakazi, mahudhurio, na mitihani."
+
+#: .\templates\dashboard\home.html:45
+msgid "Manage academics, classes, subjects, exams, and learning reports."
+msgstr ""
+"Simamia masomo, madarasa, masomo ya kufundisha, mitihani, na ripoti za "
+"ujifunzaji."
+
+#: .\templates\dashboard\home.html:47
+msgid "Manage students, parents, admissions, and attendance records."
+msgstr "Simamia wanafunzi, wazazi, udahili, na kumbukumbu za mahudhurio."
+
+#: .\templates\dashboard\home.html:49
+msgid "Overview of students, staff, finance, academics, and school operations."
+msgstr ""
+"Muhtasari wa wanafunzi, wafanyakazi, fedha, masomo, na uendeshaji wa shule."
+
+#: .\templates\dashboard\home.html:61
+#, python-format
+msgid "Welcome, %(name)s"
+msgstr "Karibu, %(name)s"
+
+#: .\templates\dashboard\home.html:64
+msgid ""
+"Teacher workspace for classes, subjects, attendance, results, timetable, and "
+"homework."
+msgstr ""
+"Eneo la mwalimu kwa madarasa, masomo, mahudhurio, matokeo, ratiba, na kazi "
+"za nyumbani."
+
+#: .\templates\dashboard\home.html:76
+msgid "Assigned Classes"
+msgstr "Madarasa Uliyopangiwa"
+
+#: .\templates\dashboard\home.html:84
+msgid "No assigned classes yet."
+msgstr "Hakuna madarasa uliyopangiwa bado."
+
+#: .\templates\dashboard\home.html:90
+msgid "Assigned Subjects"
+msgstr "Masomo Uliyopangiwa"
+
+#: .\templates\dashboard\home.html:98
+msgid "No assigned subjects yet."
+msgstr "Hakuna masomo uliyopangiwa bado."
+
+#: .\templates\dashboard\home.html:111
+msgid "Total Students"
+msgstr "Jumla ya Wanafunzi"
+
+#: .\templates\dashboard\home.html:114
+#, python-format
+msgid "%(count)s active students"
+msgstr "%(count)s wanafunzi hai"
+
+#: .\templates\dashboard\home.html:125
+msgid "Linked guardian records"
+msgstr "Taarifa za walezi zilizounganishwa"
+
+#: .\templates\dashboard\home.html:135
+msgid "Teaching staff members"
+msgstr "Wafanyakazi wa kufundisha"
+
+#: .\templates\dashboard\home.html:141
+msgid "All Staff"
+msgstr "Wafanyakazi Wote"
+
+#: .\templates\dashboard\home.html:144
+#, python-format
+msgid "%(count)s active staff"
+msgstr "%(count)s wafanyakazi hai"
+
+#: .\templates\dashboard\home.html:153
+msgid "Fees Paid"
+msgstr "Ada Zilizolipwa"
+
+#: .\templates\dashboard\home.html:155
+msgid "Confirmed fee payments"
+msgstr "Malipo ya ada yaliyothibitishwa"
+
+#: .\templates\dashboard\home.html:165
+msgid "Paid school expenses"
+msgstr "Matumizi ya shule yaliyolipwa"
+
+#: .\templates\dashboard\home.html:173
+msgid "Net Cash"
+msgstr "Fedha Halisi"
+
+#: .\templates\dashboard\home.html:175
+msgid "Income minus expenses"
+msgstr "Mapato ukitoa matumizi"
+
+#: .\templates\dashboard\home.html:183
+msgid "Outstanding Fees"
+msgstr "Ada Zilizobaki"
+
+#: .\templates\dashboard\home.html:186
+#, python-format
+msgid "%(count)s students with debt"
+msgstr "%(count)s wanafunzi wenye deni"
+
+#: .\templates\dashboard\home.html:197
+msgid "Configured class levels"
+msgstr "Ngazi za madarasa zilizowekwa"
+
+#: .\templates\dashboard\home.html:205
+msgid "Configured streams"
+msgstr "Mikondo iliyowekwa"
+
+#: .\templates\dashboard\home.html:215
+msgid "Academic subjects"
+msgstr "Masomo ya kitaaluma"
+
+#: .\templates\dashboard\home.html:230
+msgid "Recent Students"
+msgstr "Wanafunzi wa Hivi Karibuni"
+
+#: .\templates\dashboard\home.html:231
+msgid "Latest admitted student records."
+msgstr "Taarifa za wanafunzi walioandikishwa hivi karibuni."
+
+#: .\templates\dashboard\home.html:236 .\templates\dashboard\home.html:442
+msgid "Admit Student"
+msgstr "Andikisha Mwanafunzi"
+
+#: .\templates\dashboard\home.html:245
+msgid "Student"
+msgstr "Mwanafunzi"
+
+#: .\templates\dashboard\home.html:246
+msgid "Admission No"
+msgstr "Namba ya Usajili"
+
+#: .\templates\dashboard\home.html:248
+msgid "Parent"
+msgstr "Mzazi"
+
+#: .\templates\dashboard\home.html:277
+msgid "Suspended"
+msgstr "Amesimamishwa"
+
+#: .\templates\dashboard\home.html:285 .\templates\dashboard\home.html:529
+msgid "View"
+msgstr "Tazama"
+
+#: .\templates\dashboard\home.html:292
+msgid "No students added yet."
+msgstr "Hakuna wanafunzi walioongezwa bado."
+
+#: .\templates\dashboard\home.html:309
+msgid "Recent Financial Activity"
+msgstr "Shughuli za Fedha za Hivi Karibuni"
+
+#: .\templates\dashboard\home.html:310
+msgid "Latest income and expense records."
+msgstr "Kumbukumbu za mapato na matumizi za hivi karibuni."
+
+#: .\templates\dashboard\home.html:322 .\templates\dashboard\home.html:472
+msgid "Record Expense"
+msgstr "Rekodi Matumizi"
+
+#: .\templates\dashboard\home.html:331
+msgid "Recent Payments"
+msgstr "Malipo ya Hivi Karibuni"
+
+#: .\templates\dashboard\home.html:342
+msgid "No payments recorded yet."
+msgstr "Hakuna malipo yaliyorekodiwa bado."
+
+#: .\templates\dashboard\home.html:349
+msgid "Recent Expenses"
+msgstr "Matumizi ya Hivi Karibuni"
+
+#: .\templates\dashboard\home.html:360
+msgid "No expenses recorded yet."
+msgstr "Hakuna matumizi yaliyorekodiwa bado."
+
+#: .\templates\dashboard\home.html:373
+msgid "Teacher Shortcuts"
+msgstr "Njia za Haraka za Mwalimu"
+
+#: .\templates\dashboard\home.html:387
+msgid "Enter Marks"
+msgstr "Ingiza Alama"
+
+#: .\templates\dashboard\home.html:395
+msgid "My Timetable"
+msgstr "Ratiba Yangu"
+
+#: .\templates\dashboard\home.html:418
+msgid "Quick Actions"
+msgstr "Vitendo vya Haraka"
+
+#: .\templates\dashboard\home.html:424
+msgid "Setup School Profile"
+msgstr "Weka Wasifu wa Shule"
+
+#: .\templates\dashboard\home.html:430
+msgid "Manage Classes & Subjects"
+msgstr "Simamia Madarasa na Masomo"
+
+#: .\templates\dashboard\home.html:436
+msgid "Add Parent / Guardian"
+msgstr "Ongeza Mzazi / Mlezi"
+
+#: .\templates\dashboard\home.html:448
+msgid "Add Staff / Teacher"
+msgstr "Ongeza Mfanyakazi / Mwalimu"
+
+#: .\templates\dashboard\home.html:460
+msgid "Create Student Invoice"
+msgstr "Unda Ankara ya Mwanafunzi"
+
+#: .\templates\dashboard\home.html:466
+msgid "Record Fee Payment"
+msgstr "Rekodi Malipo ya Ada"
+
+#: .\templates\dashboard\home.html:478
+msgid "Manage Library"
+msgstr "Simamia Maktaba"
+
+#: .\templates\dashboard\home.html:484
+msgid "Manage Hostel / Boarding"
+msgstr "Simamia Hosteli / Bweni"
+
+#: .\templates\dashboard\home.html:490
+msgid "Manage Transport"
+msgstr "Simamia Usafiri"
+
+#: .\templates\dashboard\home.html:496
+msgid "Manage Inventory"
+msgstr "Simamia Bohari"
+
+#: .\templates\dashboard\home.html:502
+msgid "Manage Payroll"
+msgstr "Simamia Mishahara"
+
+#: .\templates\dashboard\home.html:508
+msgid "No quick actions available for this account."
+msgstr "Hakuna vitendo vya haraka vinavyopatikana kwa akaunti hii."
+
+#: .\templates\dashboard\home.html:519
+msgid "Recent Staff"
+msgstr "Wafanyakazi wa Hivi Karibuni"
+
+#: .\templates\dashboard\home.html:534
+msgid "No staff members added yet."
+msgstr "Hakuna wafanyakazi walioongezwa bado."
+
+#: .\templates\dashboard\home.html:544
+msgid "Your Access"
+msgstr "Ruhusa Yako"
+
+#: .\templates\dashboard\home.html:546
+msgid "Your dashboard shows only the sections allowed for your account role."
+msgstr ""
+"Dashibodi yako inaonyesha sehemu tu zinazoruhusiwa kwa jukumu la akaunti "
+"yako."
+
+#~ msgid "Messages"
+#~ msgstr "Ujumbe"
+
+#~ msgid "Site Maps"
+#~ msgstr "Ramani za Tovuti"
+
+#~ msgid "Static Files"
+#~ msgstr "Faili za Kudumu"
+
+#~ msgid "Syndication"
+#~ msgstr "Usambazaji"
+
+#~ msgid "…"
+#~ msgstr "…"
+
+#~ msgid "That page number is not an integer"
+#~ msgstr "Namba ya ukurasa si namba kamili"
+
+#~ msgid "That page number is less than 1"
+#~ msgstr "Namba ya ukurasa ni ndogo kuliko 1"
+
+#~ msgid "That page contains no results"
+#~ msgstr "Ukurasa huo hauna matokeo"
+
+#~ msgid "Enter a valid value."
+#~ msgstr "Weka thamani sahihi."
+
+#~ msgid "Enter a valid domain name."
+#~ msgstr "Weka jina sahihi la domain."
+
+#~ msgid "Enter a valid URL."
+#~ msgstr "Weka URL sahihi."
+
+#~ msgid "Enter a valid integer."
+#~ msgstr "Weka namba kamili sahihi."
+
+#~ msgid "Enter a valid email address."
+#~ msgstr "Weka barua pepe sahihi."
+
+#~ msgid "Enter only digits separated by commas."
+#~ msgstr "Weka tarakimu pekee zikitenganishwa kwa koma."
+
+#~ msgid "Enter a number."
+#~ msgstr "Weka namba."
+
+#~ msgid "Null characters are not allowed."
+#~ msgstr "Herufi tupu haziruhusiwi."
+
+#~ msgid "and"
+#~ msgstr "na"
+
+#~ msgid "Value %(value)r is not a valid choice."
+#~ msgstr "Thamani %(value)r si chaguo sahihi."
+
+#~ msgid "This field cannot be null."
+#~ msgstr "Sehemu hii haiwezi kuwa tupu."
+
+#~ msgid "This field cannot be blank."
+#~ msgstr "Sehemu hii haiwezi kuachwa wazi."
+
+#~ msgid "Boolean (Either True or False)"
+#~ msgstr "Booleani (Kweli au Si Kweli)"
+
+#~ msgid "String (unlimited)"
+#~ msgstr "Maandishi yasiyo na kikomo"
+
+#~ msgid "Comma-separated integers"
+#~ msgstr "Namba kamili zilizotenganishwa kwa koma"
+
+#~ msgid "Date (without time)"
+#~ msgstr "Tarehe bila muda"
+
+#~ msgid "Date (with time)"
+#~ msgstr "Tarehe yenye muda"
+
+#~ msgid "Decimal number"
+#~ msgstr "Namba ya desimali"
+
+#~ msgid "Duration"
+#~ msgstr "Muda"
+
+#~ msgid "Email address"
+#~ msgstr "Barua pepe"
+
+#~ msgid "File path"
+#~ msgstr "Njia ya faili"
+
+#~ msgid "Floating point number"
+#~ msgstr "Namba yenye desimali"
+
+#~ msgid "Integer"
+#~ msgstr "Namba kamili"
+
+#~ msgid "Big (8 byte) integer"
+#~ msgstr "Namba kamili kubwa"
+
+#~ msgid "Small integer"
+#~ msgstr "Namba kamili ndogo"
+
+#~ msgid "IPv4 address"
+#~ msgstr "Anwani ya IPv4"
+
+#~ msgid "IP address"
+#~ msgstr "Anwani ya IP"
+
+#~ msgid "Positive big integer"
+#~ msgstr "Namba kubwa chanya"
+
+#~ msgid "Positive integer"
+#~ msgstr "Namba chanya"
+
+#~ msgid "Positive small integer"
+#~ msgstr "Namba ndogo chanya"
+
+#~ msgid "Text"
+#~ msgstr "Maandishi"
+
+#~ msgid "Time"
+#~ msgstr "Muda"
+
+#~ msgid "URL"
+#~ msgstr "URL"
+
+#~ msgid "Raw binary data"
+#~ msgstr "Data ghafi ya binary"
+
+#~ msgid "Universally unique identifier"
+#~ msgstr "Kitambulisho cha kipekee"
+
+#~ msgid "File"
+#~ msgstr "Faili"
+
+#~ msgid "Image"
+#~ msgstr "Picha"
+
+#~ msgid "A JSON object"
+#~ msgstr "Kitu cha JSON"
+
+#~ msgid "Value must be valid JSON."
+#~ msgstr "Thamani lazima iwe JSON sahihi."
+
+#~ msgid "Foreign Key (type determined by related field)"
+#~ msgstr "Ufunguo wa nje"
+
+#~ msgid "One-to-one relationship"
+#~ msgstr "Uhusiano wa moja kwa moja"
+
+#~ msgid "Many-to-many relationship"
+#~ msgstr "Uhusiano wa wengi kwa wengi"
+
+#~ msgid "This field is required."
+#~ msgstr "Sehemu hii inahitajika."
+
+#~ msgid "Enter a whole number."
+#~ msgstr "Weka namba kamili."
+
+#~ msgid "Enter a valid date."
+#~ msgstr "Weka tarehe sahihi."
+
+#~ msgid "Enter a valid time."
+#~ msgstr "Weka muda sahihi."
+
+#~ msgid "Enter a valid date/time."
+#~ msgstr "Weka tarehe/muda sahihi."
+
+#~ msgid "Enter a valid duration."
+#~ msgstr "Weka muda sahihi."
+
+#~ msgid "No file was submitted. Check the encoding type on the form."
+#~ msgstr "Hakuna faili iliyotumwa. Angalia aina ya encoding ya fomu."
+
+#~ msgid "No file was submitted."
+#~ msgstr "Hakuna faili iliyotumwa."
+
+#~ msgid "The submitted file is empty."
+#~ msgstr "Faili iliyotumwa haina kitu."
+
+#~ msgid "Please either submit a file or check the clear checkbox, not both."
+#~ msgstr "Tuma faili au chagua kisanduku cha kufuta, si vyote kwa pamoja."
+
+#~ msgid ""
+#~ "Select a valid choice. %(value)s is not one of the available choices."
+#~ msgstr "Chagua chaguo sahihi. %(value)s si moja ya chaguo zilizopo."
+
+#~ msgid "Enter a list of values."
+#~ msgstr "Weka orodha ya thamani."
+
+#~ msgid "Enter a complete value."
+#~ msgstr "Weka thamani kamili."
+
+#~ msgid "Enter a valid UUID."
+#~ msgstr "Weka UUID sahihi."
+
+#~ msgid "Enter a valid JSON."
+#~ msgstr "Weka JSON sahihi."
+
+#~ msgid ":"
+#~ msgstr ":"
+
+#~ msgid "Please correct the duplicate values below."
+#~ msgstr "Tafadhali rekebisha thamani zilizojirudia hapa chini."
+
+#~ msgid ""
+#~ "Select a valid choice. That choice is not one of the available choices."
+#~ msgstr "Chagua chaguo sahihi. Chaguo hilo halipo kwenye orodha."
+
+#~ msgid "Clear"
+#~ msgstr "Futa"
+
+#~ msgid "Currently"
+#~ msgstr "Kwa sasa"
+
+#~ msgid "Change"
+#~ msgstr "Badilisha"
+
+#~ msgid "Unknown"
+#~ msgstr "Haijulikani"
+
+#~ msgid "Yes"
+#~ msgstr "Ndiyo"
+
+#~ msgid "No"
+#~ msgstr "Hapana"
+
+#~ msgid "yes,no,maybe"
+#~ msgstr "ndiyo,hapana,labda"
+
+#~ msgid "%s KB"
+#~ msgstr "%s KB"
+
+#~ msgid "%s MB"
+#~ msgstr "%s MB"
+
+#~ msgid "%s GB"
+#~ msgstr "%s GB"
+
+#~ msgid "%s TB"
+#~ msgstr "%s TB"
+
+#~ msgid "%s PB"
+#~ msgstr "%s PB"
+
+#~ msgid "p.m."
+#~ msgstr "jioni"
+
+#~ msgid "a.m."
+#~ msgstr "asubuhi"
+
+#~ msgid "PM"
+#~ msgstr "PM"
+
+#~ msgid "AM"
+#~ msgstr "AM"
+
+#~ msgid "midnight"
+#~ msgstr "saa sita usiku"
+
+#~ msgid "noon"
+#~ msgstr "saa sita mchana"
+
+#~ msgid "Monday"
+#~ msgstr "Jumatatu"
+
+#~ msgid "Tuesday"
+#~ msgstr "Jumanne"
+
+#~ msgid "Wednesday"
+#~ msgstr "Jumatano"
+
+#~ msgid "Thursday"
+#~ msgstr "Alhamisi"
+
+#~ msgid "Friday"
+#~ msgstr "Ijumaa"
+
+#~ msgid "Saturday"
+#~ msgstr "Jumamosi"
+
+#~ msgid "Sunday"
+#~ msgstr "Jumapili"
+
+#~ msgid "Mon"
+#~ msgstr "Jtatu"
+
+#~ msgid "Tue"
+#~ msgstr "Jnne"
+
+#~ msgid "Wed"
+#~ msgstr "Jtano"
+
+#~ msgid "Thu"
+#~ msgstr "Alh"
+
+#~ msgid "Fri"
+#~ msgstr "Iju"
+
+#~ msgid "Sat"
+#~ msgstr "Jmosi"
+
+#~ msgid "Sun"
+#~ msgstr "Jpili"
+
+#~ msgid "January"
+#~ msgstr "Januari"
+
+#~ msgid "February"
+#~ msgstr "Februari"
+
+#~ msgid "March"
+#~ msgstr "Machi"
+
+#~ msgid "April"
+#~ msgstr "Aprili"
+
+#~ msgid "May"
+#~ msgstr "Mei"
+
+#~ msgid "June"
+#~ msgstr "Juni"
+
+#~ msgid "July"
+#~ msgstr "Julai"
+
+#~ msgid "August"
+#~ msgstr "Agosti"
+
+#~ msgid "September"
+#~ msgstr "Septemba"
+
+#~ msgid "October"
+#~ msgstr "Oktoba"
+
+#~ msgid "November"
+#~ msgstr "Novemba"
+
+#~ msgid "December"
+#~ msgstr "Desemba"
+
+#~ msgid "jan"
+#~ msgstr "jan"
+
+#~ msgid "feb"
+#~ msgstr "feb"
+
+#~ msgid "mar"
+#~ msgstr "mac"
+
+#~ msgid "apr"
+#~ msgstr "apr"
+
+#~ msgid "may"
+#~ msgstr "mei"
+
+#~ msgid "jun"
+#~ msgstr "jun"
+
+#~ msgid "jul"
+#~ msgstr "jul"
+
+#~ msgid "aug"
+#~ msgstr "ago"
+
+#~ msgid "sep"
+#~ msgstr "sep"
+
+#~ msgid "oct"
+#~ msgstr "okt"
+
+#~ msgid "nov"
+#~ msgstr "nov"
+
+#~ msgid "dec"
+#~ msgstr "des"
+
+#~ msgid "This is not a valid IPv6 address."
+#~ msgstr "Hii si anwani sahihi ya IPv6."
+
+#~ msgid "or"
+#~ msgstr "au"
+
+#~ msgid ", "
+#~ msgstr ", "
+
+#~ msgid "Forbidden"
+#~ msgstr "Hairuhusiwi"
+
+#~ msgid "CSRF verification failed. Request aborted."
+#~ msgstr "Uthibitisho wa CSRF umeshindikana. Ombi limesitishwa."
+
+#~ msgid "More information is available with DEBUG=True."
+#~ msgstr "Maelezo zaidi yanapatikana ikiwa DEBUG=True."
+
+#~ msgid "No year specified"
+#~ msgstr "Hakuna mwaka uliotajwa"
+
+#~ msgid "Date out of range"
+#~ msgstr "Tarehe ipo nje ya kiwango"
+
+#~ msgid "No month specified"
+#~ msgstr "Hakuna mwezi uliotajwa"
+
+#~ msgid "No day specified"
+#~ msgstr "Hakuna siku iliyotajwa"
+
+#~ msgid "No week specified"
+#~ msgstr "Hakuna wiki iliyotajwa"
+
+#~ msgid "Directory indexes are not allowed here."
+#~ msgstr "Orodha za folda haziruhusiwi hapa."
+
+#~ msgid "Django Documentation"
+#~ msgstr "Nyaraka za Django"
+
+#~ msgid "Get started with Django"
+#~ msgstr "Anza kutumia Django"
+
+#~ msgid "Django Community"
+#~ msgstr "Jamii ya Django"
+
+#~ msgid "Connect, get help, or contribute"
+#~ msgstr "Unganisha, pata msaada, au changia"

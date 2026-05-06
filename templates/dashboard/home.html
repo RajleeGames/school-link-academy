@@ -1,0 +1,555 @@
+{% extends "base/dashboard_base.html" %}
+{% load i18n %}
+{% load school_filters %}
+
+{% block title %}{% trans "Dashboard" %} | School Link{% endblock %}
+
+{% block page_title %}
+  {% if role == "teacher" %}
+    {% trans "Teacher Dashboard" %}
+  {% elif role == "cashier" %}
+    {% trans "Cashier Dashboard" %}
+  {% elif role == "accountant" %}
+    {% trans "Finance Dashboard" %}
+  {% elif role == "librarian" %}
+    {% trans "Library Dashboard" %}
+  {% elif role == "hostel_manager" %}
+    {% trans "Hostel Dashboard" %}
+  {% elif role == "transport_manager" %}
+    {% trans "Transport Dashboard" %}
+  {% elif role == "stock_keeper" %}
+    {% trans "Inventory Dashboard" %}
+  {% elif role == "head_teacher" %}
+    {% trans "Head Teacher Dashboard" %}
+  {% elif role == "academic_master" %}
+    {% trans "Academic Dashboard" %}
+  {% elif role == "secretary" %}
+    {% trans "Secretary Dashboard" %}
+  {% else %}
+    {% trans "Dashboard" %}
+  {% endif %}
+{% endblock %}
+
+{% block page_subtitle %}
+  {% if role == "teacher" %}
+    {% trans "View your teaching areas, students, attendance, results, timetable, and homework." %}
+  {% elif role == "cashier" %}
+    {% trans "Manage payments, receipts, invoices, and fee balances." %}
+  {% elif role == "accountant" %}
+    {% trans "Manage school finance, fees, expenses, payroll, and reports." %}
+  {% elif role == "librarian" %}
+    {% trans "Manage books, borrowing records, returns, and library operations." %}
+  {% elif role == "head_teacher" %}
+    {% trans "Overview of academics, students, staff, attendance, and exams." %}
+  {% elif role == "academic_master" %}
+    {% trans "Manage academics, classes, subjects, exams, and learning reports." %}
+  {% elif role == "secretary" %}
+    {% trans "Manage students, parents, admissions, and attendance records." %}
+  {% else %}
+    {% trans "Overview of students, staff, finance, academics, and school operations." %}
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+
+{% if role == "teacher" and teacher_profile %}
+  <div class="sl-card mb-4">
+    <div class="sl-card-body">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <div>
+          <h5 class="fw-bold mb-1">
+            {% blocktrans with name=teacher_profile.full_name %}Welcome, {{ name }}{% endblocktrans %}
+          </h5>
+          <div class="small text-muted">
+            {% trans "Teacher workspace for classes, subjects, attendance, results, timetable, and homework." %}
+          </div>
+        </div>
+
+        <span class="badge bg-light text-dark border">
+          {{ teacher_profile.get_role_display }}
+        </span>
+      </div>
+
+      <div class="row g-3 mt-3">
+        <div class="col-md-6">
+          <div class="small fw-bold text-muted text-uppercase mb-2">
+            {% trans "Assigned Classes" %}
+          </div>
+
+          {% for class_level in teacher_classes %}
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle me-1 mb-1">
+              {{ class_level.name }}
+            </span>
+          {% empty %}
+            <div class="small text-muted">{% trans "No assigned classes yet." %}</div>
+          {% endfor %}
+        </div>
+
+        <div class="col-md-6">
+          <div class="small fw-bold text-muted text-uppercase mb-2">
+            {% trans "Assigned Subjects" %}
+          </div>
+
+          {% for subject in teacher_subjects %}
+            <span class="badge bg-success-subtle text-success border border-success-subtle me-1 mb-1">
+              {{ subject.name }}
+            </span>
+          {% empty %}
+            <div class="small text-muted">{% trans "No assigned subjects yet." %}</div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+{% endif %}
+
+<div class="row g-3 mb-4">
+
+  {% if can_view_students %}
+    <div class="col-6 col-lg-3">
+      <div class="sl-stat-card">
+        <div class="sl-stat-label">{% trans "Total Students" %}</div>
+        <div class="sl-stat-value">{{ total_students|numcomma }}</div>
+        <div class="sl-stat-note">
+          {% blocktrans with count=active_students|numcomma %}{{ count }} active students{% endblocktrans %}
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  {% if can_view_parents %}
+    <div class="col-6 col-lg-3">
+      <div class="sl-stat-card">
+        <div class="sl-stat-label">{% trans "Parents / Guardians" %}</div>
+        <div class="sl-stat-value">{{ total_parents|numcomma }}</div>
+        <div class="sl-stat-note">{% trans "Linked guardian records" %}</div>
+      </div>
+    </div>
+  {% endif %}
+
+  {% if can_view_staff %}
+    <div class="col-6 col-lg-3">
+      <div class="sl-stat-card">
+        <div class="sl-stat-label">{% trans "Teachers" %}</div>
+        <div class="sl-stat-value">{{ total_teachers|numcomma }}</div>
+        <div class="sl-stat-note">{% trans "Teaching staff members" %}</div>
+      </div>
+    </div>
+
+    <div class="col-6 col-lg-3">
+      <div class="sl-stat-card">
+        <div class="sl-stat-label">{% trans "All Staff" %}</div>
+        <div class="sl-stat-value">{{ total_staff|numcomma }}</div>
+        <div class="sl-stat-note">
+          {% blocktrans with count=active_staff|numcomma %}{{ count }} active staff{% endblocktrans %}
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  {% if can_view_payments %}
+    <div class="col-6 col-lg-3">
+      <div class="sl-stat-card">
+        <div class="sl-stat-label">{% trans "Fees Paid" %}</div>
+        <div class="sl-stat-value">{{ total_fees_paid|tzs }}</div>
+        <div class="sl-stat-note">{% trans "Confirmed fee payments" %}</div>
+      </div>
+    </div>
+  {% endif %}
+
+  {% if can_view_expenses %}
+    <div class="col-6 col-lg-3">
+      <div class="sl-stat-card">
+        <div class="sl-stat-label">{% trans "Expenses" %}</div>
+        <div class="sl-stat-value">{{ total_expenses|tzs }}</div>
+        <div class="sl-stat-note">{% trans "Paid school expenses" %}</div>
+      </div>
+    </div>
+  {% endif %}
+
+  {% if can_view_payments or can_view_expenses %}
+    <div class="col-6 col-lg-3">
+      <div class="sl-stat-card">
+        <div class="sl-stat-label">{% trans "Net Cash" %}</div>
+        <div class="sl-stat-value">{{ net_cash|tzs }}</div>
+        <div class="sl-stat-note">{% trans "Income minus expenses" %}</div>
+      </div>
+    </div>
+  {% endif %}
+
+  {% if can_view_fees %}
+    <div class="col-6 col-lg-3">
+      <div class="sl-stat-card">
+        <div class="sl-stat-label">{% trans "Outstanding Fees" %}</div>
+        <div class="sl-stat-value">{{ outstanding_fees|tzs }}</div>
+        <div class="sl-stat-note">
+          {% blocktrans with count=total_debtors|numcomma %}{{ count }} students with debt{% endblocktrans %}
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  {% if can_view_academics %}
+    <div class="col-6 col-lg-3">
+      <div class="sl-stat-card">
+        <div class="sl-stat-label">{% trans "Classes" %}</div>
+        <div class="sl-stat-value">{{ total_classes|numcomma }}</div>
+        <div class="sl-stat-note">{% trans "Configured class levels" %}</div>
+      </div>
+    </div>
+
+    <div class="col-6 col-lg-3">
+      <div class="sl-stat-card">
+        <div class="sl-stat-label">{% trans "Streams" %}</div>
+        <div class="sl-stat-value">{{ total_streams|numcomma }}</div>
+        <div class="sl-stat-note">{% trans "Configured streams" %}</div>
+      </div>
+    </div>
+  {% endif %}
+
+  {% if can_view_subjects %}
+    <div class="col-6 col-lg-3">
+      <div class="sl-stat-card">
+        <div class="sl-stat-label">{% trans "Subjects" %}</div>
+        <div class="sl-stat-value">{{ total_subjects|numcomma }}</div>
+        <div class="sl-stat-note">{% trans "Academic subjects" %}</div>
+      </div>
+    </div>
+  {% endif %}
+
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-8">
+
+    {% if can_view_students %}
+      <div class="sl-card mb-3">
+        <div class="sl-card-body">
+          <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+            <div>
+              <h5 class="fw-bold mb-1">{% trans "Recent Students" %}</h5>
+              <div class="small text-muted">{% trans "Latest admitted student records." %}</div>
+            </div>
+
+            {% if "students.manage" in current_user_permissions %}
+              <a href="{% url 'student_create' %}" class="btn btn-sl-primary btn-sm">
+                + {% trans "Admit Student" %}
+              </a>
+            {% endif %}
+          </div>
+
+          <div class="table-responsive">
+            <table class="table align-middle">
+              <thead>
+                <tr>
+                  <th>{% trans "Student" %}</th>
+                  <th>{% trans "Admission No" %}</th>
+                  <th>{% trans "Class" %}</th>
+                  <th>{% trans "Parent" %}</th>
+                  <th>{% trans "Status" %}</th>
+                  <th class="text-end">{% trans "Action" %}</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {% for student in recent_students %}
+                  <tr>
+                    <td>
+                      <div class="fw-bold">{{ student.full_name }}</div>
+                      <div class="small text-muted">{{ student.get_gender_display }}</div>
+                    </td>
+
+                    <td>{{ student.admission_number }}</td>
+
+                    <td>
+                      {{ student.class_level.name }}
+                      {% if student.stream %}
+                        {{ student.stream.name }}
+                      {% endif %}
+                    </td>
+
+                    <td>{{ student.parent_guardian.full_name }}</td>
+
+                    <td>
+                      {% if student.status == "active" %}
+                        <span class="badge badge-soft-success">{% trans "Active" %}</span>
+                      {% elif student.status == "suspended" %}
+                        <span class="badge badge-soft-danger">{% trans "Suspended" %}</span>
+                      {% else %}
+                        <span class="badge badge-soft-primary">{{ student.get_status_display }}</span>
+                      {% endif %}
+                    </td>
+
+                    <td class="text-end">
+                      <a href="{% url 'student_detail' student.pk %}" class="btn btn-sm btn-light border">
+                        {% trans "View" %}
+                      </a>
+                    </td>
+                  </tr>
+                {% empty %}
+                  <tr>
+                    <td colspan="6" class="text-center text-muted py-4">
+                      {% trans "No students added yet." %}
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+      </div>
+    {% endif %}
+
+    {% if can_view_payments or can_view_expenses %}
+      <div class="sl-card">
+        <div class="sl-card-body">
+          <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+            <div>
+              <h5 class="fw-bold mb-1">{% trans "Recent Financial Activity" %}</h5>
+              <div class="small text-muted">{% trans "Latest income and expense records." %}</div>
+            </div>
+
+            <div class="d-flex flex-wrap gap-2">
+              {% if "payments.manage" in current_user_permissions %}
+                <a href="{% url 'payment_create' %}" class="btn btn-light border btn-sm">
+                  {% trans "Record Payment" %}
+                </a>
+              {% endif %}
+
+              {% if "expenses.manage" in current_user_permissions %}
+                <a href="{% url 'expense_create' %}" class="btn btn-sl-primary btn-sm">
+                  {% trans "Record Expense" %}
+                </a>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="row g-3">
+            {% if can_view_payments %}
+              <div class="col-md-6">
+                <h6 class="fw-bold small text-muted text-uppercase">{% trans "Recent Payments" %}</h6>
+
+                {% for payment in recent_payments %}
+                  <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                    <div>
+                      <div class="fw-bold small">{{ payment.receipt_number }}</div>
+                      <div class="small text-muted">{{ payment.invoice.student.full_name }}</div>
+                    </div>
+                    <div class="fw-bold small">{{ payment.amount|tzs }}</div>
+                  </div>
+                {% empty %}
+                  <div class="text-muted small">{% trans "No payments recorded yet." %}</div>
+                {% endfor %}
+              </div>
+            {% endif %}
+
+            {% if can_view_expenses %}
+              <div class="col-md-6">
+                <h6 class="fw-bold small text-muted text-uppercase">{% trans "Recent Expenses" %}</h6>
+
+                {% for expense in recent_expenses %}
+                  <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                    <div>
+                      <div class="fw-bold small">{{ expense.title }}</div>
+                      <div class="small text-muted">{{ expense.category.name }}</div>
+                    </div>
+                    <div class="fw-bold small">{{ expense.amount|tzs }}</div>
+                  </div>
+                {% empty %}
+                  <div class="text-muted small">{% trans "No expenses recorded yet." %}</div>
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+
+        </div>
+      </div>
+    {% endif %}
+
+    {% if role == "teacher" %}
+      <div class="sl-card">
+        <div class="sl-card-body">
+          <h5 class="fw-bold mb-3">{% trans "Teacher Shortcuts" %}</h5>
+
+          <div class="row g-2">
+            {% if "attendance.manage_students" in current_user_permissions %}
+              <div class="col-md-6">
+                <a href="{% url 'student_attendance_list' %}" class="btn btn-light border w-100 text-start">
+                  {% trans "Student Attendance" %}
+                </a>
+              </div>
+            {% endif %}
+
+            {% if "results.manage" in current_user_permissions %}
+              <div class="col-md-6">
+                <a href="{% url 'bulk_marks_entry' %}" class="btn btn-light border w-100 text-start">
+                  {% trans "Enter Marks" %}
+                </a>
+              </div>
+            {% endif %}
+
+            {% if "timetable.view" in current_user_permissions %}
+              <div class="col-md-6">
+                <a href="{% url 'teacher_timetable' %}" class="btn btn-light border w-100 text-start">
+                  {% trans "My Timetable" %}
+                </a>
+              </div>
+            {% endif %}
+
+            {% if "homework.manage" in current_user_permissions %}
+              <div class="col-md-6">
+                <a href="{% url 'homework_home' %}" class="btn btn-light border w-100 text-start">
+                  {% trans "Homework" %}
+                </a>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+  </div>
+
+  <div class="col-lg-4">
+
+    <div class="sl-card mb-3">
+      <div class="sl-card-body">
+        <h5 class="fw-bold mb-3">{% trans "Quick Actions" %}</h5>
+
+        <div class="d-grid gap-2">
+
+          {% if "school.profile.view" in current_user_permissions %}
+            <a href="{% url 'school_profile' %}" class="btn btn-light border text-start small">
+              {% trans "Setup School Profile" %}
+            </a>
+          {% endif %}
+
+          {% if "academics.view" in current_user_permissions %}
+            <a href="{% url 'academics_home' %}" class="btn btn-light border text-start small">
+              {% trans "Manage Classes & Subjects" %}
+            </a>
+          {% endif %}
+
+          {% if "parents.manage" in current_user_permissions %}
+            <a href="{% url 'parent_create' %}" class="btn btn-light border text-start small">
+              {% trans "Add Parent / Guardian" %}
+            </a>
+          {% endif %}
+
+          {% if "students.manage" in current_user_permissions %}
+            <a href="{% url 'student_create' %}" class="btn btn-light border text-start small">
+              {% trans "Admit Student" %}
+            </a>
+          {% endif %}
+
+          {% if "staff.manage" in current_user_permissions %}
+            <a href="{% url 'staff_create' %}" class="btn btn-light border text-start small">
+              {% trans "Add Staff / Teacher" %}
+            </a>
+          {% endif %}
+
+          {% if "attendance.manage_students" in current_user_permissions %}
+            <a href="{% url 'bulk_student_attendance' %}" class="btn btn-light border text-start small">
+              {% trans "Bulk Student Attendance" %}
+            </a>
+          {% endif %}
+
+          {% if "invoices.manage" in current_user_permissions %}
+            <a href="{% url 'invoice_create' %}" class="btn btn-light border text-start small">
+              {% trans "Create Student Invoice" %}
+            </a>
+          {% endif %}
+
+          {% if "payments.manage" in current_user_permissions %}
+            <a href="{% url 'payment_create' %}" class="btn btn-light border text-start small">
+              {% trans "Record Fee Payment" %}
+            </a>
+          {% endif %}
+
+          {% if "expenses.manage" in current_user_permissions %}
+            <a href="{% url 'expense_create' %}" class="btn btn-light border text-start small">
+              {% trans "Record Expense" %}
+            </a>
+          {% endif %}
+
+          {% if "library.manage" in current_user_permissions %}
+            <a href="{% url 'library_home' %}" class="btn btn-light border text-start small">
+              {% trans "Manage Library" %}
+            </a>
+          {% endif %}
+
+          {% if "hostel.manage" in current_user_permissions %}
+            <a href="{% url 'hostel_home' %}" class="btn btn-light border text-start small">
+              {% trans "Manage Hostel / Boarding" %}
+            </a>
+          {% endif %}
+
+          {% if "transport.manage" in current_user_permissions %}
+            <a href="{% url 'transport_home' %}" class="btn btn-light border text-start small">
+              {% trans "Manage Transport" %}
+            </a>
+          {% endif %}
+
+          {% if "inventory.manage" in current_user_permissions %}
+            <a href="{% url 'inventory_home' %}" class="btn btn-light border text-start small">
+              {% trans "Manage Inventory" %}
+            </a>
+          {% endif %}
+
+          {% if "payroll.manage" in current_user_permissions %}
+            <a href="{% url 'payroll_home' %}" class="btn btn-light border text-start small">
+              {% trans "Manage Payroll" %}
+            </a>
+          {% endif %}
+
+          {% if not current_user_permissions %}
+            <div class="text-muted small">
+              {% trans "No quick actions available for this account." %}
+            </div>
+          {% endif %}
+
+        </div>
+      </div>
+    </div>
+
+    {% if can_view_staff %}
+      <div class="sl-card">
+        <div class="sl-card-body">
+          <h5 class="fw-bold mb-3">{% trans "Recent Staff" %}</h5>
+
+          {% for staff in recent_staff %}
+            <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+              <div>
+                <div class="fw-bold small">{{ staff.full_name }}</div>
+                <div class="small text-muted">{{ staff.get_role_display }}</div>
+              </div>
+
+              <a href="{% url 'staff_detail' staff.pk %}" class="btn btn-sm btn-light border">
+                {% trans "View" %}
+              </a>
+            </div>
+          {% empty %}
+            <div class="text-muted small">
+              {% trans "No staff members added yet." %}
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    {% if not can_view_staff and role != "teacher" %}
+      <div class="sl-card">
+        <div class="sl-card-body">
+          <h5 class="fw-bold mb-2">{% trans "Your Access" %}</h5>
+          <div class="small text-muted">
+            {% trans "Your dashboard shows only the sections allowed for your account role." %}
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+  </div>
+</div>
+
+{% endblock %}

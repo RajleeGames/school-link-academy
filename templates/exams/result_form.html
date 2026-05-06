@@ -1,0 +1,64 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}{{ title }} | School Link{% endblock %}
+
+{% block page_title %}{{ title }}{% endblock %}
+{% block page_subtitle %}
+  {% if is_update %}
+    Update marks for one student and one subject.
+  {% else %}
+    Enter marks for one student and one subject.
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+
+<div class="sl-card">
+  <div class="sl-card-body">
+    <form method="post">
+      {% csrf_token %}
+
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label small fw-bold">Exam</label>
+          {{ form.exam }}
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label small fw-bold">Student</label>
+          {{ form.student }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Subject</label>
+          {{ form.subject }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Teacher</label>
+          {{ form.teacher }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Marks</label>
+          {{ form.marks }}
+        </div>
+      </div>
+
+      {% if form.errors %}
+        <div class="alert alert-danger small mt-3">
+          {{ form.errors }}
+        </div>
+      {% endif %}
+
+      <div class="d-flex justify-content-between mt-4">
+        <a href="{% url 'result_list' %}" class="btn btn-light border">Cancel</a>
+        <button class="btn btn-sl-primary">
+          {{ button_text|default:"Save Result" }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

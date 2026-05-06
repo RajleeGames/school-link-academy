@@ -1,0 +1,149 @@
+{% extends "base/dashboard_base.html" %}
+{% load humanize %}
+
+{% block title %}Homework | School Link{% endblock %}
+
+{% block page_title %}Homework{% endblock %}
+{% block page_subtitle %}Manage assignments, submissions, due dates, and teacher feedback.{% endblock %}
+
+{% block content %}
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Total Homework</div>
+      <div class="sl-stat-value">{{ total_homework|intcomma }}</div>
+      <div class="sl-stat-note">All homework records</div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Published</div>
+      <div class="sl-stat-value">{{ published_homework|intcomma }}</div>
+      <div class="sl-stat-note">Visible assignments</div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Closed</div>
+      <div class="sl-stat-value">{{ closed_homework|intcomma }}</div>
+      <div class="sl-stat-note">Completed assignments</div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Submissions</div>
+      <div class="sl-stat-value">{{ total_submissions|intcomma }}</div>
+      <div class="sl-stat-note">Student submission records</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="sl-card">
+      <div class="sl-card-body">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <div>
+            <h5 class="fw-bold mb-1">Recent Homework</h5>
+            <div class="small text-muted">Latest homework assignments.</div>
+          </div>
+
+          <a href="{% url 'homework_create' %}" class="btn btn-sl-primary btn-sm">
+            + Create Homework
+          </a>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th>Homework</th>
+                <th>Class</th>
+                <th>Subject</th>
+                <th>Due Date</th>
+                <th>Status</th>
+                <th class="text-end">Action</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for item in recent_homework %}
+                <tr>
+                  <td class="fw-bold">{{ item.title }}</td>
+                  <td>
+                    {{ item.class_level.name }}
+                    {{ item.stream.name|default:"" }}
+                  </td>
+                  <td>{{ item.subject.name }}</td>
+                  <td>{{ item.due_date }}</td>
+                  <td>
+                    {% if item.status == "published" %}
+                      <span class="badge badge-soft-success">Published</span>
+                    {% elif item.status == "closed" %}
+                      <span class="badge badge-soft-warning">Closed</span>
+                    {% elif item.status == "cancelled" %}
+                      <span class="badge badge-soft-danger">Cancelled</span>
+                    {% else %}
+                      <span class="badge badge-soft-primary">Draft</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-end">
+                    <a href="{% url 'homework_detail' item.pk %}" class="btn btn-sm btn-light border">
+                      View
+                    </a>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="6" class="text-center text-muted py-4">
+                    No homework created yet.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="sl-card mb-3">
+      <div class="sl-card-body">
+        <h5 class="fw-bold mb-3">Quick Actions</h5>
+
+        <div class="d-grid gap-2">
+          <a href="{% url 'homework_create' %}" class="btn btn-light border text-start small">Create Homework</a>
+          <a href="{% url 'homework_list' %}" class="btn btn-light border text-start small">Homework List</a>
+          <a href="{% url 'submission_create' %}" class="btn btn-light border text-start small">Add Submission</a>
+          <a href="{% url 'submission_list' %}" class="btn btn-light border text-start small">Submission List</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="sl-card">
+      <div class="sl-card-body">
+        <h5 class="fw-bold mb-3">Recent Submissions</h5>
+
+        {% for sub in recent_submissions %}
+          <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+            <div>
+              <div class="fw-bold small">{{ sub.student.full_name }}</div>
+              <div class="small text-muted">{{ sub.homework.title }}</div>
+            </div>
+            <span class="badge badge-soft-primary">{{ sub.get_status_display }}</span>
+          </div>
+        {% empty %}
+          <div class="text-muted small">No submissions yet.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,143 @@
+{% extends "base/dashboard_base.html" %}
+{% load humanize %}
+
+{% block title %}Payroll | School Link{% endblock %}
+
+{% block page_title %}Payroll{% endblock %}
+{% block page_subtitle %}Manage staff salaries, allowances, deductions, payroll records, and payslips.{% endblock %}
+
+{% block content %}
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Salary Structures</div>
+      <div class="sl-stat-value">{{ total_structures|intcomma }}</div>
+      <div class="sl-stat-note">Registered salary setups</div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Active Structures</div>
+      <div class="sl-stat-value">{{ active_structures|intcomma }}</div>
+      <div class="sl-stat-note">Ready for payroll</div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Current Payroll</div>
+      <div class="sl-stat-value">{{ current_payroll_count|intcomma }}</div>
+      <div class="sl-stat-note">This month records</div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Payroll Total</div>
+      <div class="sl-stat-value">{{ current_payroll_total|floatformat:0|intcomma }}</div>
+      <div class="sl-stat-note">This month net salary</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="sl-card">
+      <div class="sl-card-body">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <div>
+            <h5 class="fw-bold mb-1">Recent Payroll Records</h5>
+            <div class="small text-muted">Latest generated or edited payroll records.</div>
+          </div>
+
+          <a href="{% url 'payroll_generate' %}" class="btn btn-sl-primary btn-sm">
+            Generate Payroll
+          </a>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th>Staff</th>
+                <th>Role</th>
+                <th>Period</th>
+                <th>Net Salary</th>
+                <th>Status</th>
+                <th class="text-end">Action</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for record in recent_records %}
+                <tr>
+                  <td>
+                    <div class="fw-semibold">{{ record.staff.full_name }}</div>
+                    <div class="small text-muted">{{ record.staff.staff_id }}</div>
+                  </td>
+                  <td>{{ record.staff.get_role_display }}</td>
+                  <td>{{ record.get_month_display }} {{ record.year }}</td>
+                  <td>{{ record.net_salary|floatformat:0|intcomma }}</td>
+                  <td>
+                    <span class="badge bg-light text-dark border">
+                      {{ record.get_status_display }}
+                    </span>
+                  </td>
+                  <td class="text-end">
+                    <a href="{% url 'payroll_record_detail' record.pk %}" class="btn btn-light border btn-sm">
+                      View
+                    </a>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="6" class="text-center text-muted py-4">
+                    No payroll records yet.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="sl-card">
+      <div class="sl-card-body">
+        <h5 class="fw-bold mb-3">Quick Actions</h5>
+
+        <div class="d-grid gap-2">
+          <a href="{% url 'salary_structure_list' %}" class="btn btn-light border text-start small">Salary Structures</a>
+          <a href="{% url 'salary_structure_create' %}" class="btn btn-light border text-start small">Add Salary Structure</a>
+          <a href="{% url 'payroll_generate' %}" class="btn btn-light border text-start small">Generate Payroll</a>
+          <a href="{% url 'payroll_record_list' %}" class="btn btn-light border text-start small">Payroll Records</a>
+          <a href="{% url 'payroll_record_create' %}" class="btn btn-light border text-start small">Manual Payroll Record</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="sl-card mt-3">
+      <div class="sl-card-body">
+        <h5 class="fw-bold mb-3">Status Summary</h5>
+
+        {% for item in status_summary %}
+          <div class="d-flex justify-content-between border-bottom py-2 small">
+            <span class="fw-semibold">{{ item.status|title }}</span>
+            <span class="text-muted">
+              {{ item.count|intcomma }} · {{ item.total|default:0|floatformat:0|intcomma }}
+            </span>
+          </div>
+        {% empty %}
+          <div class="text-muted small">No payroll status summary yet.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

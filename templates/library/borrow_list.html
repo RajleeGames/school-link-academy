@@ -1,0 +1,161 @@
+{% extends "base/dashboard_base.html" %}
+{% load humanize %}
+
+{% block title %}Borrow Records | School Link{% endblock %}
+
+{% block page_title %}Borrow Records{% endblock %}
+{% block page_subtitle %}Track issued books, due dates, returns, overdue books, and fines.{% endblock %}
+
+{% block content %}
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <div>
+        <h5 class="fw-bold mb-1">Borrow Records</h5>
+        <div class="small text-muted">All issued books and their return status.</div>
+      </div>
+
+      {% if "library.manage" in current_user_permissions %}
+        <a href="{% url 'borrow_create' %}" class="btn btn-sl-primary btn-sm">
+          + Borrow Book
+        </a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body">
+    <form method="get" class="row g-2">
+      <div class="col-md-8">
+        <input type="text"
+               name="search"
+               value="{{ search }}"
+               class="form-control form-control-sm"
+               placeholder="Search book, book code, student name, or admission number...">
+      </div>
+
+      <div class="col-md-2">
+        <select name="status" class="form-select form-select-sm">
+          <option value="">All Status</option>
+          <option value="borrowed" {% if selected_status == "borrowed" %}selected{% endif %}>Borrowed</option>
+          <option value="returned" {% if selected_status == "returned" %}selected{% endif %}>Returned</option>
+          <option value="overdue" {% if selected_status == "overdue" %}selected{% endif %}>Overdue</option>
+          <option value="lost" {% if selected_status == "lost" %}selected{% endif %}>Lost</option>
+          <option value="damaged" {% if selected_status == "damaged" %}selected{% endif %}>Damaged</option>
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-dark btn-sm w-100">
+          Filter
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="sl-card">
+  <div class="sl-card-body">
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th>Book</th>
+            <th>Student</th>
+            <th>Borrowed</th>
+            <th>Due Date</th>
+            <th>Status</th>
+            <th>Fine</th>
+            <th class="text-end">Action</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for record in records %}
+            <tr>
+              <td>
+                <div class="fw-semibold">{{ record.book.title }}</div>
+                <div class="small text-muted">{{ record.book.book_code }}</div>
+              </td>
+
+              <td>
+                {% if record.student %}
+                  <div class="fw-semibold">{{ record.student.full_name }}</div>
+                  <div class="small text-muted">{{ record.student.admission_number }}</div>
+                {% else %}
+                  <span class="text-muted">Unknown Student</span>
+                {% endif %}
+              </td>
+
+              <td>{{ record.borrowed_date }}</td>
+
+              <td>
+                {{ record.due_date }}
+                {% if record.is_overdue %}
+                  <span class="badge bg-danger-subtle text-danger border border-danger-subtle ms-1">
+                    Late
+                  </span>
+                {% endif %}
+              </td>
+
+              <td>
+                {% if record.status == "returned" %}
+                  <span class="badge bg-success-subtle text-success border border-success-subtle">
+                    Returned
+                  </span>
+                {% elif record.is_overdue %}
+                  <span class="badge bg-danger-subtle text-danger border border-danger-subtle">
+                    Overdue
+                  </span>
+                {% else %}
+                  <span class="badge bg-light text-dark border">
+                    {{ record.get_status_display }}
+                  </span>
+                {% endif %}
+              </td>
+
+              <td>{{ record.fine_amount|floatformat:0|intcomma }}</td>
+
+              <td class="text-end">
+                <div class="d-inline-flex gap-1">
+                  <a href="{% url 'borrow_detail' record.pk %}" class="btn btn-light border btn-sm">
+                    View
+                  </a>
+
+                  {% if "library.manage" in current_user_permissions %}
+                    <a href="{% url 'borrow_return' record.pk %}" class="btn btn-light border btn-sm">
+                      Update
+                    </a>
+
+                    <form method="post"
+                          action="{% url 'borrow_delete' record.pk %}"
+                          onsubmit="return confirm('Delete this borrow record? If still borrowed, the copy will be restored.');">
+                      {% csrf_token %}
+                      <button class="btn btn-outline-danger btn-sm">
+                        Delete
+                      </button>
+                    </form>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="7" class="text-center text-muted py-4">
+                No borrow records found.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="alert alert-info small mt-3 mb-0">
+      If you delete a record that is still borrowed, the available book copy is restored automatically.
+    </div>
+  </div>
+</div>
+
+{% endblock %}

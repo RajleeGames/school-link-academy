@@ -1,0 +1,80 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}{{ title }} | School Link{% endblock %}
+
+{% block page_title %}{{ title }}{% endblock %}
+{% block page_subtitle %}Create or update an exam for a class, academic year, and term.{% endblock %}
+
+{% block content %}
+
+<div class="sl-card">
+  <div class="sl-card-body">
+    <form method="post">
+      {% csrf_token %}
+
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label small fw-bold">Exam Name</label>
+          {{ form.name }}
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label small fw-bold">Exam Type</label>
+          {{ form.exam_type }}
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label small fw-bold">Status</label>
+          {{ form.status }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Academic Year</label>
+          {{ form.academic_year }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Term</label>
+          {{ form.term }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Class</label>
+          {{ form.class_level }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Start Date</label>
+          {{ form.start_date }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">End Date</label>
+          {{ form.end_date }}
+        </div>
+
+        <div class="col-md-4 d-flex align-items-end">
+          <div class="form-check mb-2">
+            {{ form.is_active }}
+            <label class="form-check-label small fw-bold">Active</label>
+          </div>
+        </div>
+      </div>
+
+      {% if form.errors %}
+        <div class="alert alert-danger small mt-3">
+          {{ form.errors }}
+        </div>
+      {% endif %}
+
+      <div class="d-flex justify-content-between mt-4">
+        <a href="{% url 'exam_list' %}" class="btn btn-light border">Cancel</a>
+        <button class="btn btn-sl-primary">
+  {{ button_text|default:"Save Exam" }}
+</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

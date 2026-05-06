@@ -1,0 +1,100 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}Results | Parent Portal{% endblock %}
+
+{% block page_title %}Student Results{% endblock %}
+{% block page_subtitle %}Exam results for {{ student.full_name }}.{% endblock %}
+
+{% block content %}
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body d-flex flex-wrap justify-content-between align-items-center gap-2">
+    <div>
+      <h5 class="fw-bold mb-1">{{ student.full_name }}</h5>
+      <div class="small text-muted">
+        {{ student.admission_number }} · {{ student.class_level.name }}
+        {% if student.stream %} {{ student.stream.name }}{% endif %}
+      </div>
+    </div>
+
+    <a href="{% url 'parent_portal_home' %}" class="btn btn-light border btn-sm">
+      Back to Children
+    </a>
+  </div>
+</div>
+
+<div class="sl-card">
+  <div class="sl-card-body">
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th>Exam</th>
+            <th>Subject</th>
+            <th>Marks</th>
+            <th>Grade</th>
+            <th>Remark</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for result in results %}
+            <tr>
+              <td>
+                {% if result.exam %}
+                  {{ result.exam }}
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+
+              <td>
+                {% if result.subject %}
+                  {{ result.subject.name }}
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+
+              <td>
+                {% if result.marks %}
+                  {{ result.marks }}
+                {% elif result.score %}
+                  {{ result.score }}
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+
+              <td>
+                {% if result.grade %}
+                  {{ result.grade }}
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+
+              <td>
+                {% if result.remark %}
+                  {{ result.remark }}
+                {% elif result.remarks %}
+                  {{ result.remarks }}
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="5" class="text-center text-muted py-4">
+                No results found for this student.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,168 @@
+{% extends "base/dashboard_base.html" %}
+{% load humanize %}
+
+{% block title %}Borrow Detail | School Link{% endblock %}
+
+{% block page_title %}Borrow Detail{% endblock %}
+{% block page_subtitle %}View book borrowing details, student information, due date, and return status.{% endblock %}
+
+{% block content %}
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <div>
+        <h5 class="fw-bold mb-1">{{ record.book.title }}</h5>
+        <div class="small text-muted">{{ record.book.book_code }}</div>
+      </div>
+
+      <div class="d-flex flex-wrap gap-2">
+        {% if "library.manage" in current_user_permissions %}
+          <a href="{% url 'borrow_return' record.pk %}" class="btn btn-sl-primary btn-sm">
+            Update / Return
+          </a>
+
+          <form method="post"
+                action="{% url 'borrow_delete' record.pk %}"
+                onsubmit="return confirm('Delete this borrow record? If still borrowed, the copy will be restored.');">
+            {% csrf_token %}
+            <button class="btn btn-outline-danger btn-sm">
+              Delete
+            </button>
+          </form>
+        {% endif %}
+
+        <a href="{% url 'borrow_list' %}" class="btn btn-light border btn-sm">
+          Back
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-6">
+    <div class="sl-card h-100">
+      <div class="sl-card-body">
+        <h5 class="fw-bold mb-3">Book Information</h5>
+
+        <div class="row g-3 small">
+          <div class="col-md-6">
+            <div class="text-muted">Title</div>
+            <div class="fw-semibold">{{ record.book.title }}</div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="text-muted">Book Code</div>
+            <div class="fw-semibold">{{ record.book.book_code }}</div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="text-muted">Author</div>
+            <div class="fw-semibold">{{ record.book.author|default:"-" }}</div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="text-muted">Category</div>
+            <div class="fw-semibold">{{ record.book.category|default:"-" }}</div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="text-muted">Publisher</div>
+            <div class="fw-semibold">{{ record.book.publisher|default:"-" }}</div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="text-muted">Shelf Location</div>
+            <div class="fw-semibold">{{ record.book.shelf_location|default:"-" }}</div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="text-muted">Available Copies</div>
+            <div class="fw-semibold">
+              {{ record.book.available_copies|intcomma }} / {{ record.book.total_copies|intcomma }}
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="text-muted">Book Status</div>
+            <div class="fw-semibold">{{ record.book.get_status_display }}</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="sl-card h-100">
+      <div class="sl-card-body">
+        <h5 class="fw-bold mb-3">Borrow Information</h5>
+
+        <div class="row g-3 small">
+          <div class="col-md-6">
+            <div class="text-muted">Student</div>
+            <div class="fw-semibold">
+              {% if record.student %}
+                {{ record.student.full_name }}
+              {% else %}
+                Unknown Student
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="text-muted">Admission Number</div>
+            <div class="fw-semibold">
+              {% if record.student %}
+                {{ record.student.admission_number }}
+              {% else %}
+                -
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="text-muted">Borrowed Date</div>
+            <div class="fw-semibold">{{ record.borrowed_date }}</div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="text-muted">Due Date</div>
+            <div class="fw-semibold">
+              {{ record.due_date }}
+              {% if record.is_overdue %}
+                <span class="badge bg-danger-subtle text-danger border border-danger-subtle ms-1">
+                  Overdue
+                </span>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="text-muted">Returned Date</div>
+            <div class="fw-semibold">{{ record.returned_date|default:"-" }}</div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="text-muted">Status</div>
+            <div class="fw-semibold">{{ record.get_status_display }}</div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="text-muted">Fine Amount</div>
+            <div class="fw-semibold">{{ record.fine_amount|floatformat:0|intcomma }}</div>
+          </div>
+
+          <div class="col-12">
+            <div class="text-muted">Notes</div>
+            <div class="fw-semibold">{{ record.notes|default:"-" }}</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

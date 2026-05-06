@@ -1,0 +1,144 @@
+{% extends "base/dashboard_base.html" %}
+{% load humanize %}
+
+{% block title %}Transport | School Link{% endblock %}
+
+{% block page_title %}Transport{% endblock %}
+{% block page_subtitle %}Manage vehicles, drivers, routes, student transport assignments, and trip logs.{% endblock %}
+
+{% block content %}
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Vehicles</div>
+      <div class="sl-stat-value">{{ total_vehicles|intcomma }}</div>
+      <div class="sl-stat-note">All transport vehicles</div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Active Vehicles</div>
+      <div class="sl-stat-value">{{ active_vehicles|intcomma }}</div>
+      <div class="sl-stat-note">Ready for service</div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Drivers</div>
+      <div class="sl-stat-value">{{ total_drivers|intcomma }}</div>
+      <div class="sl-stat-note">Registered drivers</div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Routes</div>
+      <div class="sl-stat-value">{{ total_routes|intcomma }}</div>
+      <div class="sl-stat-note">Pickup routes</div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Assignments</div>
+      <div class="sl-stat-value">{{ active_assignments|intcomma }}</div>
+      <div class="sl-stat-note">Active students</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="sl-card">
+      <div class="sl-card-body">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <div>
+            <h5 class="fw-bold mb-1">Recent Transport Assignments</h5>
+            <div class="small text-muted">Latest students assigned to transport routes.</div>
+          </div>
+
+          <a href="{% url 'transport_assignment_create' %}" class="btn btn-sl-primary btn-sm">
+            + Assign Student
+          </a>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>Route</th>
+                <th>Pickup Point</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for item in recent_assignments %}
+                <tr>
+                  <td>
+                    <div class="fw-semibold">{{ item.student.full_name }}</div>
+                    <div class="small text-muted">{{ item.student.admission_number }}</div>
+                  </td>
+                  <td>{{ item.route.name }}</td>
+                  <td>{{ item.pickup_point|default:"-" }}</td>
+                  <td>
+                    <span class="badge bg-light text-dark border">
+                      {{ item.get_status_display }}
+                    </span>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="4" class="text-center text-muted py-4">
+                    No transport assignments yet.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="sl-card">
+      <div class="sl-card-body">
+        <h5 class="fw-bold mb-3">Quick Actions</h5>
+
+        <div class="d-grid gap-2">
+          <a href="{% url 'vehicle_list' %}" class="btn btn-light border text-start small">Vehicles</a>
+          <a href="{% url 'driver_list' %}" class="btn btn-light border text-start small">Drivers</a>
+          <a href="{% url 'transport_route_list' %}" class="btn btn-light border text-start small">Routes</a>
+          <a href="{% url 'transport_assignment_create' %}" class="btn btn-light border text-start small">Assign Student</a>
+          <a href="{% url 'transport_assignment_list' %}" class="btn btn-light border text-start small">Transport Assignments</a>
+          <a href="{% url 'trip_log_list' %}" class="btn btn-light border text-start small">Trip Logs</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="sl-card mt-3">
+      <div class="sl-card-body">
+        <h5 class="fw-bold mb-3">Routes Summary</h5>
+
+        {% for route in routes %}
+          <div class="border-bottom py-2 small">
+            <div class="fw-semibold">{{ route.name }}</div>
+            <div class="text-muted">
+              {{ route.student_count|intcomma }} students · {{ route.vehicle|default:"No vehicle" }}
+            </div>
+          </div>
+        {% empty %}
+          <div class="text-muted small">No routes found.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

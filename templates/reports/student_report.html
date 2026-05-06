@@ -1,0 +1,104 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}Student Report | School Link{% endblock %}
+
+{% block page_title %}Student Report{% endblock %}
+{% block page_subtitle %}Printable student list by class, status, or search keyword.{% endblock %}
+
+{% block content %}
+
+<div class="sl-card mb-3 no-print">
+  <div class="sl-card-body">
+    <form method="get" class="row g-2">
+      <div class="col-md-5">
+        <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="Search student, admission no, parent, phone">
+      </div>
+
+      <div class="col-md-3">
+        <select name="class" class="form-select">
+          <option value="">All classes</option>
+          {% for class in classes %}
+            <option value="{{ class.id }}" {% if class_filter == class.id|stringformat:"s" %}selected{% endif %}>
+              {{ class.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <select name="status" class="form-select">
+          <option value="">All status</option>
+          <option value="active" {% if status_filter == "active" %}selected{% endif %}>Active</option>
+          <option value="inactive" {% if status_filter == "inactive" %}selected{% endif %}>Inactive</option>
+          <option value="graduated" {% if status_filter == "graduated" %}selected{% endif %}>Graduated</option>
+          <option value="transferred" {% if status_filter == "transferred" %}selected{% endif %}>Transferred</option>
+          <option value="suspended" {% if status_filter == "suspended" %}selected{% endif %}>Suspended</option>
+        </select>
+      </div>
+
+      <div class="col-md-2 d-flex gap-2">
+        <button class="btn btn-sl-primary w-100">Filter</button>
+        <button type="button" onclick="window.print()" class="btn btn-light border">Print</button>
+
+<a href="{% url 'export_student_report_excel' %}?q={{ query }}&class={{ class_filter }}&status={{ status_filter }}"
+   class="btn btn-light border">
+  Excel
+</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="sl-card">
+  <div class="sl-card-body">
+    <div class="report-print-head mb-3">
+      <h4 class="fw-bold mb-1">Student Report</h4>
+      <div class="small text-muted">School Link Management System</div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Admission No</th>
+            <th>Student</th>
+            <th>Gender</th>
+            <th>Class</th>
+            <th>Parent</th>
+            <th>Phone</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for student in students %}
+            <tr>
+              <td>{{ forloop.counter }}</td>
+              <td>{{ student.admission_number }}</td>
+              <td class="fw-bold">{{ student.full_name }}</td>
+              <td>{{ student.get_gender_display }}</td>
+              <td>
+                {{ student.class_level.name }}
+                {% if student.stream %}
+                  {{ student.stream.name }}
+                {% endif %}
+              </td>
+              <td>{{ student.parent_guardian.full_name }}</td>
+              <td>{{ student.parent_guardian.phone }}</td>
+              <td>{{ student.get_status_display }}</td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="8" class="text-center text-muted py-4">No students found.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="small fw-bold mt-3">Total Students: {{ students.count }}</div>
+  </div>
+</div>
+
+{% endblock %}

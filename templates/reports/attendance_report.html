@@ -1,0 +1,141 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}Attendance Report | School Link{% endblock %}
+
+{% block page_title %}Attendance Report{% endblock %}
+{% block page_subtitle %}Printable student and staff attendance report by date and status.{% endblock %}
+
+{% block content %}
+
+<div class="sl-card mb-3 no-print">
+  <div class="sl-card-body">
+    <form method="get" class="row g-2">
+      <div class="col-md-3">
+        <select name="type" class="form-select">
+          <option value="student" {% if report_type == "student" %}selected{% endif %}>Student Attendance</option>
+          <option value="staff" {% if report_type == "staff" %}selected{% endif %}>Staff Attendance</option>
+        </select>
+      </div>
+
+      <div class="col-md-3">
+        <input type="date" name="date" value="{{ date_filter }}" class="form-control">
+      </div>
+
+      <div class="col-md-3">
+        <select name="status" class="form-select">
+          <option value="">All status</option>
+
+          {% if report_type == "staff" %}
+            {% for value, label in staff_status_choices %}
+              <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>
+                {{ label }}
+              </option>
+            {% endfor %}
+          {% else %}
+            {% for value, label in student_status_choices %}
+              <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>
+                {{ label }}
+              </option>
+            {% endfor %}
+          {% endif %}
+        </select>
+      </div>
+
+      <div class="col-md-3 d-flex gap-2">
+        <button class="btn btn-sl-primary w-100">Filter</button>
+        <button type="button" onclick="window.print()" class="btn btn-light border">Print</button>
+
+<a href="{% url 'export_attendance_report_excel' %}?type={{ report_type }}&date={{ date_filter }}&status={{ status_filter }}"
+   class="btn btn-light border">
+  Excel
+</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="sl-card">
+  <div class="sl-card-body">
+    <div class="report-print-head mb-3">
+      <h4 class="fw-bold mb-1">
+        {% if report_type == "staff" %}
+          Staff Attendance Report
+        {% else %}
+          Student Attendance Report
+        {% endif %}
+      </h4>
+      <div class="small text-muted">School Link Management System</div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          {% if report_type == "staff" %}
+            <tr>
+              <th>#</th>
+              <th>Date</th>
+              <th>Staff</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th>Check In</th>
+              <th>Check Out</th>
+              <th>Remarks</th>
+            </tr>
+          {% else %}
+            <tr>
+              <th>#</th>
+              <th>Date</th>
+              <th>Student</th>
+              <th>Class</th>
+              <th>Status</th>
+              <th>Arrival</th>
+              <th>Remarks</th>
+            </tr>
+          {% endif %}
+        </thead>
+
+        <tbody>
+          {% if report_type == "staff" %}
+            {% for record in staff_records %}
+              <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ record.date }}</td>
+                <td class="fw-bold">{{ record.staff.full_name }}</td>
+                <td>{{ record.staff.get_role_display }}</td>
+                <td>{{ record.get_status_display }}</td>
+                <td>{{ record.check_in_time|default:"-" }}</td>
+                <td>{{ record.check_out_time|default:"-" }}</td>
+                <td>{{ record.remarks|default:"-" }}</td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="8" class="text-center text-muted py-4">No staff attendance records found.</td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            {% for record in student_records %}
+              <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ record.date }}</td>
+                <td class="fw-bold">{{ record.student.full_name }}</td>
+                <td>
+                  {{ record.student.class_level.name }}
+                  {{ record.student.stream.name|default:"" }}
+                </td>
+                <td>{{ record.get_status_display }}</td>
+                <td>{{ record.arrival_time|default:"-" }}</td>
+                <td>{{ record.remarks|default:"-" }}</td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="7" class="text-center text-muted py-4">No student attendance records found.</td>
+              </tr>
+            {% endfor %}
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

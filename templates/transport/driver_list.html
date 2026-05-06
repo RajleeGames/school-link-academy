@@ -1,0 +1,106 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}Drivers | School Link{% endblock %}
+
+{% block page_title %}Drivers{% endblock %}
+{% block page_subtitle %}Manage transport drivers, contacts, and license details.{% endblock %}
+
+{% block content %}
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <div>
+        <h5 class="fw-bold mb-1">Driver Records</h5>
+        <div class="small text-muted">Driver contacts and license information.</div>
+      </div>
+
+      {% if "transport.manage" in current_user_permissions %}
+        <a href="{% url 'driver_create' %}" class="btn btn-sl-primary btn-sm">
+          + Add Driver
+        </a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body">
+    <form method="get" class="row g-2">
+      <div class="col-md-10">
+        <input type="text" name="search" value="{{ search }}" class="form-control form-control-sm"
+               placeholder="Search driver name, phone, or license number...">
+      </div>
+
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-dark btn-sm w-100">Search</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="sl-card">
+  <div class="sl-card-body">
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>License</th>
+            <th>Status</th>
+            {% if "transport.manage" in current_user_permissions %}
+              <th class="text-end">Action</th>
+            {% endif %}
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for driver in drivers %}
+            <tr>
+              <td class="fw-semibold">{{ driver.full_name }}</td>
+              <td>{{ driver.phone }}</td>
+              <td>{{ driver.license_number|default:"-" }}</td>
+              <td>
+                <span class="badge bg-light text-dark border">
+                  {{ driver.get_status_display }}
+                </span>
+              </td>
+
+              {% if "transport.manage" in current_user_permissions %}
+                <td class="text-end">
+                  <div class="d-inline-flex gap-1">
+                    <a href="{% url 'driver_update' driver.pk %}" class="btn btn-light border btn-sm">
+                      Edit
+                    </a>
+
+                    <form method="post"
+                          action="{% url 'driver_delete' driver.pk %}"
+                          onsubmit="return confirm('Delete this driver? Only delete if not used in routes or trip logs.');">
+                      {% csrf_token %}
+                      <button class="btn btn-outline-danger btn-sm">
+                        Delete
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              {% endif %}
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="5" class="text-center text-muted py-4">
+                No drivers found.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="alert alert-info small mt-3 mb-0">
+      Delete is blocked if the driver is used in routes or trip logs. Use inactive status instead.
+    </div>
+  </div>
+</div>
+
+{% endblock %}

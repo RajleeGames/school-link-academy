@@ -1,0 +1,112 @@
+{% extends "base/dashboard_base.html" %}
+{% load humanize %}
+
+{% block title %}Stock In | School Link{% endblock %}
+
+{% block page_title %}Stock In{% endblock %}
+{% block page_subtitle %}Track items received into the school inventory store.{% endblock %}
+
+{% block content %}
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <div>
+        <h5 class="fw-bold mb-1">Stock In Records</h5>
+        <div class="small text-muted">All received stock records.</div>
+      </div>
+
+      {% if "inventory.manage" in current_user_permissions %}
+        <a href="{% url 'stock_in_create' %}" class="btn btn-sl-primary btn-sm">
+          + Add Stock In
+        </a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body">
+    <form method="get" class="row g-2">
+      <div class="col-md-10">
+        <input type="text" name="search" value="{{ search }}" class="form-control form-control-sm"
+               placeholder="Search item, code, supplier, or reference...">
+      </div>
+
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-dark btn-sm w-100">
+          Search
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="sl-card">
+  <div class="sl-card-body">
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Quantity</th>
+            <th>Supplier</th>
+            <th>Buying Price</th>
+            <th>Date</th>
+            <th>Reference</th>
+            {% if "inventory.manage" in current_user_permissions %}
+              <th class="text-end">Action</th>
+            {% endif %}
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for record in records %}
+            <tr>
+              <td>
+                <div class="fw-semibold">{{ record.item.name }}</div>
+                <div class="small text-muted">{{ record.item.item_code }}</div>
+              </td>
+              <td>{{ record.quantity|intcomma }}</td>
+              <td>{{ record.supplier|default:"-" }}</td>
+              <td>{{ record.buying_price|floatformat:0|intcomma }}</td>
+              <td>{{ record.received_date }}</td>
+              <td>{{ record.reference|default:"-" }}</td>
+
+              {% if "inventory.manage" in current_user_permissions %}
+                <td class="text-end">
+                  <div class="d-inline-flex gap-1">
+                    <a href="{% url 'stock_in_update' record.pk %}" class="btn btn-light border btn-sm">
+                      Edit
+                    </a>
+
+                    <form method="post"
+                          action="{% url 'stock_in_delete' record.pk %}"
+                          onsubmit="return confirm('Delete this stock-in? Item quantity will be reduced back.');">
+                      {% csrf_token %}
+                      <button class="btn btn-outline-danger btn-sm">
+                        Delete
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              {% endif %}
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="7" class="text-center text-muted py-4">
+                No stock in records found.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="alert alert-info small mt-3 mb-0">
+      Editing stock-in will reverse the old quantity first, then apply the new quantity.
+    </div>
+  </div>
+</div>
+
+{% endblock %}

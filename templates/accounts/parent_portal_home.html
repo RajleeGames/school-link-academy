@@ -1,0 +1,63 @@
+{% extends "base/dashboard_base.html" %}
+{% load humanize %}
+
+{% block title %}Parent Portal | School Link{% endblock %}
+
+{% block page_title %}Parent Portal{% endblock %}
+{% block page_subtitle %}View your children, invoices, results, attendance, and school records.{% endblock %}
+
+{% block content %}
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body">
+    <h5 class="fw-bold mb-1">Welcome{% if parent %}, {{ parent.full_name }}{% endif %}</h5>
+    <div class="small text-muted">
+      Select a child below to view school information.
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  {% for student in students %}
+    <div class="col-md-6 col-lg-4">
+      <div class="sl-card h-100">
+        <div class="sl-card-body">
+          <div class="fw-bold mb-1">{{ student.full_name }}</div>
+
+          <div class="small text-muted mb-3">
+            {{ student.admission_number }} · {{ student.class_level.name }}
+            {% if student.stream %} {{ student.stream.name }}{% endif %}
+          </div>
+
+          <div class="d-grid gap-2">
+            <a href="{% url 'parent_student_invoices' student.pk %}" class="btn btn-light border btn-sm text-start">
+              Invoices
+            </a>
+
+            <a href="{% url 'parent_student_payments' student.pk %}" class="btn btn-light border btn-sm text-start">
+              Payments
+            </a>
+
+            <a href="{% url 'parent_student_results' student.pk %}" class="btn btn-light border btn-sm text-start">
+              Results
+            </a>
+
+            <a href="{% url 'parent_student_attendance' student.pk %}" class="btn btn-light border btn-sm text-start">
+              Attendance
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% empty %}
+    <div class="col-12">
+      <div class="sl-card">
+        <div class="sl-card-body text-center text-muted py-4">
+          No students are linked to this parent account yet.
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+{% endblock %}

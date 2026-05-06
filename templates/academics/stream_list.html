@@ -1,0 +1,124 @@
+{% extends "base/dashboard_base.html" %}
+{% load i18n %}
+{% load school_filters %}
+
+{% block title %}{% trans "Streams" %} | School Link{% endblock %}
+
+{% block page_title %}{% trans "Streams" %}{% endblock %}
+{% block page_subtitle %}{% trans "Create streams such as A, B, C, Science, Arts, and Business." %}{% endblock %}
+
+{% block content %}
+
+<div class="row g-3">
+  {% if "academics.manage" in current_user_permissions %}
+    <div class="col-lg-4">
+      <div class="sl-card">
+        <div class="sl-card-body">
+          <h5 class="fw-bold mb-3">{% trans "Add Stream" %}</h5>
+
+          <form method="post" action="{% url 'stream_create' %}">
+            {% csrf_token %}
+
+            <div class="mb-3">
+              <label class="form-label small fw-bold">{% trans "Class" %}</label>
+              {{ form.class_level }}
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-bold">{% trans "Stream Name" %}</label>
+              {{ form.name }}
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-bold">{% trans "Capacity" %}</label>
+              {{ form.capacity }}
+            </div>
+
+            <div class="form-check mb-3">
+              {{ form.is_active }}
+              <label class="form-check-label small fw-bold">{% trans "Active" %}</label>
+            </div>
+
+            {% if form.errors %}
+              <div class="alert alert-danger small">
+                {{ form.errors }}
+              </div>
+            {% endif %}
+
+            <button class="btn btn-sl-primary w-100">{% trans "Save Stream" %}</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="{% if 'academics.manage' in current_user_permissions %}col-lg-8{% else %}col-12{% endif %}">
+    <div class="sl-card">
+      <div class="sl-card-body">
+        <h5 class="fw-bold mb-3">{% trans "Streams" %}</h5>
+
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th>{% trans "Class" %}</th>
+                <th>{% trans "Stream" %}</th>
+                <th>{% trans "Capacity" %}</th>
+                <th>{% trans "Status" %}</th>
+                {% if "academics.manage" in current_user_permissions %}
+                  <th class="text-end">{% trans "Action" %}</th>
+                {% endif %}
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for stream in streams %}
+                <tr>
+                  <td>{{ stream.class_level.name }}</td>
+                  <td class="fw-bold">{{ stream.name }}</td>
+                  <td>{{ stream.capacity|numcomma }}</td>
+                  <td>
+                    {% if stream.is_active %}
+                      <span class="badge badge-soft-success">{% trans "Active" %}</span>
+                    {% else %}
+                      <span class="badge badge-soft-danger">{% trans "Inactive" %}</span>
+                    {% endif %}
+                  </td>
+
+                  {% if "academics.manage" in current_user_permissions %}
+                    <td class="text-end">
+                      <div class="d-inline-flex gap-1">
+                        <a href="{% url 'stream_update' stream.pk %}" class="btn btn-light border btn-sm">
+                          {% trans "Edit" %}
+                        </a>
+
+                        {% trans "Delete this stream? Only delete if it was created by mistake." as delete_message %}
+                        <form method="post"
+                              action="{% url 'stream_delete' stream.pk %}"
+                              onsubmit="return confirm('{{ delete_message|escapejs }}');">
+                          {% csrf_token %}
+                          <button class="btn btn-outline-danger btn-sm">
+                            {% trans "Delete" %}
+                          </button>
+                        </form>
+                      </div>
+                    </td>
+                  {% endif %}
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="5" class="text-center text-muted py-4">
+                    {% trans "No streams added yet." %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

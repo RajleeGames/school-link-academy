@@ -1,0 +1,233 @@
+{% extends "base/dashboard_base.html" %}
+{% load humanize %}
+
+{% block title %}Library | School Link{% endblock %}
+
+{% block page_title %}Library{% endblock %}
+{% block page_subtitle %}Manage books, categories, borrowing, returns, fines, and overdue records.{% endblock %}
+
+{% block content %}
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Book Titles</div>
+      <div class="sl-stat-value">{{ total_books|intcomma }}</div>
+      <div class="sl-stat-note">Registered books</div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Total Copies</div>
+      <div class="sl-stat-value">{{ total_copies|intcomma }}</div>
+      <div class="sl-stat-note">All book copies</div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Available Copies</div>
+      <div class="sl-stat-value">{{ available_copies|intcomma }}</div>
+      <div class="sl-stat-note">Ready to borrow</div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Overdue Books</div>
+      <div class="sl-stat-value">{{ overdue_count|intcomma }}</div>
+      <div class="sl-stat-note">Past due date</div>
+    </div>
+  </div>
+</div>
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <div>
+        <h5 class="fw-bold mb-1">Library Shortcuts</h5>
+        <div class="small text-muted">Open books, categories, borrow records, or issue a book quickly.</div>
+      </div>
+
+      <div class="d-flex flex-wrap gap-2">
+        <a href="{% url 'book_list' %}" class="btn btn-light border btn-sm">
+          Books
+        </a>
+
+        <a href="{% url 'book_category_list' %}" class="btn btn-light border btn-sm">
+          Categories
+        </a>
+
+        <a href="{% url 'borrow_list' %}" class="btn btn-light border btn-sm">
+          Borrow Records
+        </a>
+
+        {% if "library.manage" in current_user_permissions %}
+          <a href="{% url 'borrow_create' %}" class="btn btn-sl-primary btn-sm">
+            + Borrow Book
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="sl-card">
+      <div class="sl-card-body">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <div>
+            <h5 class="fw-bold mb-1">Recent Borrow Records</h5>
+            <div class="small text-muted">Latest issued books and return status.</div>
+          </div>
+
+          {% if "library.manage" in current_user_permissions %}
+            <a href="{% url 'borrow_create' %}" class="btn btn-sl-primary btn-sm">
+              + Borrow Book
+            </a>
+          {% endif %}
+        </div>
+
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th>Book</th>
+                <th>Student</th>
+                <th>Due Date</th>
+                <th>Status</th>
+                <th class="text-end">Action</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for record in recent_borrows %}
+                <tr>
+                  <td>
+                    <div class="fw-semibold">{{ record.book.title }}</div>
+                    <div class="small text-muted">{{ record.book.book_code }}</div>
+                  </td>
+
+                  <td>
+                    {% if record.student %}
+                      <div class="fw-semibold">{{ record.student.full_name }}</div>
+                      <div class="small text-muted">{{ record.student.admission_number }}</div>
+                    {% else %}
+                      <span class="text-muted">Unknown Student</span>
+                    {% endif %}
+                  </td>
+
+                  <td>
+                    {{ record.due_date }}
+                    {% if record.is_overdue %}
+                      <span class="badge bg-danger-subtle text-danger border border-danger-subtle ms-1">
+                        Late
+                      </span>
+                    {% endif %}
+                  </td>
+
+                  <td>
+                    <span class="badge bg-light text-dark border">
+                      {{ record.get_status_display }}
+                    </span>
+                  </td>
+
+                  <td class="text-end">
+                    <a href="{% url 'borrow_detail' record.pk %}" class="btn btn-light border btn-sm">
+                      View
+                    </a>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="5" class="text-center text-muted py-4">
+                    No borrow records yet.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="sl-card">
+      <div class="sl-card-body">
+        <h5 class="fw-bold mb-3">Quick Actions</h5>
+
+        <div class="d-grid gap-2">
+          <a href="{% url 'book_list' %}" class="btn btn-light border text-start small">
+            Books
+          </a>
+
+          <a href="{% url 'book_category_list' %}" class="btn btn-light border text-start small">
+            Book Categories
+          </a>
+
+          {% if "library.manage" in current_user_permissions %}
+            <a href="{% url 'book_create' %}" class="btn btn-light border text-start small">
+              Add Book
+            </a>
+
+            <a href="{% url 'book_category_create' %}" class="btn btn-light border text-start small">
+              Add Book Category
+            </a>
+
+            <a href="{% url 'borrow_create' %}" class="btn btn-light border text-start small">
+              Borrow Book
+            </a>
+          {% endif %}
+
+          <a href="{% url 'borrow_list' %}" class="btn btn-light border text-start small">
+            Borrow Records
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="sl-card mt-3">
+      <div class="sl-card-body">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <div>
+            <h5 class="fw-bold mb-1">Book Categories</h5>
+            <div class="small text-muted">Categories with number of linked books.</div>
+          </div>
+
+          <a href="{% url 'book_category_list' %}" class="btn btn-light border btn-sm">
+            View All
+          </a>
+        </div>
+
+        {% for category in categories %}
+          <div class="d-flex justify-content-between align-items-center border-bottom py-2 small gap-2">
+            <div>
+              <div class="fw-semibold">{{ category.name }}</div>
+              <div class="text-muted">{{ category.book_count|intcomma }} books</div>
+            </div>
+
+            {% if "library.manage" in current_user_permissions %}
+              <a href="{% url 'book_category_update' category.pk %}" class="btn btn-light border btn-sm">
+                Edit
+              </a>
+            {% endif %}
+          </div>
+        {% empty %}
+          <div class="text-muted small">No categories found.</div>
+
+          {% if "library.manage" in current_user_permissions %}
+            <a href="{% url 'book_category_create' %}" class="btn btn-sl-primary btn-sm mt-3">
+              + Add First Category
+            </a>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

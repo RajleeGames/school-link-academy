@@ -1,0 +1,115 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}{{ title }} | School Link{% endblock %}
+
+{% block page_title %}{{ title }}{% endblock %}
+{% block page_subtitle %}Register or update student admission details.{% endblock %}
+
+{% block content %}
+
+<div class="sl-card">
+  <div class="sl-card-body">
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label fw-bold small">Admission Number</label>
+          {{ form.admission_number }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label fw-bold small">Admission Date</label>
+          {{ form.admission_date }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label fw-bold small">Status</label>
+          {{ form.status }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label fw-bold small">First Name</label>
+          {{ form.first_name }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label fw-bold small">Middle Name</label>
+          {{ form.middle_name }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label fw-bold small">Last Name</label>
+          {{ form.last_name }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label fw-bold small">Gender</label>
+          {{ form.gender }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label fw-bold small">Date of Birth</label>
+          {{ form.date_of_birth }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label fw-bold small">Boarding Status</label>
+          {{ form.boarding_status }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label fw-bold small">Class</label>
+          {{ form.class_level }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label fw-bold small">Stream</label>
+          {{ form.stream }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label fw-bold small">Parent / Guardian</label>
+          {{ form.parent_guardian }}
+          <div class="form-text">
+            Add parent first if not listed.
+            <a href="{% url 'parent_create' %}">Add parent</a>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label fw-bold small">Previous School</label>
+          {{ form.previous_school }}
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label fw-bold small">Photo</label>
+          {{ form.photo }}
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label fw-bold small">Address</label>
+          {{ form.address }}
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label fw-bold small">Medical Notes</label>
+          {{ form.medical_notes }}
+        </div>
+      </div>
+
+      {% if form.errors %}
+        <div class="alert alert-danger small mt-3">
+          {{ form.errors }}
+        </div>
+      {% endif %}
+
+      <div class="d-flex justify-content-between mt-4">
+        <a href="{% url 'student_list' %}" class="btn btn-light border">Cancel</a>
+        <button type="submit" class="btn btn-sl-primary">Save Student</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

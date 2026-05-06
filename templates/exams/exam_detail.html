@@ -1,0 +1,171 @@
+{% extends "base/dashboard_base.html" %}
+{% load humanize %}
+
+{% block title %}{{ exam.name }} | School Link{% endblock %}
+
+{% block page_title %}Exam Detail{% endblock %}
+{% block page_subtitle %}Exam summary, entered results, performance, and marks status.{% endblock %}
+
+{% block content %}
+
+<div class="row g-3 mb-3">
+  <div class="col-md-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Students In Class</div>
+      <div class="sl-stat-value">{{ total_students|intcomma }}</div>
+      <div class="sl-stat-note">{{ exam.class_level.name }}</div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Students With Results</div>
+      <div class="sl-stat-value">{{ students_with_results|intcomma }}</div>
+      <div class="sl-stat-note">Marked students</div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Subjects Marked</div>
+      <div class="sl-stat-value">{{ subject_count|intcomma }}</div>
+      <div class="sl-stat-note">Subjects entered</div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Average Marks</div>
+      <div class="sl-stat-value">{{ average_marks|floatformat:1 }}%</div>
+      <div class="sl-stat-note">Overall average</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="sl-card">
+      <div class="sl-card-body">
+        <div class="d-flex flex-wrap justify-content-between gap-2 mb-3">
+          <div>
+            <h4 class="fw-bold mb-1">{{ exam.name }}</h4>
+            <div class="small text-muted">
+              {{ exam.exam_type.name }} · {{ exam.class_level.name }} · {{ exam.academic_year.name }}
+            </div>
+          </div>
+
+          <div>
+            {% if exam.status == "published" %}
+              <span class="badge badge-soft-success">Published</span>
+            {% elif exam.status == "open" %}
+              <span class="badge badge-soft-primary">Open</span>
+            {% elif exam.status == "closed" %}
+              <span class="badge badge-soft-warning">Closed</span>
+            {% else %}
+              <span class="badge badge-soft-danger">Draft</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <hr>
+
+        <div class="row g-3 small mb-4">
+          <div class="col-md-3">
+            <div class="text-muted">Term</div>
+            <div class="fw-bold">{{ exam.term|default:"-" }}</div>
+          </div>
+
+          <div class="col-md-3">
+            <div class="text-muted">Start Date</div>
+            <div class="fw-bold">{{ exam.start_date }}</div>
+          </div>
+
+          <div class="col-md-3">
+            <div class="text-muted">End Date</div>
+            <div class="fw-bold">{{ exam.end_date|default:"-" }}</div>
+          </div>
+
+          <div class="col-md-3">
+            <div class="text-muted">Active</div>
+            <div class="fw-bold">{{ exam.is_active|yesno:"Yes,No" }}</div>
+          </div>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2 mb-3">
+          <a href="{% url 'bulk_marks_entry' %}?exam={{ exam.id }}" class="btn btn-sl-primary btn-sm">
+            Bulk Marks Entry
+          </a>
+          <a href="{% url 'result_create' %}" class="btn btn-light border btn-sm">
+            Enter One Result
+          </a>
+          <a href="{% url 'result_list' %}?exam={{ exam.id }}" class="btn btn-light border btn-sm">
+            View Results
+          </a>
+        </div>
+
+        <h5 class="fw-bold mb-3">Results</h5>
+
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>Subject</th>
+                <th>Marks</th>
+                <th>Grade</th>
+                <th>Remark</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for result in results %}
+                <tr>
+                  <td>
+                    <div class="fw-bold">{{ result.student.full_name }}</div>
+                    <div class="small text-muted">{{ result.student.admission_number }}</div>
+                  </td>
+                  <td>{{ result.subject.name }}</td>
+                  <td>{{ result.marks|floatformat:1 }}</td>
+                  <td class="fw-bold">{{ result.grade|default:"-" }}</td>
+                  <td>{{ result.remark|default:"-" }}</td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="5" class="text-center text-muted py-4">
+                    No results entered yet.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="sl-card">
+      <div class="sl-card-body">
+        <h5 class="fw-bold mb-3">Quick Actions</h5>
+
+        <div class="d-grid gap-2">
+          <a href="{% url 'bulk_marks_entry' %}?exam={{ exam.id }}" class="btn btn-sl-primary text-start small">
+            Bulk Marks Entry
+          </a>
+          <a href="{% url 'result_list' %}?exam={{ exam.id }}" class="btn btn-light border text-start small">
+            Results List
+          </a>
+          <a href="{% url 'exam_list' %}" class="btn btn-light border text-start small">
+            Back to Exams
+          </a>
+          <a href="{% url 'grade_scale_list' %}" class="btn btn-light border text-start small">
+            Grading System
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

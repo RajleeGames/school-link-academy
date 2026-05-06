@@ -1,0 +1,114 @@
+{% extends "base/dashboard_base.html" %}
+{% load humanize %}
+
+{% block title %}Expenses Report | School Link{% endblock %}
+
+{% block page_title %}Expenses Report{% endblock %}
+{% block page_subtitle %}Printable school expenses report by date, status, category, or keyword.{% endblock %}
+
+{% block content %}
+
+<div class="sl-card mb-3 no-print">
+  <div class="sl-card-body">
+    <form method="get" class="row g-2">
+      <div class="col-md-4">
+        <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="Search expense, category, paid to, reference">
+      </div>
+
+      <div class="col-md-2">
+        <select name="status" class="form-select">
+          <option value="">All status</option>
+          {% for value, label in status_choices %}
+            <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>
+              {{ label }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <input type="date" name="date_from" value="{{ date_from }}" class="form-control">
+      </div>
+
+      <div class="col-md-2">
+        <input type="date" name="date_to" value="{{ date_to }}" class="form-control">
+      </div>
+
+      <div class="col-md-2 d-flex gap-2">
+        <button class="btn btn-sl-primary w-100">Filter</button>
+        <button type="button" onclick="window.print()" class="btn btn-light border">Print</button>
+
+<a href="{% url 'export_expenses_report_excel' %}?q={{ query }}&status={{ status_filter }}&date_from={{ date_from }}&date_to={{ date_to }}"
+   class="btn btn-light border">
+  Excel
+</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-md-6">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Paid Expenses</div>
+      <div class="sl-stat-value">TZS {{ total_expenses|floatformat:0|intcomma }}</div>
+      <div class="sl-stat-note">Filtered paid expenses</div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Pending Expenses</div>
+      <div class="sl-stat-value">TZS {{ pending_expenses|floatformat:0|intcomma }}</div>
+      <div class="sl-stat-note">Filtered pending expenses</div>
+    </div>
+  </div>
+</div>
+
+<div class="sl-card">
+  <div class="sl-card-body">
+    <div class="report-print-head mb-3">
+      <h4 class="fw-bold mb-1">Expenses Report</h4>
+      <div class="small text-muted">School Link Management System</div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Expense No</th>
+            <th>Title</th>
+            <th>Category</th>
+            <th>Date</th>
+            <th>Paid To</th>
+            <th>Status</th>
+            <th class="text-end">Amount</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for expense in expenses %}
+            <tr>
+              <td>{{ forloop.counter }}</td>
+              <td class="fw-bold">{{ expense.expense_number }}</td>
+              <td>{{ expense.title }}</td>
+              <td>{{ expense.category.name }}</td>
+              <td>{{ expense.expense_date }}</td>
+              <td>{{ expense.paid_to|default:"-" }}</td>
+              <td>{{ expense.get_status_display }}</td>
+              <td class="text-end">TZS {{ expense.amount|floatformat:0|intcomma }}</td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="8" class="text-center text-muted py-4">No expenses found.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,151 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}Timetable Entries | School Link{% endblock %}
+
+{% block page_title %}Timetable Entries{% endblock %}
+{% block page_subtitle %}Search and filter lessons by class, stream, day, teacher, room, or subject.{% endblock %}
+
+{% block content %}
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <div>
+        <h5 class="fw-bold mb-1">Timetable Entries</h5>
+        <div class="small text-muted">Manage all timetable records.</div>
+      </div>
+
+      {% if "timetable.manage" in current_user_permissions %}
+        <a href="{% url 'timetable_entry_create' %}" class="btn btn-sl-primary">+ Add Entry</a>
+      {% endif %}
+    </div>
+
+    <form method="get" class="row g-2 mt-3">
+      <div class="col-md-3">
+        <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="Search subject, teacher, room">
+      </div>
+
+      <div class="col-md-3">
+        <select name="class" class="form-select">
+          <option value="">All classes</option>
+          {% for class in classes %}
+            <option value="{{ class.id }}" {% if class_filter == class.id|stringformat:"s" %}selected{% endif %}>
+              {{ class.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <select name="stream" class="form-select">
+          <option value="">All streams</option>
+          {% for stream in streams %}
+            <option value="{{ stream.id }}" {% if stream_filter == stream.id|stringformat:"s" %}selected{% endif %}>
+              {{ stream.class_level.name }} - {{ stream.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <select name="day" class="form-select">
+          <option value="">All days</option>
+          {% for value, label in day_choices %}
+            <option value="{{ value }}" {% if day_filter == value %}selected{% endif %}>
+              {{ label }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <button class="btn btn-sl-primary w-100">Filter</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="sl-card">
+  <div class="sl-card-body">
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th>Class</th>
+            <th>Day</th>
+            <th>Time</th>
+            <th>Subject</th>
+            <th>Teacher</th>
+            <th>Room</th>
+            <th>Note</th>
+            <th>Status</th>
+            {% if "timetable.manage" in current_user_permissions %}
+              <th class="text-end">Action</th>
+            {% endif %}
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for entry in entries %}
+            <tr>
+              <td>
+                {{ entry.class_level.name }}
+                {{ entry.stream.name|default:"" }}
+              </td>
+              <td>{{ entry.get_day_display }}</td>
+              <td>{{ entry.time_slot.name }}</td>
+              <td>{{ entry.subject.name|default:"-" }}</td>
+              <td>
+                {% if entry.teacher %}
+                  {{ entry.teacher.full_name }}
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+              <td>{{ entry.room.name|default:"-" }}</td>
+              <td>{{ entry.note|default:"-" }}</td>
+              <td>
+                {% if entry.is_active %}
+                  <span class="badge badge-soft-success">Active</span>
+                {% else %}
+                  <span class="badge badge-soft-danger">Inactive</span>
+                {% endif %}
+              </td>
+
+              {% if "timetable.manage" in current_user_permissions %}
+                <td class="text-end">
+                  <div class="d-inline-flex gap-1">
+                    <a href="{% url 'timetable_entry_update' entry.pk %}" class="btn btn-light border btn-sm">
+                      Edit
+                    </a>
+
+                    <form method="post"
+                          action="{% url 'timetable_entry_delete' entry.pk %}"
+                          onsubmit="return confirm('Delete this timetable entry?');">
+                      {% csrf_token %}
+                      <button class="btn btn-outline-danger btn-sm">
+                        Delete
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              {% endif %}
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="9" class="text-center text-muted py-4">
+                No timetable entries found.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="alert alert-info small mt-3 mb-0">
+      Use <strong>Edit</strong> to correct teacher, room, subject, day, or time. Use <strong>Delete</strong> only for wrong entries.
+    </div>
+  </div>
+</div>
+
+{% endblock %}

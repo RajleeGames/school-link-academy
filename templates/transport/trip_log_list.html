@@ -1,0 +1,103 @@
+{% extends "base/dashboard_base.html" %}
+{% load humanize %}
+
+{% block title %}Trip Logs | School Link{% endblock %}
+
+{% block page_title %}Trip Logs{% endblock %}
+{% block page_subtitle %}Record daily school transport pickup and dropoff trips.{% endblock %}
+
+{% block content %}
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <div>
+        <h5 class="fw-bold mb-1">Trip Log Records</h5>
+        <div class="small text-muted">Morning pickup, evening dropoff, and other transport logs.</div>
+      </div>
+
+      {% if "transport.manage" in current_user_permissions %}
+        <a href="{% url 'trip_log_create' %}" class="btn btn-sl-primary btn-sm">
+          + Add Trip Log
+        </a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body">
+    <form method="get" class="row g-2">
+      <div class="col-md-10">
+        <input type="text" name="search" value="{{ search }}" class="form-control form-control-sm"
+               placeholder="Search route, vehicle plate number, or driver...">
+      </div>
+
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-dark btn-sm w-100">Search</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="sl-card">
+  <div class="sl-card-body">
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Route</th>
+            <th>Trip Type</th>
+            <th>Vehicle</th>
+            <th>Driver</th>
+            <th>Students</th>
+            {% if "transport.manage" in current_user_permissions %}
+              <th class="text-end">Action</th>
+            {% endif %}
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for trip in trips %}
+            <tr>
+              <td>{{ trip.trip_date }}</td>
+              <td class="fw-semibold">{{ trip.route.name }}</td>
+              <td>{{ trip.get_trip_type_display }}</td>
+              <td>{{ trip.vehicle|default:"-" }}</td>
+              <td>{{ trip.driver|default:"-" }}</td>
+              <td>{{ trip.students_count|intcomma }}</td>
+
+              {% if "transport.manage" in current_user_permissions %}
+                <td class="text-end">
+                  <div class="d-inline-flex gap-1">
+                    <a href="{% url 'trip_log_update' trip.pk %}" class="btn btn-light border btn-sm">
+                      Edit
+                    </a>
+
+                    <form method="post"
+                          action="{% url 'trip_log_delete' trip.pk %}"
+                          onsubmit="return confirm('Delete this trip log?');">
+                      {% csrf_token %}
+                      <button class="btn btn-outline-danger btn-sm">
+                        Delete
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              {% endif %}
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="7" class="text-center text-muted py-4">
+                No trip logs found.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

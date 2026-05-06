@@ -1,0 +1,118 @@
+{% extends "base/dashboard_base.html" %}
+{% load humanize %}
+
+{% block title %}Vehicles | School Link{% endblock %}
+
+{% block page_title %}Vehicles{% endblock %}
+{% block page_subtitle %}Manage school transport vehicles and service status.{% endblock %}
+
+{% block content %}
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <div>
+        <h5 class="fw-bold mb-1">Vehicle Records</h5>
+        <div class="small text-muted">All buses, vans, and school transport vehicles.</div>
+      </div>
+
+      {% if "transport.manage" in current_user_permissions %}
+        <a href="{% url 'vehicle_create' %}" class="btn btn-sl-primary btn-sm">
+          + Add Vehicle
+        </a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body">
+    <form method="get" class="row g-2">
+      <div class="col-md-8">
+        <input type="text" name="search" value="{{ search }}" class="form-control form-control-sm"
+               placeholder="Search vehicle name, plate number, or type...">
+      </div>
+
+      <div class="col-md-2">
+        <select name="status" class="form-select form-select-sm">
+          <option value="">All Status</option>
+          <option value="active" {% if selected_status == "active" %}selected{% endif %}>Active</option>
+          <option value="maintenance" {% if selected_status == "maintenance" %}selected{% endif %}>Maintenance</option>
+          <option value="inactive" {% if selected_status == "inactive" %}selected{% endif %}>Inactive</option>
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-dark btn-sm w-100">Filter</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="sl-card">
+  <div class="sl-card-body">
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th>Vehicle</th>
+            <th>Plate Number</th>
+            <th>Type</th>
+            <th>Capacity</th>
+            <th>Status</th>
+            {% if "transport.manage" in current_user_permissions %}
+              <th class="text-end">Action</th>
+            {% endif %}
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for vehicle in vehicles %}
+            <tr>
+              <td class="fw-semibold">{{ vehicle.vehicle_name }}</td>
+              <td>{{ vehicle.plate_number }}</td>
+              <td>{{ vehicle.vehicle_type|default:"-" }}</td>
+              <td>{{ vehicle.capacity|intcomma }}</td>
+              <td>
+                <span class="badge bg-light text-dark border">
+                  {{ vehicle.get_status_display }}
+                </span>
+              </td>
+
+              {% if "transport.manage" in current_user_permissions %}
+                <td class="text-end">
+                  <div class="d-inline-flex gap-1">
+                    <a href="{% url 'vehicle_update' vehicle.pk %}" class="btn btn-light border btn-sm">
+                      Edit
+                    </a>
+
+                    <form method="post"
+                          action="{% url 'vehicle_delete' vehicle.pk %}"
+                          onsubmit="return confirm('Delete this vehicle? Only delete if it is not used in routes or trip logs.');">
+                      {% csrf_token %}
+                      <button class="btn btn-outline-danger btn-sm">
+                        Delete
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              {% endif %}
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="6" class="text-center text-muted py-4">
+                No vehicles found.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="alert alert-info small mt-3 mb-0">
+      Delete is blocked if the vehicle is used in routes or trip logs. Use inactive or maintenance status instead.
+    </div>
+  </div>
+</div>
+
+{% endblock %}

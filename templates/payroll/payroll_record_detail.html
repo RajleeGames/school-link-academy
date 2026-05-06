@@ -1,0 +1,133 @@
+{% extends "base/dashboard_base.html" %}
+{% load humanize %}
+
+{% block title %}Payslip | School Link{% endblock %}
+
+{% block page_title %}Payslip{% endblock %}
+{% block page_subtitle %}View staff payroll details and payment information.{% endblock %}
+
+{% block content %}
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <div>
+        <h5 class="fw-bold mb-1">{{ record.staff.full_name }}</h5>
+        <div class="small text-muted">
+          {{ record.staff.staff_id }} · {{ record.staff.get_role_display }} · {{ record.get_month_display }} {{ record.year }}
+        </div>
+      </div>
+
+      <div class="d-flex flex-wrap gap-2">
+        {% if "payroll.manage" in current_user_permissions %}
+          <a href="{% url 'payroll_record_update' record.pk %}" class="btn btn-sl-primary btn-sm">
+            Edit
+          </a>
+
+          {% if record.status != "paid" %}
+            <form method="post"
+                  action="{% url 'payroll_record_delete' record.pk %}"
+                  onsubmit="return confirm('Delete this payroll record? Paid records should not be deleted.');">
+              {% csrf_token %}
+              <button class="btn btn-outline-danger btn-sm">
+                Delete
+              </button>
+            </form>
+          {% endif %}
+        {% endif %}
+
+        <button type="button" onclick="window.print()" class="btn btn-light border btn-sm">
+          Print
+        </button>
+
+        <a href="{% url 'payroll_record_list' %}" class="btn btn-light border btn-sm">
+          Back
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-7">
+    <div class="sl-card h-100">
+      <div class="sl-card-body">
+        <h5 class="fw-bold mb-3">Salary Breakdown</h5>
+
+        <div class="row g-3 small">
+          <div class="col-md-6">
+            <div class="text-muted">Basic Salary</div>
+            <div class="fw-semibold">{{ record.basic_salary|floatformat:0|intcomma }}</div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="text-muted">Total Allowances</div>
+            <div class="fw-semibold">{{ record.total_allowances|floatformat:0|intcomma }}</div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="text-muted">Total Deductions</div>
+            <div class="fw-semibold">{{ record.total_deductions|floatformat:0|intcomma }}</div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="text-muted">Net Salary</div>
+            <div class="fw-bold fs-5">{{ record.net_salary|floatformat:0|intcomma }}</div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="text-muted">Status</div>
+            <div class="fw-semibold">{{ record.get_status_display }}</div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="text-muted">Period</div>
+            <div class="fw-semibold">{{ record.get_month_display }} {{ record.year }}</div>
+          </div>
+
+          <div class="col-12">
+            <div class="text-muted">Notes</div>
+            <div class="fw-semibold">{{ record.notes|default:"-" }}</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="sl-card h-100">
+      <div class="sl-card-body">
+        <h5 class="fw-bold mb-3">Payment Information</h5>
+
+        <div class="row g-3 small">
+          <div class="col-md-6">
+            <div class="text-muted">Payment Date</div>
+            <div class="fw-semibold">{{ record.payment_date|default:"-" }}</div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="text-muted">Payment Method</div>
+            <div class="fw-semibold">{{ record.payment_method|default:"-" }}</div>
+          </div>
+
+          <div class="col-12">
+            <div class="text-muted">Reference</div>
+            <div class="fw-semibold">{{ record.reference|default:"-" }}</div>
+          </div>
+
+          <div class="col-12">
+            <hr>
+            <div class="text-muted">Staff Information</div>
+            <div class="fw-semibold">{{ record.staff.full_name }}</div>
+            <div class="small text-muted">{{ record.staff.staff_id }}</div>
+            <div class="small text-muted">{{ record.staff.phone }}</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

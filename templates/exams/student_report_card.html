@@ -1,0 +1,170 @@
+{% extends "base/dashboard_base.html" %}
+{% load humanize %}
+
+{% block title %}Report Card | School Link{% endblock %}
+
+{% block page_title %}Student Report Card{% endblock %}
+{% block page_subtitle %}View all subjects, total marks, average, and class position for a selected exam.{% endblock %}
+
+{% block content %}
+
+<div class="sl-card mb-3 no-print">
+  <div class="sl-card-body">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-md-8">
+        <label class="form-label small fw-bold">Choose Exam</label>
+        <select name="exam" class="form-select">
+          <option value="">All exams</option>
+          {% for exam in exams %}
+            <option value="{{ exam.id }}" {% if exam_id == exam.id|stringformat:"s" %}selected{% endif %}>
+              {{ exam.name }} - {{ exam.class_level.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-4 d-flex gap-2">
+        <button class="btn btn-sl-primary w-100">Load</button>
+        <button type="button" onclick="window.print()" class="btn btn-light border">
+          Print
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-md-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Student</div>
+      <div class="sl-stat-value" style="font-size: 1rem;">{{ student.full_name }}</div>
+      <div class="sl-stat-note">{{ student.admission_number }}</div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Total Marks</div>
+      <div class="sl-stat-value">{{ total_marks|floatformat:1 }}</div>
+      <div class="sl-stat-note">Subjects: {{ subject_count|default:results.count|intcomma }}</div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Average</div>
+      <div class="sl-stat-value">{{ average_marks|floatformat:1 }}%</div>
+      <div class="sl-stat-note">Overall average</div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Position</div>
+      <div class="sl-stat-value">
+        {% if position %}
+          {{ position }} / {{ total_students }}
+        {% else %}
+          -
+        {% endif %}
+      </div>
+      <div class="sl-stat-note">In class</div>
+    </div>
+  </div>
+</div>
+
+<div class="sl-card">
+  <div class="sl-card-body">
+    <div class="d-flex flex-wrap justify-content-between gap-2 mb-3">
+      <div>
+        <h4 class="fw-bold mb-1">{{ student.full_name }}</h4>
+        <div class="small text-muted">
+          {{ student.class_level.name }}
+          {{ student.stream.name|default:"" }}
+          · {{ student.parent_guardian.full_name }}
+          {% if selected_exam %}
+            · {{ selected_exam.name }}
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="no-print">
+        <a href="{% url 'result_list' %}" class="btn btn-light border btn-sm">
+          Back to Results
+        </a>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th>Subject</th>
+            <th>Teacher</th>
+            <th class="text-end">Marks</th>
+            <th>Grade</th>
+            <th>Points</th>
+            <th>Remark</th>
+            {% if "results.manage" in current_user_permissions %}
+              <th class="text-end no-print">Action</th>
+            {% endif %}
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for result in results %}
+            <tr>
+              <td class="fw-bold">{{ result.subject.name }}</td>
+              <td>
+                {% if result.teacher %}
+                  {{ result.teacher.full_name }}
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+              <td class="text-end fw-bold">{{ result.marks|floatformat:1 }}</td>
+              <td class="fw-bold">{{ result.grade|default:"-" }}</td>
+              <td>{{ result.points|default:"-" }}</td>
+              <td>{{ result.remark|default:"-" }}</td>
+
+              {% if "results.manage" in current_user_permissions %}
+                <td class="text-end no-print">
+                  <div class="d-inline-flex gap-1">
+                    <a href="{% url 'result_update' result.pk %}" class="btn btn-light border btn-sm">
+                      Edit
+                    </a>
+
+                    <form method="post"
+                          action="{% url 'result_delete' result.pk %}"
+                          onsubmit="return confirm('Delete this subject result?');">
+                      {% csrf_token %}
+                      <button class="btn btn-outline-danger btn-sm">
+                        Delete
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              {% endif %}
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="7" class="text-center text-muted py-4">
+                No results found for this student.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+
+        <tfoot>
+          <tr>
+            <th colspan="2">Total / Average</th>
+            <th class="text-end">{{ total_marks|floatformat:1 }}</th>
+            <th colspan="4">{{ average_marks|floatformat:1 }}%</th>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

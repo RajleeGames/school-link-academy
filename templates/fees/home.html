@@ -1,0 +1,164 @@
+{% extends "base/dashboard_base.html" %}
+{% load humanize %}
+
+{% block title %}Fees | School Link{% endblock %}
+
+{% block page_title %}Fees & Payments{% endblock %}
+{% block page_subtitle %}Manage fee structures, student invoices, payments, receipts, and balances.{% endblock %}
+
+{% block content %}
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Total Invoiced</div>
+      <div class="sl-stat-value">TZS {{ total_invoiced|floatformat:0|intcomma }}</div>
+      <div class="sl-stat-note">All active invoices</div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Total Paid</div>
+      <div class="sl-stat-value">TZS {{ total_paid|floatformat:0|intcomma }}</div>
+      <div class="sl-stat-note">Confirmed payments</div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Outstanding</div>
+      <div class="sl-stat-value">TZS {{ outstanding|floatformat:0|intcomma }}</div>
+      <div class="sl-stat-note">Pending balances</div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Debtors</div>
+      <div class="sl-stat-value">{{ total_students_with_debt|intcomma }}</div>
+      <div class="sl-stat-note">Students with unpaid fees</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="sl-card">
+      <div class="sl-card-body">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <div>
+            <h5 class="fw-bold mb-1">Recent Invoices</h5>
+            <div class="small text-muted">Latest student fee invoices.</div>
+          </div>
+
+          <a href="{% url 'invoice_create' %}" class="btn btn-sl-primary btn-sm">
+            + Create Invoice
+          </a>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th>Invoice</th>
+                <th>Student</th>
+                <th>Total</th>
+                <th>Paid</th>
+                <th>Balance</th>
+                <th>Status</th>
+                <th class="text-end">Action</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for invoice in recent_invoices %}
+                <tr>
+                  <td class="fw-bold">{{ invoice.invoice_number }}</td>
+                  <td>{{ invoice.student.full_name }}</td>
+                  <td>TZS {{ invoice.payable_amount|floatformat:0|intcomma }}</td>
+                  <td>TZS {{ invoice.paid_amount|floatformat:0|intcomma }}</td>
+                  <td>TZS {{ invoice.balance|floatformat:0|intcomma }}</td>
+                  <td>
+                    {% if invoice.status == "paid" %}
+                      <span class="badge badge-soft-success">Paid</span>
+                    {% elif invoice.status == "partial" %}
+                      <span class="badge badge-soft-warning">Partial</span>
+                    {% elif invoice.status == "cancelled" %}
+                      <span class="badge badge-soft-danger">Cancelled</span>
+                    {% else %}
+                      <span class="badge badge-soft-danger">Unpaid</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-end">
+                    <a href="{% url 'invoice_detail' invoice.pk %}" class="btn btn-sm btn-light border">
+                      View
+                    </a>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="7" class="text-center text-muted py-4">
+                    No invoices created yet.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="sl-card mb-3">
+      <div class="sl-card-body">
+        <h5 class="fw-bold mb-3">Quick Actions</h5>
+
+        <div class="d-grid gap-2">
+          <a href="{% url 'fee_category_list' %}" class="btn btn-light border text-start small">
+            Fee Categories
+          </a>
+          <a href="{% url 'fee_structure_list' %}" class="btn btn-light border text-start small">
+            Fee Structure
+          </a>
+          <a href="{% url 'invoice_create' %}" class="btn btn-light border text-start small">
+            Create Invoice
+          </a>
+          <a href="{% url 'payment_create' %}" class="btn btn-light border text-start small">
+            Record Payment
+          </a>
+          <a href="{% url 'invoice_list' %}" class="btn btn-light border text-start small">
+            View Invoices
+          </a>
+          <a href="{% url 'payment_list' %}" class="btn btn-light border text-start small">
+            View Payments
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="sl-card">
+      <div class="sl-card-body">
+        <h5 class="fw-bold mb-3">Recent Payments</h5>
+
+        {% for payment in recent_payments %}
+          <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+            <div>
+              <div class="fw-bold small">{{ payment.receipt_number }}</div>
+              <div class="small text-muted">{{ payment.invoice.student.full_name }}</div>
+            </div>
+            <div class="small fw-bold">
+              TZS {{ payment.amount|floatformat:0|intcomma }}
+            </div>
+          </div>
+        {% empty %}
+          <div class="text-muted small">No payments recorded yet.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

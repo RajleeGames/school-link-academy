@@ -1,0 +1,143 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}Boarding Allocations | School Link{% endblock %}
+
+{% block page_title %}Boarding Allocations{% endblock %}
+{% block page_subtitle %}Track students allocated to hostel beds, check-ins, and check-outs.{% endblock %}
+
+{% block content %}
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <div>
+        <h5 class="fw-bold mb-1">Allocation Records</h5>
+        <div class="small text-muted">Student hostel allocation and checkout records.</div>
+      </div>
+
+      {% if "hostel.manage" in current_user_permissions %}
+        <a href="{% url 'boarding_allocation_create' %}" class="btn btn-sl-primary btn-sm">
+          + Allocate Student
+        </a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body">
+    <form method="get" class="row g-2">
+      <div class="col-md-8">
+        <input type="text"
+               name="search"
+               value="{{ search }}"
+               class="form-control form-control-sm"
+               placeholder="Search student, admission number, hostel, room, or bed...">
+      </div>
+
+      <div class="col-md-2">
+        <select name="status" class="form-select form-select-sm">
+          <option value="">All Status</option>
+          <option value="active" {% if selected_status == "active" %}selected{% endif %}>Active</option>
+          <option value="checked_out" {% if selected_status == "checked_out" %}selected{% endif %}>Checked Out</option>
+          <option value="cancelled" {% if selected_status == "cancelled" %}selected{% endif %}>Cancelled</option>
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-dark btn-sm w-100">
+          Filter
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="sl-card">
+  <div class="sl-card-body">
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Hostel</th>
+            <th>Room</th>
+            <th>Bed</th>
+            <th>Check In</th>
+            <th>Check Out</th>
+            <th>Status</th>
+            <th class="text-end">Action</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for allocation in allocations %}
+            <tr>
+              <td>
+                <div class="fw-semibold">{{ allocation.student.full_name }}</div>
+                <div class="small text-muted">{{ allocation.student.admission_number }}</div>
+              </td>
+
+              <td>{{ allocation.hostel }}</td>
+              <td>{{ allocation.room.room_number }}</td>
+              <td>{{ allocation.bed.bed_number }}</td>
+              <td>{{ allocation.check_in_date }}</td>
+              <td>{{ allocation.check_out_date|default:"-" }}</td>
+
+              <td>
+                {% if allocation.status == "active" %}
+                  <span class="badge bg-success-subtle text-success border border-success-subtle">
+                    Active
+                  </span>
+                {% elif allocation.status == "checked_out" %}
+                  <span class="badge bg-secondary-subtle text-secondary border">
+                    Checked Out
+                  </span>
+                {% else %}
+                  <span class="badge bg-danger-subtle text-danger border border-danger-subtle">
+                    Cancelled
+                  </span>
+                {% endif %}
+              </td>
+
+              <td class="text-end">
+                <div class="d-inline-flex gap-1">
+                  <a href="{% url 'boarding_allocation_detail' allocation.pk %}" class="btn btn-light border btn-sm">
+                    View
+                  </a>
+
+                  {% if "hostel.manage" in current_user_permissions %}
+                    <a href="{% url 'boarding_allocation_checkout' allocation.pk %}" class="btn btn-light border btn-sm">
+                      Update
+                    </a>
+
+                    <form method="post"
+                          action="{% url 'boarding_allocation_delete' allocation.pk %}"
+                          onsubmit="return confirm('Delete this allocation? If active, the bed will become available again.');">
+                      {% csrf_token %}
+                      <button class="btn btn-outline-danger btn-sm">
+                        Delete
+                      </button>
+                    </form>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="8" class="text-center text-muted py-4">
+                No allocations found.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="alert alert-info small mt-3 mb-0">
+      Deleting an active allocation will make the bed available again.
+    </div>
+  </div>
+</div>
+
+{% endblock %}

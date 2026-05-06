@@ -1,0 +1,123 @@
+{% extends "base/dashboard_base.html" %}
+{% load humanize %}
+
+{% block title %}{{ title }} | School Link{% endblock %}
+
+{% block page_title %}{{ title }}{% endblock %}
+{% block page_subtitle %}
+  {% if is_update %}
+    Correct a payment record. Amount cannot exceed the invoice balance.
+  {% else %}
+    Record fee payment and generate receipt. Amount cannot exceed the invoice balance.
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+
+{% if selected_invoice %}
+  <div class="sl-card mb-3">
+    <div class="sl-card-body">
+      <div class="row g-3 small">
+        <div class="col-md-3">
+          <div class="text-muted">Invoice</div>
+          <div class="fw-bold">{{ selected_invoice.invoice_number }}</div>
+        </div>
+
+        <div class="col-md-3">
+          <div class="text-muted">Student</div>
+          <div class="fw-bold">{{ selected_invoice.student.full_name }}</div>
+        </div>
+
+        <div class="col-md-2">
+          <div class="text-muted">Payable</div>
+          <div class="fw-bold">TZS {{ selected_invoice.payable_amount|floatformat:0|intcomma }}</div>
+        </div>
+
+        <div class="col-md-2">
+          <div class="text-muted">Paid</div>
+          <div class="fw-bold">TZS {{ selected_invoice.paid_amount|floatformat:0|intcomma }}</div>
+        </div>
+
+        <div class="col-md-2">
+          <div class="text-muted">
+            {% if is_update %}Max Allowed{% else %}Balance{% endif %}
+          </div>
+          <div class="fw-bold text-danger">TZS {{ remaining_balance|floatformat:0|intcomma }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endif %}
+
+<div class="sl-card">
+  <div class="sl-card-body">
+    <form method="post">
+      {% csrf_token %}
+
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Receipt Number</label>
+          {{ form.receipt_number }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Invoice</label>
+          {{ form.invoice }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Payment Date</label>
+          {{ form.payment_date }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Amount</label>
+          {{ form.amount }}
+          {% if remaining_balance %}
+            <div class="form-text small">
+              Maximum allowed: TZS {{ remaining_balance|floatformat:0|intcomma }}
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Method</label>
+          {{ form.method }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Status</label>
+          {{ form.status }}
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label small fw-bold">Reference</label>
+          {{ form.reference }}
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label small fw-bold">Received By</label>
+          {{ form.received_by }}
+        </div>
+
+        <div class="col-12">
+          <label class="form-label small fw-bold">Notes</label>
+          {{ form.notes }}
+        </div>
+      </div>
+
+      {% if form.errors %}
+        <div class="alert alert-danger small mt-3">{{ form.errors }}</div>
+      {% endif %}
+
+      <div class="d-flex justify-content-between mt-4">
+        <a href="{% url 'payment_list' %}" class="btn btn-light border">Cancel</a>
+        <button class="btn btn-sl-primary">
+          {{ button_text|default:"Save Payment" }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,114 @@
+{% extends "base/dashboard_base.html" %}
+{% load humanize %}
+
+{% block title %}Inventory Categories | School Link{% endblock %}
+
+{% block page_title %}Inventory Categories{% endblock %}
+{% block page_subtitle %}Manage categories for grouping school inventory items.{% endblock %}
+
+{% block content %}
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <div>
+        <h5 class="fw-bold mb-1">Category Records</h5>
+        <div class="small text-muted">Inventory item categories.</div>
+      </div>
+
+      {% if "inventory.manage" in current_user_permissions %}
+        <a href="{% url 'inventory_category_create' %}" class="btn btn-sl-primary btn-sm">
+          + Add Category
+        </a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body">
+    <form method="get" class="row g-2">
+      <div class="col-md-10">
+        <input type="text" name="search" value="{{ search }}" class="form-control form-control-sm"
+               placeholder="Search category name...">
+      </div>
+
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-dark btn-sm w-100">
+          Search
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="sl-card">
+  <div class="sl-card-body">
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Items</th>
+            <th>Status</th>
+            {% if "inventory.manage" in current_user_permissions %}
+              <th class="text-end">Action</th>
+            {% endif %}
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for category in categories %}
+            <tr>
+              <td>
+                <div class="fw-semibold">{{ category.name }}</div>
+                <div class="small text-muted">{{ category.description|default:"No description"|truncatechars:80 }}</div>
+              </td>
+              <td>{{ category.item_count|intcomma }}</td>
+              <td>
+                {% if category.is_active %}
+                  <span class="badge bg-success-subtle text-success border border-success-subtle">Active</span>
+                {% else %}
+                  <span class="badge bg-secondary-subtle text-secondary border">Inactive</span>
+                {% endif %}
+              </td>
+
+              {% if "inventory.manage" in current_user_permissions %}
+                <td class="text-end">
+                  <div class="d-inline-flex gap-1">
+                    <a href="{% url 'inventory_category_update' category.pk %}" class="btn btn-light border btn-sm">
+                      Edit
+                    </a>
+
+                    {% if category.item_count == 0 %}
+                      <form method="post"
+                            action="{% url 'inventory_category_delete' category.pk %}"
+                            onsubmit="return confirm('Delete this category? Only delete if created by mistake.');">
+                        {% csrf_token %}
+                        <button class="btn btn-outline-danger btn-sm">
+                          Delete
+                        </button>
+                      </form>
+                    {% endif %}
+                  </div>
+                </td>
+              {% endif %}
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="4" class="text-center text-muted py-4">
+                No categories found.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="alert alert-info small mt-3 mb-0">
+      Delete appears only when a category has no items. If used, mark it inactive instead.
+    </div>
+  </div>
+</div>
+
+{% endblock %}

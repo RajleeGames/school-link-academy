@@ -1,0 +1,122 @@
+{% extends "base/dashboard_base.html" %}
+{% load humanize %}
+
+{% block title %}Hostels | School Link{% endblock %}
+
+{% block page_title %}Hostels{% endblock %}
+{% block page_subtitle %}Manage hostel blocks, boarding houses, and their locations.{% endblock %}
+
+{% block content %}
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <div>
+        <h5 class="fw-bold mb-1">Hostel Records</h5>
+        <div class="small text-muted">All boarding houses and hostel blocks.</div>
+      </div>
+
+      {% if "hostel.manage" in current_user_permissions %}
+        <a href="{% url 'hostel_create' %}" class="btn btn-sl-primary btn-sm">
+          + Add Hostel
+        </a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body">
+    <form method="get" class="row g-2">
+      <div class="col-md-10">
+        <input type="text"
+               name="search"
+               value="{{ search }}"
+               class="form-control form-control-sm"
+               placeholder="Search hostel name or location...">
+      </div>
+
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-dark btn-sm w-100">
+          Search
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="sl-card">
+  <div class="sl-card-body">
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th>Hostel</th>
+            <th>Location</th>
+            <th>Rooms</th>
+            <th>Beds</th>
+            <th>Status</th>
+            {% if "hostel.manage" in current_user_permissions %}
+              <th class="text-end">Action</th>
+            {% endif %}
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for hostel in hostels %}
+            <tr>
+              <td class="fw-semibold">{{ hostel.name }}</td>
+              <td>{{ hostel.location|default:"-" }}</td>
+              <td>{{ hostel.room_count|intcomma }}</td>
+              <td>{{ hostel.bed_count|intcomma }}</td>
+              <td>
+                {% if hostel.is_active %}
+                  <span class="badge bg-success-subtle text-success border border-success-subtle">
+                    Active
+                  </span>
+                {% else %}
+                  <span class="badge bg-secondary-subtle text-secondary border">
+                    Inactive
+                  </span>
+                {% endif %}
+              </td>
+
+              {% if "hostel.manage" in current_user_permissions %}
+                <td class="text-end">
+                  <div class="d-inline-flex gap-1">
+                    <a href="{% url 'hostel_update' hostel.pk %}" class="btn btn-light border btn-sm">
+                      Edit
+                    </a>
+
+                    {% if hostel.room_count == 0 %}
+                      <form method="post"
+                            action="{% url 'hostel_delete' hostel.pk %}"
+                            onsubmit="return confirm('Delete this hostel? Only delete if created by mistake.');">
+                        {% csrf_token %}
+                        <button class="btn btn-outline-danger btn-sm">
+                          Delete
+                        </button>
+                      </form>
+                    {% endif %}
+                  </div>
+                </td>
+              {% endif %}
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="6" class="text-center text-muted py-4">
+                No hostels found.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="alert alert-info small mt-3 mb-0">
+      Delete appears only when a hostel has no rooms. If used, mark it inactive instead.
+    </div>
+  </div>
+</div>
+
+{% endblock %}

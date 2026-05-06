@@ -1,0 +1,106 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}{{ title }} | School Link{% endblock %}
+
+{% block page_title %}{{ title }}{% endblock %}
+{% block page_subtitle %}
+  {% if is_update %}
+    Update school spending details, amount, method, category, reference, and receipt file.
+  {% else %}
+    Record school spending with amount, method, category, reference, and receipt file.
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+
+<div class="sl-card">
+  <div class="sl-card-body">
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Expense Number</label>
+          {{ form.expense_number }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Category</label>
+          {{ form.category }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Expense Date</label>
+          {{ form.expense_date }}
+        </div>
+
+        <div class="col-md-8">
+          <label class="form-label small fw-bold">Title</label>
+          {{ form.title }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Amount</label>
+          {{ form.amount }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Payment Method</label>
+          {{ form.payment_method }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Status</label>
+          {{ form.status }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Reference</label>
+          {{ form.reference }}
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label small fw-bold">Paid To</label>
+          {{ form.paid_to }}
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label small fw-bold">Recorded By</label>
+          {{ form.recorded_by }}
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label small fw-bold">Receipt File</label>
+          {{ form.receipt_file }}
+
+          {% if is_update and expense and expense.receipt_file %}
+            <div class="form-text small">
+              Current file:
+              <a href="{{ expense.receipt_file.url }}" target="_blank">View receipt</a>
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label small fw-bold">Description</label>
+          {{ form.description }}
+        </div>
+      </div>
+
+      {% if form.errors %}
+        <div class="alert alert-danger small mt-3">
+          {{ form.errors }}
+        </div>
+      {% endif %}
+
+      <div class="d-flex justify-content-between mt-4">
+        <a href="{% url 'expense_list' %}" class="btn btn-light border">Cancel</a>
+        <button class="btn btn-sl-primary">
+          {{ button_text|default:"Save Expense" }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

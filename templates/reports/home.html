@@ -1,0 +1,83 @@
+{% extends "base/dashboard_base.html" %}
+{% load humanize %}
+
+{% block title %}Reports | School Link{% endblock %}
+
+{% block page_title %}Reports{% endblock %}
+{% block page_subtitle %}Print and review student, fees, expenses, and attendance reports.{% endblock %}
+
+{% block content %}
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Students</div>
+      <div class="sl-stat-value">{{ total_students|intcomma }}</div>
+      <div class="sl-stat-note">Total student records</div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Fees Paid</div>
+      <div class="sl-stat-value">TZS {{ total_fees_paid|floatformat:0|intcomma }}</div>
+      <div class="sl-stat-note">Confirmed fee income</div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Expenses</div>
+      <div class="sl-stat-value">TZS {{ total_expenses|floatformat:0|intcomma }}</div>
+      <div class="sl-stat-note">Paid expenses</div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Net Cash</div>
+      <div class="sl-stat-value">TZS {{ net_cash|floatformat:0|intcomma }}</div>
+      <div class="sl-stat-note">Fees paid minus expenses</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-md-6 col-xl-3">
+    <a href="{% url 'student_report' %}" class="sl-card d-block h-100">
+      <div class="sl-card-body">
+        <h5 class="fw-bold mb-2">Student Report</h5>
+        <p class="small text-muted mb-0">Class lists, admission numbers, parents, and student status.</p>
+      </div>
+    </a>
+  </div>
+
+  <div class="col-md-6 col-xl-3">
+    <a href="{% url 'fees_report' %}" class="sl-card d-block h-100">
+      <div class="sl-card-body">
+        <h5 class="fw-bold mb-2">Fees Report</h5>
+        <p class="small text-muted mb-0">Invoices, payments, balances, debtors, and paid status.</p>
+      </div>
+    </a>
+  </div>
+
+  <div class="col-md-6 col-xl-3">
+    <a href="{% url 'expenses_report' %}" class="sl-card d-block h-100">
+      <div class="sl-card-body">
+        <h5 class="fw-bold mb-2">Expenses Report</h5>
+        <p class="small text-muted mb-0">School spending, paid expenses, pending expenses, and references.</p>
+      </div>
+    </a>
+  </div>
+
+  <div class="col-md-6 col-xl-3">
+    <a href="{% url 'attendance_report' %}" class="sl-card d-block h-100">
+      <div class="sl-card-body">
+        <h5 class="fw-bold mb-2">Attendance Report</h5>
+        <p class="small text-muted mb-0">Student and staff attendance by date and status.</p>
+      </div>
+    </a>
+  </div>
+</div>
+
+{% endblock %}

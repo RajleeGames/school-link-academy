@@ -1,0 +1,239 @@
+{% extends "base/dashboard_base.html" %}
+{% load humanize %}
+
+{% block title %}{{ homework.title }} | School Link{% endblock %}
+
+{% block page_title %}Homework Detail{% endblock %}
+{% block page_subtitle %}View homework instructions, submission progress, and student submission records.{% endblock %}
+
+{% block content %}
+
+<div class="row g-3 mb-3">
+  <div class="col-md-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Students</div>
+      <div class="sl-stat-value">{{ total_students|intcomma }}</div>
+      <div class="sl-stat-note">Assigned class students</div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Submitted</div>
+      <div class="sl-stat-value">{{ submitted_count|intcomma }}</div>
+      <div class="sl-stat-note">Submitted records</div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Not Submitted</div>
+      <div class="sl-stat-value">{{ not_submitted_count|intcomma }}</div>
+      <div class="sl-stat-note">Pending students</div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Status</div>
+      <div class="sl-stat-value" style="font-size: 1rem;">{{ homework.get_status_display }}</div>
+      <div class="sl-stat-note">Homework status</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="sl-card mb-3">
+      <div class="sl-card-body">
+        <div class="d-flex flex-wrap justify-content-between gap-2">
+          <div>
+            <h4 class="fw-bold mb-1">{{ homework.title }}</h4>
+            <div class="small text-muted">
+              {{ homework.subject.name }} · {{ homework.class_level.name }} {{ homework.stream.name|default:"" }}
+            </div>
+          </div>
+
+          <div>
+            {% if homework.status == "published" %}
+              <span class="badge badge-soft-success">Published</span>
+            {% elif homework.status == "closed" %}
+              <span class="badge badge-soft-warning">Closed</span>
+            {% elif homework.status == "cancelled" %}
+              <span class="badge badge-soft-danger">Cancelled</span>
+            {% else %}
+              <span class="badge badge-soft-primary">Draft</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <hr>
+
+        <div class="row g-3 small">
+          <div class="col-md-3">
+            <div class="text-muted">Academic Year</div>
+            <div class="fw-bold">{{ homework.academic_year.name }}</div>
+          </div>
+
+          <div class="col-md-3">
+            <div class="text-muted">Term</div>
+            <div class="fw-bold">{{ homework.term|default:"-" }}</div>
+          </div>
+
+          <div class="col-md-3">
+            <div class="text-muted">Assigned Date</div>
+            <div class="fw-bold">{{ homework.assigned_date }}</div>
+          </div>
+
+          <div class="col-md-3">
+            <div class="text-muted">Due Date</div>
+            <div class="fw-bold">{{ homework.due_date }}</div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="text-muted">Teacher</div>
+            <div class="fw-bold">
+              {% if homework.teacher %}
+                {{ homework.teacher.full_name }}
+              {% else %}
+                -
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="text-muted">Attachment</div>
+            <div class="fw-bold">
+              {% if homework.attachment %}
+                <a href="{{ homework.attachment.url }}" target="_blank">View Attachment</a>
+              {% else %}
+                -
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="col-12">
+            <div class="text-muted">Instructions</div>
+            <div class="fw-bold">{{ homework.description|linebreaks }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sl-card">
+      <div class="sl-card-body">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <div>
+            <h5 class="fw-bold mb-1">Submissions</h5>
+            <div class="small text-muted">Student homework submission records.</div>
+          </div>
+
+          {% if "homework.manage" in current_user_permissions %}
+            <form method="post" action="{% url 'auto_create_homework_submissions' homework.pk %}">
+              {% csrf_token %}
+              <button class="btn btn-sl-primary btn-sm">
+                Create Student Submission List
+              </button>
+            </form>
+          {% endif %}
+        </div>
+
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>Admission No</th>
+                <th>Status</th>
+                <th>Submitted Date</th>
+                <th>Marks</th>
+                <th>Comment</th>
+                {% if "homework.manage" in current_user_permissions %}
+                  <th class="text-end">Action</th>
+                {% endif %}
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for sub in submissions %}
+                <tr>
+                  <td class="fw-bold">{{ sub.student.full_name }}</td>
+                  <td>{{ sub.student.admission_number }}</td>
+                  <td>
+                    {% if sub.status == "submitted" %}
+                      <span class="badge badge-soft-success">{{ sub.get_status_display }}</span>
+                    {% elif sub.status == "late" %}
+                      <span class="badge badge-soft-warning">{{ sub.get_status_display }}</span>
+                    {% elif sub.status == "not_submitted" %}
+                      <span class="badge badge-soft-danger">{{ sub.get_status_display }}</span>
+                    {% else %}
+                      <span class="badge badge-soft-primary">{{ sub.get_status_display }}</span>
+                    {% endif %}
+                  </td>
+                  <td>{{ sub.submitted_date|default:"-" }}</td>
+                  <td>{{ sub.marks|default:"-" }}</td>
+                  <td>{{ sub.teacher_comment|default:"-" }}</td>
+
+                  {% if "homework.manage" in current_user_permissions %}
+                    <td class="text-end">
+                      <div class="d-inline-flex gap-1">
+                        <a href="{% url 'submission_update' sub.pk %}" class="btn btn-light border btn-sm">
+                          Edit
+                        </a>
+
+                        <form method="post"
+                              action="{% url 'submission_delete' sub.pk %}"
+                              onsubmit="return confirm('Delete this submission record?');">
+                          {% csrf_token %}
+                          <button class="btn btn-outline-danger btn-sm">
+                            Delete
+                          </button>
+                        </form>
+                      </div>
+                    </td>
+                  {% endif %}
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="7" class="text-center text-muted py-4">
+                    No submission list yet. Click “Create Student Submission List”.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="sl-card">
+      <div class="sl-card-body">
+        <h5 class="fw-bold mb-3">Quick Actions</h5>
+
+        <div class="d-grid gap-2">
+          {% if "homework.manage" in current_user_permissions %}
+            <a href="{% url 'homework_update' homework.pk %}" class="btn btn-light border text-start small">Edit Homework</a>
+
+            <form method="post"
+                  action="{% url 'homework_delete' homework.pk %}"
+                  onsubmit="return confirm('Delete this homework? Only delete if it was created by mistake.');">
+              {% csrf_token %}
+              <button class="btn btn-outline-danger w-100 text-start small">Delete Homework</button>
+            </form>
+
+            <a href="{% url 'homework_create' %}" class="btn btn-light border text-start small">Create Another Homework</a>
+            <a href="{% url 'submission_create' %}" class="btn btn-light border text-start small">Add Submission</a>
+          {% endif %}
+
+          <a href="{% url 'submission_list' %}?homework={{ homework.pk }}" class="btn btn-light border text-start small">View Submission List</a>
+          <a href="{% url 'homework_list' %}" class="btn btn-light border text-start small">Back to Homework List</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

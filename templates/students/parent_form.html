@@ -1,0 +1,79 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}{{ title }} | School Link{% endblock %}
+
+{% block page_title %}{{ title }}{% endblock %}
+{% block page_subtitle %}
+  {% if parent %}
+    Update parent or guardian details.
+  {% else %}
+    Add parent or guardian details for student admission.
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+
+<div class="sl-card">
+  <div class="sl-card-body">
+    <form method="post">
+      {% csrf_token %}
+
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label small fw-bold">Full Name</label>
+          {{ form.full_name }}
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label small fw-bold">Relationship</label>
+          {{ form.relationship }}
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label small fw-bold">Phone</label>
+          {{ form.phone }}
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label small fw-bold">Alternative Phone</label>
+          {{ form.alternative_phone }}
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label small fw-bold">Email</label>
+          {{ form.email }}
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label small fw-bold">Occupation</label>
+          {{ form.occupation }}
+        </div>
+
+        <div class="col-12">
+          <label class="form-label small fw-bold">Address</label>
+          {{ form.address }}
+        </div>
+      </div>
+
+      {% if form.errors %}
+        <div class="alert alert-danger small mt-3">
+          {{ form.errors }}
+        </div>
+      {% endif %}
+
+      <div class="d-flex justify-content-between mt-4">
+        <a href="{% url 'parent_list' %}" class="btn btn-light border">Cancel</a>
+
+        <button class="btn btn-sl-primary">
+          {% if parent %}
+            Update Parent
+          {% else %}
+            Save Parent
+          {% endif %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

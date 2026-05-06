@@ -1,0 +1,134 @@
+{% extends "base/dashboard_base.html" %}
+{% load humanize %}
+
+{% block title %}Salary Structures | School Link{% endblock %}
+
+{% block page_title %}Salary Structures{% endblock %}
+{% block page_subtitle %}Manage staff salary setup, allowances, and deductions.{% endblock %}
+
+{% block content %}
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <div>
+        <h5 class="fw-bold mb-1">Salary Structure Records</h5>
+        <div class="small text-muted">Salary rules for each staff member.</div>
+      </div>
+
+      {% if "payroll.manage" in current_user_permissions %}
+        <a href="{% url 'salary_structure_create' %}" class="btn btn-sl-primary btn-sm">
+          + Add Structure
+        </a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body">
+    <form method="get" class="row g-2">
+      <div class="col-md-8">
+        <input type="text" name="search" value="{{ search }}" class="form-control form-control-sm"
+               placeholder="Search staff name, staff ID, or phone...">
+      </div>
+
+      <div class="col-md-2">
+        <select name="status" class="form-select form-select-sm">
+          <option value="">All Status</option>
+          <option value="active" {% if selected_status == "active" %}selected{% endif %}>Active</option>
+          <option value="inactive" {% if selected_status == "inactive" %}selected{% endif %}>Inactive</option>
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-dark btn-sm w-100">
+          Filter
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="sl-card">
+  <div class="sl-card-body">
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th>Staff</th>
+            <th>Role</th>
+            <th>Basic</th>
+            <th>Allowances</th>
+            <th>Deductions</th>
+            <th>Net Salary</th>
+            <th>Status</th>
+            {% if "payroll.manage" in current_user_permissions %}
+              <th class="text-end">Action</th>
+            {% endif %}
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for structure in structures %}
+            <tr>
+              <td>
+                <div class="fw-semibold">{{ structure.staff.full_name }}</div>
+                <div class="small text-muted">{{ structure.staff.staff_id }}</div>
+              </td>
+
+              <td>{{ structure.staff.get_role_display }}</td>
+              <td>{{ structure.basic_salary|floatformat:0|intcomma }}</td>
+              <td>{{ structure.total_allowances|floatformat:0|intcomma }}</td>
+              <td>{{ structure.total_deductions|floatformat:0|intcomma }}</td>
+              <td class="fw-semibold">{{ structure.net_salary|floatformat:0|intcomma }}</td>
+
+              <td>
+                {% if structure.is_active %}
+                  <span class="badge bg-success-subtle text-success border border-success-subtle">
+                    Active
+                  </span>
+                {% else %}
+                  <span class="badge bg-secondary-subtle text-secondary border">
+                    Inactive
+                  </span>
+                {% endif %}
+              </td>
+
+              {% if "payroll.manage" in current_user_permissions %}
+                <td class="text-end">
+                  <div class="d-inline-flex gap-1">
+                    <a href="{% url 'salary_structure_update' structure.pk %}" class="btn btn-light border btn-sm">
+                      Edit
+                    </a>
+
+                    <form method="post"
+                          action="{% url 'salary_structure_delete' structure.pk %}"
+                          onsubmit="return confirm('Delete this salary structure? Only delete if no payroll records exist for this staff.');">
+                      {% csrf_token %}
+                      <button class="btn btn-outline-danger btn-sm">
+                        Delete
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              {% endif %}
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="8" class="text-center text-muted py-4">
+                No salary structures found.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="alert alert-info small mt-3 mb-0">
+      Delete is blocked if staff already has payroll records. Use inactive status instead.
+    </div>
+  </div>
+</div>
+
+{% endblock %}

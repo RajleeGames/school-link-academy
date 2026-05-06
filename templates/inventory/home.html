@@ -1,0 +1,179 @@
+{% extends "base/dashboard_base.html" %}
+{% load humanize %}
+
+{% block title %}Inventory | School Link{% endblock %}
+
+{% block page_title %}Inventory{% endblock %}
+{% block page_subtitle %}Manage school items, stock movement, suppliers, categories, and low stock alerts.{% endblock %}
+
+{% block content %}
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Items</div>
+      <div class="sl-stat-value">{{ total_items|intcomma }}</div>
+      <div class="sl-stat-note">Registered inventory</div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Total Quantity</div>
+      <div class="sl-stat-value">{{ total_quantity|intcomma }}</div>
+      <div class="sl-stat-note">All stock units</div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Low Stock</div>
+      <div class="sl-stat-value">{{ low_stock_count|intcomma }}</div>
+      <div class="sl-stat-note">Need attention</div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Suppliers</div>
+      <div class="sl-stat-value">{{ supplier_count|intcomma }}</div>
+      <div class="sl-stat-note">Registered suppliers</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="sl-card">
+      <div class="sl-card-body">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <div>
+            <h5 class="fw-bold mb-1">Recent Stock In</h5>
+            <div class="small text-muted">Latest items received into store.</div>
+          </div>
+
+          <a href="{% url 'stock_in_create' %}" class="btn btn-sl-primary btn-sm">
+            + Add Stock In
+          </a>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Quantity</th>
+                <th>Supplier</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for record in recent_stock_in %}
+                <tr>
+                  <td>
+                    <div class="fw-semibold">{{ record.item.name }}</div>
+                    <div class="small text-muted">{{ record.item.item_code }}</div>
+                  </td>
+                  <td>{{ record.quantity|intcomma }}</td>
+                  <td>{{ record.supplier|default:"-" }}</td>
+                  <td>{{ record.received_date }}</td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="4" class="text-center text-muted py-4">
+                    No stock in records yet.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="sl-card mt-3">
+      <div class="sl-card-body">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <div>
+            <h5 class="fw-bold mb-1">Recent Stock Out</h5>
+            <div class="small text-muted">Latest issued or used items.</div>
+          </div>
+
+          <a href="{% url 'stock_out_create' %}" class="btn btn-light border btn-sm">
+            + Add Stock Out
+          </a>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Quantity</th>
+                <th>Issued To</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for record in recent_stock_out %}
+                <tr>
+                  <td>
+                    <div class="fw-semibold">{{ record.item.name }}</div>
+                    <div class="small text-muted">{{ record.item.item_code }}</div>
+                  </td>
+                  <td>{{ record.quantity|intcomma }}</td>
+                  <td>{{ record.issued_to|default:"-" }}</td>
+                  <td>{{ record.issued_date }}</td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="4" class="text-center text-muted py-4">
+                    No stock out records yet.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="sl-card">
+      <div class="sl-card-body">
+        <h5 class="fw-bold mb-3">Quick Actions</h5>
+
+        <div class="d-grid gap-2">
+          <a href="{% url 'inventory_item_list' %}" class="btn btn-light border text-start small">Inventory Items</a>
+          <a href="{% url 'inventory_item_create' %}" class="btn btn-light border text-start small">Add Item</a>
+          <a href="{% url 'stock_in_create' %}" class="btn btn-light border text-start small">Stock In</a>
+          <a href="{% url 'stock_out_create' %}" class="btn btn-light border text-start small">Stock Out</a>
+          <a href="{% url 'supplier_list' %}" class="btn btn-light border text-start small">Suppliers</a>
+          <a href="{% url 'inventory_category_list' %}" class="btn btn-light border text-start small">Categories</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="sl-card mt-3">
+      <div class="sl-card-body">
+        <h5 class="fw-bold mb-3">Category Summary</h5>
+
+        {% for category in categories %}
+          <div class="d-flex justify-content-between border-bottom py-2 small">
+            <span class="fw-semibold">{{ category.name }}</span>
+            <span class="text-muted">{{ category.item_count|intcomma }} items</span>
+          </div>
+        {% empty %}
+          <div class="text-muted small">No categories found.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

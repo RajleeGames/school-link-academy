@@ -1,0 +1,133 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}Student Attendance | School Link{% endblock %}
+
+{% block page_title %}Student Attendance{% endblock %}
+{% block page_subtitle %}View and filter student attendance records by date, class, status, or student name.{% endblock %}
+
+{% block content %}
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <div>
+        <h5 class="fw-bold mb-1">Student Attendance Records</h5>
+        <div class="small text-muted">Filter attendance records by class, date, and status.</div>
+      </div>
+
+      {% if "attendance.manage_students" in current_user_permissions %}
+        <a href="{% url 'student_attendance_create' %}" class="btn btn-sl-primary">+ Mark Attendance</a>
+      {% endif %}
+    </div>
+
+    <form method="get" class="row g-2 mt-3">
+      <div class="col-md-3">
+        <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="Search student">
+      </div>
+
+      <div class="col-md-3">
+        <input type="date" name="date" value="{{ date_filter }}" class="form-control">
+      </div>
+
+      <div class="col-md-2">
+        <select name="class" class="form-select">
+          <option value="">All classes</option>
+          {% for class in classes %}
+            <option value="{{ class.id }}" {% if class_filter == class.id|stringformat:"s" %}selected{% endif %}>
+              {{ class.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <select name="status" class="form-select">
+          <option value="">All status</option>
+          {% for value, label in status_choices %}
+            <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>
+              {{ label }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <button class="btn btn-sl-primary w-100">Filter</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="sl-card">
+  <div class="sl-card-body">
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Student</th>
+            <th>Admission No</th>
+            <th>Class</th>
+            <th>Status</th>
+            <th>Arrival Time</th>
+            <th>Remarks</th>
+            {% if "attendance.manage_students" in current_user_permissions %}
+              <th class="text-end">Action</th>
+            {% endif %}
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for record in records %}
+            <tr>
+              <td>{{ record.date }}</td>
+              <td class="fw-bold">{{ record.student.full_name }}</td>
+              <td>{{ record.student.admission_number }}</td>
+              <td>{{ record.student.class_level.name }} {{ record.student.stream.name|default:"" }}</td>
+              <td>
+                {% if record.status == "present" %}
+                  <span class="badge badge-soft-success">Present</span>
+                {% elif record.status == "absent" %}
+                  <span class="badge badge-soft-danger">Absent</span>
+                {% elif record.status == "late" %}
+                  <span class="badge badge-soft-warning">Late</span>
+                {% else %}
+                  <span class="badge badge-soft-primary">{{ record.get_status_display }}</span>
+                {% endif %}
+              </td>
+              <td>{{ record.arrival_time|default:"-" }}</td>
+              <td>{{ record.remarks|default:"-" }}</td>
+
+              {% if "attendance.manage_students" in current_user_permissions %}
+                <td class="text-end">
+                  <div class="d-inline-flex gap-1">
+                    <a href="{% url 'student_attendance_update' record.pk %}" class="btn btn-light border btn-sm">
+                      Edit
+                    </a>
+
+                    <form method="post"
+                          action="{% url 'student_attendance_delete' record.pk %}"
+                          onsubmit="return confirm('Delete this student attendance record?');">
+                      {% csrf_token %}
+                      <button class="btn btn-outline-danger btn-sm">
+                        Delete
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              {% endif %}
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="8" class="text-center text-muted py-4">
+                No student attendance records found.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

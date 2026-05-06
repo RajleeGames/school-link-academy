@@ -1,0 +1,82 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}{{ title }} | School Link{% endblock %}
+
+{% block page_title %}{{ title }}{% endblock %}
+{% block page_subtitle %}
+  {% if is_update %}
+    Update homework submission, marks, status, and teacher comments.
+  {% else %}
+    Record homework submission, marks, status, and teacher comments.
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+
+<div class="sl-card">
+  <div class="sl-card-body">
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label small fw-bold">Homework</label>
+          {{ form.homework }}
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label small fw-bold">Student</label>
+          {{ form.student }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Submitted Date</label>
+          {{ form.submitted_date }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Marks</label>
+          {{ form.marks }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Status</label>
+          {{ form.status }}
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label small fw-bold">Submitted File</label>
+          {{ form.submitted_file }}
+
+          {% if is_update and submission and submission.submitted_file %}
+            <div class="form-text small">
+              Current file:
+              <a href="{{ submission.submitted_file.url }}" target="_blank">View submitted file</a>
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label small fw-bold">Teacher Comment</label>
+          {{ form.teacher_comment }}
+        </div>
+      </div>
+
+      {% if form.errors %}
+        <div class="alert alert-danger small mt-3">
+          {{ form.errors }}
+        </div>
+      {% endif %}
+
+      <div class="d-flex justify-content-between mt-4">
+        <a href="{% url 'submission_list' %}" class="btn btn-light border">Cancel</a>
+
+        <button class="btn btn-sl-primary">
+          {{ button_text|default:"Save Submission" }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

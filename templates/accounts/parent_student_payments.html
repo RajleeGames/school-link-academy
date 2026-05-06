@@ -1,0 +1,102 @@
+{% extends "base/dashboard_base.html" %}
+{% load humanize %}
+
+{% block title %}Payments | Parent Portal{% endblock %}
+
+{% block page_title %}Student Payments{% endblock %}
+{% block page_subtitle %}Payment history for {{ student.full_name }}.{% endblock %}
+
+{% block content %}
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body d-flex flex-wrap justify-content-between align-items-center gap-2">
+    <div>
+      <h5 class="fw-bold mb-1">{{ student.full_name }}</h5>
+      <div class="small text-muted">
+        {{ student.admission_number }} · {{ student.class_level.name }}
+        {% if student.stream %} {{ student.stream.name }}{% endif %}
+      </div>
+    </div>
+
+    <a href="{% url 'parent_portal_home' %}" class="btn btn-light border btn-sm">
+      Back to Children
+    </a>
+  </div>
+</div>
+
+<div class="sl-card">
+  <div class="sl-card-body">
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th>Receipt</th>
+            <th>Date</th>
+            <th>Invoice</th>
+            <th>Method</th>
+            <th>Amount</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for payment in payments %}
+            <tr>
+              <td class="fw-semibold">
+                {% if payment.receipt_number %}
+                  {{ payment.receipt_number }}
+                {% else %}
+                  RCPT-{{ payment.id }}
+                {% endif %}
+              </td>
+
+              <td>
+                {% if payment.payment_date %}
+                  {{ payment.payment_date|date:"d M Y" }}
+                {% elif payment.created_at %}
+                  {{ payment.created_at|date:"d M Y" }}
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+
+              <td>
+                {% if payment.invoice.invoice_number %}
+                  {{ payment.invoice.invoice_number }}
+                {% else %}
+                  INV-{{ payment.invoice.id }}
+                {% endif %}
+              </td>
+
+              <td>
+                {% if payment.payment_method %}
+                  {{ payment.payment_method|title }}
+                {% elif payment.method %}
+                  {{ payment.method|title }}
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+
+              <td>
+                TZS
+                {% if payment.amount %}
+                  {{ payment.amount|floatformat:0|intcomma }}
+                {% else %}
+                  0
+                {% endif %}
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="5" class="text-center text-muted py-4">
+                No payments found for this student.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

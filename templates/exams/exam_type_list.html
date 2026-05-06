@@ -1,0 +1,110 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}Exam Types | School Link{% endblock %}
+
+{% block page_title %}Exam Types{% endblock %}
+{% block page_subtitle %}Create exam types like Mid Term, Terminal, Mock, Weekly Test, or Annual Exam.{% endblock %}
+
+{% block content %}
+
+<div class="row g-3">
+  {% if "exams.manage" in current_user_permissions %}
+    <div class="col-lg-4">
+      <div class="sl-card">
+        <div class="sl-card-body">
+          <h5 class="fw-bold mb-3">Add Exam Type</h5>
+
+          <form method="post">
+            {% csrf_token %}
+
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Name</label>
+              {{ form.name }}
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Description</label>
+              {{ form.description }}
+            </div>
+
+            <div class="form-check mb-3">
+              {{ form.is_active }}
+              <label class="form-check-label small fw-bold">Active</label>
+            </div>
+
+            {% if form.errors %}
+              <div class="alert alert-danger small">{{ form.errors }}</div>
+            {% endif %}
+
+            <button class="btn btn-sl-primary w-100">Save Exam Type</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="{% if 'exams.manage' in current_user_permissions %}col-lg-8{% else %}col-12{% endif %}">
+    <div class="sl-card">
+      <div class="sl-card-body">
+        <h5 class="fw-bold mb-3">Exam Types</h5>
+
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Status</th>
+                {% if "exams.manage" in current_user_permissions %}
+                  <th class="text-end">Action</th>
+                {% endif %}
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for item in exam_types %}
+                <tr>
+                  <td class="fw-bold">{{ item.name }}</td>
+                  <td>{{ item.description|default:"-" }}</td>
+                  <td>
+                    {% if item.is_active %}
+                      <span class="badge badge-soft-success">Active</span>
+                    {% else %}
+                      <span class="badge badge-soft-danger">Inactive</span>
+                    {% endif %}
+                  </td>
+
+                  {% if "exams.manage" in current_user_permissions %}
+                    <td class="text-end">
+                      <div class="d-inline-flex gap-1">
+                        <a href="{% url 'exam_type_update' item.pk %}" class="btn btn-light border btn-sm">
+                          Edit
+                        </a>
+
+                        <form method="post"
+                              action="{% url 'exam_type_delete' item.pk %}"
+                              onsubmit="return confirm('Delete this exam type? Only delete if it was created by mistake.');">
+                          {% csrf_token %}
+                          <button class="btn btn-outline-danger btn-sm">
+                            Delete
+                          </button>
+                        </form>
+                      </div>
+                    </td>
+                  {% endif %}
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="4" class="text-center text-muted py-4">No exam types created yet.</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

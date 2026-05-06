@@ -1,0 +1,884 @@
+{% load static %}
+{% load i18n %}
+<!doctype html>
+<html lang="{{ LANGUAGE_CODE|default:'en' }}">
+<head>
+  <script>
+    (function () {
+      const savedTheme = localStorage.getItem("schoolLinkTheme");
+      document.documentElement.setAttribute("data-theme", savedTheme === "dark" ? "dark" : "light");
+    })();
+  </script>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{% if school_profile_global %}{{ school_profile_global.name }}{% else %}School Link{% endif %}{% endblock %}</title>
+
+  <link rel="stylesheet" href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static 'schoollink/css/app.css' %}">
+
+  <style>
+    .sl-brand-logo {
+      width: 42px !important;
+      height: 42px !important;
+      min-width: 42px !important;
+      max-width: 42px !important;
+      min-height: 42px !important;
+      max-height: 42px !important;
+      overflow: hidden !important;
+      display: grid !important;
+      place-items: center !important;
+      border-radius: 7px !important;
+      position: relative !important;
+      flex: 0 0 42px !important;
+    }
+
+    .sl-brand-logo img {
+      width: 100% !important;
+      height: 100% !important;
+      max-width: 100% !important;
+      max-height: 100% !important;
+      object-fit: contain !important;
+      display: block !important;
+      position: static !important;
+      transform: none !important;
+      inset: auto !important;
+      padding: 3px !important;
+      background: #fff !important;
+      border-radius: 5px !important;
+    }
+
+    .sl-footer-avatar {
+      width: 34px !important;
+      height: 34px !important;
+      min-width: 34px !important;
+      max-width: 34px !important;
+      min-height: 34px !important;
+      max-height: 34px !important;
+      overflow: hidden !important;
+      display: grid !important;
+      place-items: center !important;
+      border-radius: 50% !important;
+      background: var(--sl-gold) !important;
+      color: var(--sl-header-dark) !important;
+      font-weight: 900 !important;
+      flex: 0 0 34px !important;
+    }
+
+    .sl-sidebar img {
+      max-width: 100% !important;
+    }
+
+    .sl-sidebar-brand,
+    .sl-sidebar-menu,
+    .sl-sidebar-footer {
+      position: relative !important;
+      z-index: 2 !important;
+    }
+
+    .sl-sidebar-menu {
+      background: var(--sl-sidebar-bg) !important;
+    }
+
+    .sl-welcome-user {
+      max-width: 240px;
+      color: rgba(255, 255, 255, 0.92);
+      font-size: 0.8rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .sl-welcome-user strong {
+      color: var(--sl-gold);
+      font-weight: 800;
+    }
+
+    .sl-topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .sl-language-form {
+      margin: 0;
+      padding: 0;
+      position: relative;
+    }
+
+    .sl-language-select {
+      height: 32px;
+      min-width: 120px;
+      max-width: 145px;
+      border-radius: 999px;
+      padding: 0 30px 0 12px;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      background-color: rgba(255, 255, 255, 0.12);
+      color: #ffffff;
+      font-size: 0.76rem;
+      font-weight: 700;
+      outline: none;
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image:
+        linear-gradient(45deg, transparent 50%, #ffffff 50%),
+        linear-gradient(135deg, #ffffff 50%, transparent 50%);
+      background-position:
+        calc(100% - 16px) 13px,
+        calc(100% - 11px) 13px;
+      background-size: 5px 5px, 5px 5px;
+      background-repeat: no-repeat;
+      transition: 0.16s ease;
+    }
+
+    .sl-language-select:hover,
+    .sl-language-select:focus {
+      background-color: rgba(255, 255, 255, 0.22);
+      border-color: rgba(255, 255, 255, 0.58);
+      color: #ffffff;
+    }
+
+    .sl-language-select option {
+      color: #111827;
+      background: #ffffff;
+      font-weight: 600;
+    }
+
+    .sl-theme-toggle {
+      height: 32px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      border-radius: 999px;
+      padding: 5px 10px;
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+      font-size: 0.76rem;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .sl-theme-toggle:hover {
+      background: rgba(255, 255, 255, 0.22);
+      color: var(--sl-gold);
+    }
+
+    .sl-theme-icon {
+      line-height: 1;
+    }
+
+    .sl-submenu-link {
+      font-size: 0.76rem !important;
+      padding-top: 7px !important;
+      padding-bottom: 7px !important;
+    }
+
+    html[data-theme="dark"] .sl-language-select {
+      background-color: rgba(255, 255, 255, 0.11) !important;
+      color: #ffffff !important;
+      border-color: rgba(255, 255, 255, 0.32) !important;
+    }
+
+    html[data-theme="dark"] .sl-language-select:hover,
+    html[data-theme="dark"] .sl-language-select:focus {
+      background-color: rgba(255, 255, 255, 0.18) !important;
+      border-color: rgba(255, 255, 255, 0.52) !important;
+    }
+
+    @media (max-width: 767.98px) {
+      .sl-welcome-user {
+        max-width: 100px;
+        font-size: 0.68rem;
+      }
+
+      .sl-topbar-actions {
+        gap: 6px;
+      }
+
+      .sl-language-select {
+        min-width: 86px;
+        max-width: 86px;
+        height: 34px;
+        font-size: 0.68rem;
+        padding-left: 8px;
+        padding-right: 22px;
+        background-position:
+          calc(100% - 13px) 14px,
+          calc(100% - 8px) 14px;
+      }
+
+      .sl-theme-toggle {
+        width: 34px;
+        height: 34px;
+        padding: 0;
+        justify-content: center;
+      }
+
+      .sl-theme-text {
+        display: none !important;
+      }
+    }
+
+    @media (max-width: 430px) {
+      .sl-welcome-user {
+        display: none !important;
+      }
+
+      .sl-language-select {
+        min-width: 82px;
+        max-width: 82px;
+      }
+    }
+  </style>
+
+  {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+
+<div class="sl-app">
+
+  <div class="sl-sidebar-overlay" data-sidebar-close></div>
+
+  <aside class="sl-sidebar" id="schoolLinkSidebar">
+
+    <div class="sl-sidebar-brand">
+      <div class="sl-brand-logo">
+        {% if school_profile_global and school_profile_global.logo %}
+          <img src="{{ school_profile_global.logo.url }}" alt="{{ school_profile_global.name }}">
+        {% else %}
+          <span>
+            {% if school_profile_global and school_profile_global.short_name %}
+              {{ school_profile_global.short_name|slice:":2"|upper }}
+            {% else %}
+              SL
+            {% endif %}
+          </span>
+        {% endif %}
+      </div>
+
+      <div class="sl-brand-info">
+        <div class="sl-brand-title">
+          {% if school_profile_global %}
+            {{ school_profile_global.short_name|default:school_profile_global.name }}
+          {% else %}
+            School Link
+          {% endif %}
+        </div>
+
+        <div class="sl-brand-subtitle">
+          {% if school_profile_global and school_profile_global.motto %}
+            {{ school_profile_global.motto }}
+          {% else %}
+            {% trans "School management system" %}
+          {% endif %}
+        </div>
+      </div>
+
+      <button class="sl-sidebar-close d-lg-none" data-sidebar-close type="button" aria-label="Close sidebar">
+        ×
+      </button>
+    </div>
+
+    <nav class="sl-sidebar-menu">
+
+      <div class="sl-menu-section-title">{% trans "Main" %}</div>
+
+      {% if "dashboard.view" in current_user_permissions %}
+        <a href="{% url 'dashboard' %}"
+           class="sl-menu-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+          <span class="sl-menu-icon sl-icon-dashboard"></span>
+          <span class="sl-menu-text">{% trans "Dashboard" %}</span>
+        </a>
+      {% endif %}
+
+      {% if "parent.portal.view" in current_user_permissions %}
+        <a href="{% url 'parent_portal_home' %}"
+           class="sl-menu-link {% if request.resolver_match.url_name == 'parent_portal_home' %}active{% endif %}">
+          <span class="sl-menu-icon sl-icon-people"></span>
+          <span class="sl-menu-text">{% trans "Parent Portal" %}</span>
+        </a>
+      {% endif %}
+
+      {% if "school.profile.view" in current_user_permissions or "school.branches.view" in current_user_permissions or "school.settings.manage" in current_user_permissions or "users.roles.view" in current_user_permissions %}
+        <div class="sl-menu-group {% if request.resolver_match.url_name == 'school_profile' or request.resolver_match.url_name == 'school_branch_list' or request.resolver_match.url_name == 'school_branch_create' or request.resolver_match.url_name == 'school_branch_update' or request.resolver_match.url_name == 'system_settings' or request.resolver_match.url_name == 'user_permissions' or request.resolver_match.url_name == 'user_permission_update' or request.resolver_match.url_name == 'user_role_list' or request.resolver_match.url_name == 'user_role_update' %}open{% endif %}">
+          <button class="sl-menu-link sl-menu-toggle" type="button">
+            <span class="sl-menu-icon sl-icon-school"></span>
+            <span class="sl-menu-text">{% trans "School Setup" %}</span>
+            <span class="sl-menu-arrow"></span>
+          </button>
+
+          <div class="sl-submenu">
+            {% if "school.profile.view" in current_user_permissions %}
+              <a href="{% url 'school_profile' %}"
+                 class="sl-submenu-link {% if request.resolver_match.url_name == 'school_profile' %}active{% endif %}">
+                {% trans "School Profile" %}
+              </a>
+            {% endif %}
+
+            {% if "school.branches.view" in current_user_permissions %}
+              <a href="{% url 'school_branch_list' %}"
+                 class="sl-submenu-link {% if request.resolver_match.url_name == 'school_branch_list' or request.resolver_match.url_name == 'school_branch_create' or request.resolver_match.url_name == 'school_branch_update' %}active{% endif %}">
+                {% trans "School Branches" %}
+              </a>
+            {% endif %}
+
+            {% if "school.settings.manage" in current_user_permissions %}
+              <a href="{% url 'system_settings' %}"
+                 class="sl-submenu-link {% if request.resolver_match.url_name == 'system_settings' %}active{% endif %}">
+                {% trans "System Settings" %}
+              </a>
+            {% endif %}
+
+            {% if "users.roles.view" in current_user_permissions %}
+              <a href="{% url 'user_permissions' %}"
+                 class="sl-submenu-link {% if request.resolver_match.url_name == 'user_permissions' or request.resolver_match.url_name == 'user_permission_update' %}active{% endif %}">
+                {% trans "User Permissions" %}
+              </a>
+
+              <a href="{% url 'user_role_list' %}"
+                 class="sl-submenu-link {% if request.resolver_match.url_name == 'user_role_list' or request.resolver_match.url_name == 'user_role_update' %}active{% endif %}">
+                {% trans "User Roles" %}
+              </a>
+            {% endif %}
+          </div>
+        </div>
+      {% endif %}
+
+      {% if "students.view" in current_user_permissions or "parents.view" in current_user_permissions or "staff.view" in current_user_permissions or "admissions.view" in current_user_permissions %}
+        <div class="sl-menu-group {% if request.resolver_match.url_name == 'student_list' or request.resolver_match.url_name == 'student_create' or request.resolver_match.url_name == 'student_detail' or request.resolver_match.url_name == 'student_update' or request.resolver_match.url_name == 'admission_list' or request.resolver_match.url_name == 'parent_list' or request.resolver_match.url_name == 'parent_create' or request.resolver_match.url_name == 'parent_update' or request.resolver_match.url_name == 'staff_list' or request.resolver_match.url_name == 'staff_create' or request.resolver_match.url_name == 'staff_detail' or request.resolver_match.url_name == 'staff_update' or request.resolver_match.url_name == 'create_parent_login' %}open{% endif %}">
+          <button class="sl-menu-link sl-menu-toggle" type="button">
+            <span class="sl-menu-icon sl-icon-people"></span>
+            <span class="sl-menu-text">{% trans "People" %}</span>
+            <span class="sl-menu-arrow"></span>
+          </button>
+
+          <div class="sl-submenu">
+            {% if "students.view" in current_user_permissions %}
+              <a href="{% url 'student_list' %}"
+                 class="sl-submenu-link {% if request.resolver_match.url_name == 'student_list' or request.resolver_match.url_name == 'student_detail' or request.resolver_match.url_name == 'student_update' %}active{% endif %}">
+                {% trans "Students" %}
+              </a>
+            {% endif %}
+
+            {% if "parents.view" in current_user_permissions %}
+              <a href="{% url 'parent_list' %}"
+                 class="sl-submenu-link {% if request.resolver_match.url_name == 'parent_list' or request.resolver_match.url_name == 'parent_create' or request.resolver_match.url_name == 'parent_update' or request.resolver_match.url_name == 'create_parent_login' %}active{% endif %}">
+                {% trans "Parents / Guardians" %}
+              </a>
+            {% endif %}
+
+            {% if "staff.view" in current_user_permissions %}
+              <a href="{% url 'staff_list' %}?role=teacher"
+                 class="sl-submenu-link {% if request.resolver_match.url_name == 'staff_list' and request.GET.role == 'teacher' %}active{% endif %}">
+                {% trans "Teachers" %}
+              </a>
+
+              <a href="{% url 'staff_list' %}"
+                 class="sl-submenu-link {% if request.resolver_match.url_name == 'staff_list' and not request.GET.role %}active{% endif %}">
+                {% trans "Staff Members" %}
+              </a>
+            {% endif %}
+
+            {% if "admissions.view" in current_user_permissions %}
+              <a href="{% url 'admission_list' %}"
+                 class="sl-submenu-link {% if request.resolver_match.url_name == 'admission_list' or request.resolver_match.url_name == 'student_create' %}active{% endif %}">
+                {% trans "Admissions" %}
+              </a>
+            {% endif %}
+          </div>
+        </div>
+      {% endif %}
+
+      {% if "academics.view" in current_user_permissions or "subjects.view" in current_user_permissions %}
+        <div class="sl-menu-section-title">{% trans "Academics" %}</div>
+
+        <div class="sl-menu-group {% if request.resolver_match.url_name == 'academics_home' or request.resolver_match.url_name == 'academic_year_list' or request.resolver_match.url_name == 'academic_year_create' or request.resolver_match.url_name == 'academic_year_update' or request.resolver_match.url_name == 'term_list' or request.resolver_match.url_name == 'term_create' or request.resolver_match.url_name == 'term_update' or request.resolver_match.url_name == 'class_level_list' or request.resolver_match.url_name == 'class_level_create' or request.resolver_match.url_name == 'class_level_update' or request.resolver_match.url_name == 'stream_list' or request.resolver_match.url_name == 'stream_create' or request.resolver_match.url_name == 'stream_update' or request.resolver_match.url_name == 'subject_list' or request.resolver_match.url_name == 'subject_create' or request.resolver_match.url_name == 'subject_update' %}open{% endif %}">
+          <button class="sl-menu-link sl-menu-toggle" type="button">
+            <span class="sl-menu-icon sl-icon-academic"></span>
+            <span class="sl-menu-text">{% trans "Academics" %}</span>
+            <span class="sl-menu-arrow"></span>
+          </button>
+
+          <div class="sl-submenu">
+            {% if "academics.view" in current_user_permissions %}
+              <a href="{% url 'academics_home' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'academics_home' %}active{% endif %}">
+                {% trans "Academic Setup" %}
+              </a>
+            {% endif %}
+
+            {% if "academics.manage" in current_user_permissions %}
+              <a href="{% url 'academic_year_list' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'academic_year_list' or request.resolver_match.url_name == 'academic_year_create' or request.resolver_match.url_name == 'academic_year_update' %}active{% endif %}">{% trans "Academic Years" %}</a>
+              <a href="{% url 'term_list' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'term_list' or request.resolver_match.url_name == 'term_create' or request.resolver_match.url_name == 'term_update' %}active{% endif %}">{% trans "Terms / Semesters" %}</a>
+              <a href="{% url 'class_level_list' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'class_level_list' or request.resolver_match.url_name == 'class_level_create' or request.resolver_match.url_name == 'class_level_update' %}active{% endif %}">{% trans "Classes" %}</a>
+              <a href="{% url 'stream_list' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'stream_list' or request.resolver_match.url_name == 'stream_create' or request.resolver_match.url_name == 'stream_update' %}active{% endif %}">{% trans "Streams" %}</a>
+            {% endif %}
+
+            {% if "subjects.view" in current_user_permissions %}
+              <a href="{% url 'subject_list' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'subject_list' or request.resolver_match.url_name == 'subject_create' or request.resolver_match.url_name == 'subject_update' %}active{% endif %}">{% trans "Subjects" %}</a>
+            {% endif %}
+          </div>
+        </div>
+      {% endif %}
+
+      {% if "attendance.view" in current_user_permissions %}
+        <div class="sl-menu-group {% if request.resolver_match.url_name == 'attendance_home' or request.resolver_match.url_name == 'daily_register' or request.resolver_match.url_name == 'bulk_student_attendance' or request.resolver_match.url_name == 'student_attendance_list' or request.resolver_match.url_name == 'student_attendance_create' or request.resolver_match.url_name == 'student_attendance_update' or request.resolver_match.url_name == 'staff_attendance_list' or request.resolver_match.url_name == 'staff_attendance_create' or request.resolver_match.url_name == 'staff_attendance_update' or request.resolver_match.url_name == 'attendance_report' %}open{% endif %}">
+          <button class="sl-menu-link sl-menu-toggle" type="button">
+            <span class="sl-menu-icon sl-icon-attendance"></span>
+            <span class="sl-menu-text">{% trans "Attendance" %}</span>
+            <span class="sl-menu-arrow"></span>
+          </button>
+
+          <div class="sl-submenu">
+            <a href="{% url 'attendance_home' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'attendance_home' %}active{% endif %}">{% trans "Attendance Overview" %}</a>
+            <a href="{% url 'daily_register' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'daily_register' %}active{% endif %}">{% trans "Daily Register" %}</a>
+            <a href="{% url 'student_attendance_list' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'student_attendance_list' or request.resolver_match.url_name == 'student_attendance_create' or request.resolver_match.url_name == 'student_attendance_update' %}active{% endif %}">{% trans "Student Attendance" %}</a>
+
+            {% if "attendance.manage_students" in current_user_permissions %}
+              <a href="{% url 'bulk_student_attendance' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'bulk_student_attendance' %}active{% endif %}">
+                {% trans "Bulk Student Attendance" %}
+              </a>
+            {% endif %}
+
+            {% if "attendance.manage_staff" in current_user_permissions %}
+              <a href="{% url 'staff_attendance_list' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'staff_attendance_list' or request.resolver_match.url_name == 'staff_attendance_create' or request.resolver_match.url_name == 'staff_attendance_update' %}active{% endif %}">
+                {% trans "Staff Attendance" %}
+              </a>
+            {% endif %}
+
+            {% if "attendance.reports" in current_user_permissions %}
+              <a href="{% url 'attendance_report' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'attendance_report' %}active{% endif %}">
+                {% trans "Attendance Reports" %}
+              </a>
+            {% endif %}
+          </div>
+        </div>
+      {% endif %}
+
+      {% if "exams.view" in current_user_permissions or "results.view" in current_user_permissions %}
+        <div class="sl-menu-group {% if request.resolver_match.url_name == 'exams_home' or request.resolver_match.url_name == 'exam_type_list' or request.resolver_match.url_name == 'exam_type_update' or request.resolver_match.url_name == 'grade_scale_list' or request.resolver_match.url_name == 'grade_scale_update' or request.resolver_match.url_name == 'exam_list' or request.resolver_match.url_name == 'exam_create' or request.resolver_match.url_name == 'exam_update' or request.resolver_match.url_name == 'exam_detail' or request.resolver_match.url_name == 'result_list' or request.resolver_match.url_name == 'result_create' or request.resolver_match.url_name == 'result_update' or request.resolver_match.url_name == 'bulk_marks_entry' or request.resolver_match.url_name == 'student_report_card' or request.resolver_match.url_name == 'class_performance_report' %}open{% endif %}">
+          <button class="sl-menu-link sl-menu-toggle" type="button">
+            <span class="sl-menu-icon sl-icon-exams"></span>
+            <span class="sl-menu-text">{% trans "Exams & Results" %}</span>
+            <span class="sl-menu-arrow"></span>
+          </button>
+
+          <div class="sl-submenu">
+            {% if "exams.view" in current_user_permissions %}
+              <a href="{% url 'exams_home' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'exams_home' %}active{% endif %}">{% trans "Exams Overview" %}</a>
+              <a href="{% url 'exam_list' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'exam_list' or request.resolver_match.url_name == 'exam_create' or request.resolver_match.url_name == 'exam_update' or request.resolver_match.url_name == 'exam_detail' %}active{% endif %}">{% trans "Exams List" %}</a>
+            {% endif %}
+
+            {% if "exams.manage" in current_user_permissions %}
+              <a href="{% url 'exam_type_list' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'exam_type_list' or request.resolver_match.url_name == 'exam_type_update' %}active{% endif %}">{% trans "Exam Types" %}</a>
+              <a href="{% url 'grade_scale_list' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'grade_scale_list' or request.resolver_match.url_name == 'grade_scale_update' %}active{% endif %}">{% trans "Grading System" %}</a>
+            {% endif %}
+
+            {% if "results.manage" in current_user_permissions %}
+              <a href="{% url 'bulk_marks_entry' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'bulk_marks_entry' %}active{% endif %}">{% trans "Bulk Marks Entry" %}</a>
+            {% endif %}
+
+            {% if "results.view" in current_user_permissions %}
+              <a href="{% url 'result_list' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'result_list' or request.resolver_match.url_name == 'result_create' or request.resolver_match.url_name == 'result_update' or request.resolver_match.url_name == 'student_report_card' %}active{% endif %}">{% trans "Results List" %}</a>
+            {% endif %}
+
+            {% if "results.reports" in current_user_permissions %}
+              <a href="{% url 'class_performance_report' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'class_performance_report' %}active{% endif %}">{% trans "Class Performance" %}</a>
+            {% endif %}
+          </div>
+        </div>
+      {% endif %}
+
+      {% if "fees.view" in current_user_permissions or "invoices.view" in current_user_permissions or "payments.view" in current_user_permissions or "expenses.view" in current_user_permissions %}
+        <div class="sl-menu-section-title">{% trans "Finance" %}</div>
+
+        {% if "fees.view" in current_user_permissions or "invoices.view" in current_user_permissions or "payments.view" in current_user_permissions %}
+          <div class="sl-menu-group {% if request.resolver_match.url_name == 'fees_home' or request.resolver_match.url_name == 'fee_category_list' or request.resolver_match.url_name == 'fee_category_update' or request.resolver_match.url_name == 'fee_structure_list' or request.resolver_match.url_name == 'fee_structure_update' or request.resolver_match.url_name == 'invoice_list' or request.resolver_match.url_name == 'invoice_create' or request.resolver_match.url_name == 'invoice_update' or request.resolver_match.url_name == 'invoice_detail' or request.resolver_match.url_name == 'payment_list' or request.resolver_match.url_name == 'payment_create' or request.resolver_match.url_name == 'payment_update' or request.resolver_match.url_name == 'receipt_detail' or request.resolver_match.url_name == 'fees_report' %}open{% endif %}">
+            <button class="sl-menu-link sl-menu-toggle" type="button">
+              <span class="sl-menu-icon sl-icon-fees"></span>
+              <span class="sl-menu-text">{% trans "Fees & Payments" %}</span>
+              <span class="sl-menu-arrow"></span>
+            </button>
+
+            <div class="sl-submenu">
+              {% if "fees.view" in current_user_permissions %}
+                <a href="{% url 'fees_home' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'fees_home' %}active{% endif %}">{% trans "Fees Overview" %}</a>
+              {% endif %}
+
+              {% if "fees.setup" in current_user_permissions %}
+                <a href="{% url 'fee_category_list' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'fee_category_list' or request.resolver_match.url_name == 'fee_category_update' %}active{% endif %}">{% trans "Fee Categories" %}</a>
+                <a href="{% url 'fee_structure_list' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'fee_structure_list' or request.resolver_match.url_name == 'fee_structure_update' %}active{% endif %}">{% trans "Fee Structure" %}</a>
+              {% endif %}
+
+              {% if "invoices.view" in current_user_permissions %}
+                <a href="{% url 'invoice_list' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'invoice_list' or request.resolver_match.url_name == 'invoice_create' or request.resolver_match.url_name == 'invoice_update' or request.resolver_match.url_name == 'invoice_detail' %}active{% endif %}">{% trans "Student Invoices" %}</a>
+                <a href="{% url 'invoice_list' %}?status=unpaid" class="sl-submenu-link">{% trans "Debtors" %}</a>
+              {% endif %}
+
+              {% if "payments.manage" in current_user_permissions %}
+                <a href="{% url 'payment_create' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'payment_create' %}active{% endif %}">{% trans "Record Payment" %}</a>
+              {% endif %}
+
+              {% if "payments.view" in current_user_permissions %}
+                <a href="{% url 'payment_list' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'payment_list' or request.resolver_match.url_name == 'payment_update' or request.resolver_match.url_name == 'receipt_detail' %}active{% endif %}">{% trans "Payments / Receipts" %}</a>
+              {% endif %}
+            </div>
+          </div>
+        {% endif %}
+
+        {% if "expenses.view" in current_user_permissions %}
+          <div class="sl-menu-group {% if request.resolver_match.url_name == 'expenses_home' or request.resolver_match.url_name == 'expense_category_list' or request.resolver_match.url_name == 'expense_category_update' or request.resolver_match.url_name == 'expense_list' or request.resolver_match.url_name == 'expense_create' or request.resolver_match.url_name == 'expense_update' or request.resolver_match.url_name == 'expense_detail' or request.resolver_match.url_name == 'expenses_report' %}open{% endif %}">
+            <button class="sl-menu-link sl-menu-toggle" type="button">
+              <span class="sl-menu-icon sl-icon-expenses"></span>
+              <span class="sl-menu-text">{% trans "Expenses" %}</span>
+              <span class="sl-menu-arrow"></span>
+            </button>
+
+            <div class="sl-submenu">
+              <a href="{% url 'expenses_home' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'expenses_home' %}active{% endif %}">{% trans "Expenses Overview" %}</a>
+
+              {% if "expenses.manage" in current_user_permissions %}
+                <a href="{% url 'expense_category_list' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'expense_category_list' or request.resolver_match.url_name == 'expense_category_update' %}active{% endif %}">{% trans "Expense Categories" %}</a>
+                <a href="{% url 'expense_create' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'expense_create' %}active{% endif %}">{% trans "Add Expense" %}</a>
+              {% endif %}
+
+              <a href="{% url 'expense_list' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'expense_list' or request.resolver_match.url_name == 'expense_update' or request.resolver_match.url_name == 'expense_detail' %}active{% endif %}">{% trans "Expense List" %}</a>
+            </div>
+          </div>
+        {% endif %}
+      {% endif %}
+
+      {% if "timetable.view" in current_user_permissions or "homework.view" in current_user_permissions or "discipline.view" in current_user_permissions or "library.view" in current_user_permissions or "hostel.view" in current_user_permissions or "transport.view" in current_user_permissions or "inventory.view" in current_user_permissions or "payroll.view" in current_user_permissions %}
+        <div class="sl-menu-section-title">{% trans "Operations" %}</div>
+
+        {% if "timetable.view" in current_user_permissions %}
+          <div class="sl-menu-group {% if request.resolver_match.url_name == 'timetable_home' or request.resolver_match.url_name == 'room_list' or request.resolver_match.url_name == 'room_create' or request.resolver_match.url_name == 'room_update' or request.resolver_match.url_name == 'time_slot_list' or request.resolver_match.url_name == 'time_slot_create' or request.resolver_match.url_name == 'time_slot_update' or request.resolver_match.url_name == 'auto_create_default_time_slots' or request.resolver_match.url_name == 'timetable_entry_list' or request.resolver_match.url_name == 'timetable_entry_create' or request.resolver_match.url_name == 'timetable_entry_update' or request.resolver_match.url_name == 'class_timetable' or request.resolver_match.url_name == 'teacher_timetable' %}open{% endif %}">
+            <button class="sl-menu-link sl-menu-toggle" type="button">
+              <span class="sl-menu-icon sl-icon-modules"></span>
+              <span class="sl-menu-text">{% trans "Timetable" %}</span>
+              <span class="sl-menu-arrow"></span>
+            </button>
+
+            <div class="sl-submenu">
+              <a href="{% url 'timetable_home' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'timetable_home' %}active{% endif %}">{% trans "Overview" %}</a>
+              <a href="{% url 'room_list' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'room_list' or request.resolver_match.url_name == 'room_create' or request.resolver_match.url_name == 'room_update' %}active{% endif %}">{% trans "Rooms" %}</a>
+              <a href="{% url 'time_slot_list' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'time_slot_list' or request.resolver_match.url_name == 'time_slot_create' or request.resolver_match.url_name == 'time_slot_update' or request.resolver_match.url_name == 'auto_create_default_time_slots' %}active{% endif %}">{% trans "Time Slots" %}</a>
+              <a href="{% url 'timetable_entry_list' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'timetable_entry_list' or request.resolver_match.url_name == 'timetable_entry_create' or request.resolver_match.url_name == 'timetable_entry_update' %}active{% endif %}">{% trans "Timetable Entries" %}</a>
+
+              {% if "timetable.manage" in current_user_permissions %}
+                <a href="{% url 'timetable_entry_create' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'timetable_entry_create' %}active{% endif %}">{% trans "Add Entry" %}</a>
+              {% endif %}
+
+              <a href="{% url 'class_timetable' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'class_timetable' %}active{% endif %}">{% trans "Class Timetable" %}</a>
+              <a href="{% url 'teacher_timetable' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'teacher_timetable' %}active{% endif %}">{% trans "Teacher Timetable" %}</a>
+            </div>
+          </div>
+        {% endif %}
+
+        {% if "homework.view" in current_user_permissions %}
+          <div class="sl-menu-group {% if request.resolver_match.url_name == 'homework_home' or request.resolver_match.url_name == 'homework_list' or request.resolver_match.url_name == 'homework_create' or request.resolver_match.url_name == 'homework_update' or request.resolver_match.url_name == 'homework_detail' or request.resolver_match.url_name == 'auto_create_homework_submissions' or request.resolver_match.url_name == 'submission_list' or request.resolver_match.url_name == 'submission_create' or request.resolver_match.url_name == 'submission_update' %}open{% endif %}">
+            <button class="sl-menu-link sl-menu-toggle" type="button">
+              <span class="sl-menu-icon sl-icon-modules"></span>
+              <span class="sl-menu-text">{% trans "Homework" %}</span>
+              <span class="sl-menu-arrow"></span>
+            </button>
+
+            <div class="sl-submenu">
+              <a href="{% url 'homework_home' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'homework_home' %}active{% endif %}">{% trans "Overview" %}</a>
+              <a href="{% url 'homework_list' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'homework_list' or request.resolver_match.url_name == 'homework_detail' or request.resolver_match.url_name == 'homework_update' or request.resolver_match.url_name == 'auto_create_homework_submissions' %}active{% endif %}">{% trans "Homework List" %}</a>
+
+              {% if "homework.manage" in current_user_permissions %}
+                <a href="{% url 'homework_create' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'homework_create' %}active{% endif %}">{% trans "Create Homework" %}</a>
+                <a href="{% url 'submission_create' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'submission_create' %}active{% endif %}">{% trans "Add Submission" %}</a>
+              {% endif %}
+
+              <a href="{% url 'submission_list' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'submission_list' or request.resolver_match.url_name == 'submission_update' %}active{% endif %}">{% trans "Submissions" %}</a>
+            </div>
+          </div>
+        {% endif %}
+
+        {% if "discipline.view" in current_user_permissions %}
+          <div class="sl-menu-group {% if request.resolver_match.url_name == 'discipline_home' or request.resolver_match.url_name == 'discipline_category_list' or request.resolver_match.url_name == 'discipline_category_update' or request.resolver_match.url_name == 'discipline_record_list' or request.resolver_match.url_name == 'discipline_record_create' or request.resolver_match.url_name == 'discipline_record_update' or request.resolver_match.url_name == 'discipline_record_detail' or request.resolver_match.url_name == 'followup_list' or request.resolver_match.url_name == 'followup_create' or request.resolver_match.url_name == 'followup_update' %}open{% endif %}">
+            <button class="sl-menu-link sl-menu-toggle" type="button">
+              <span class="sl-menu-icon sl-icon-modules"></span>
+              <span class="sl-menu-text">{% trans "Discipline" %}</span>
+              <span class="sl-menu-arrow"></span>
+            </button>
+
+            <div class="sl-submenu">
+              <a href="{% url 'discipline_home' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'discipline_home' %}active{% endif %}">{% trans "Overview" %}</a>
+
+              {% if "discipline.manage" in current_user_permissions %}
+                <a href="{% url 'discipline_category_list' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'discipline_category_list' or request.resolver_match.url_name == 'discipline_category_update' %}active{% endif %}">{% trans "Categories" %}</a>
+                <a href="{% url 'discipline_record_create' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'discipline_record_create' %}active{% endif %}">{% trans "Add Record" %}</a>
+              {% endif %}
+
+              <a href="{% url 'discipline_record_list' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'discipline_record_list' or request.resolver_match.url_name == 'discipline_record_update' or request.resolver_match.url_name == 'discipline_record_detail' %}active{% endif %}">{% trans "Records" %}</a>
+
+              {% if "discipline.manage" in current_user_permissions %}
+                <a href="{% url 'followup_create' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'followup_create' %}active{% endif %}">{% trans "Add Follow Up" %}</a>
+              {% endif %}
+
+              <a href="{% url 'followup_list' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'followup_list' or request.resolver_match.url_name == 'followup_update' %}active{% endif %}">{% trans "Follow Ups" %}</a>
+            </div>
+          </div>
+        {% endif %}
+
+        {% if "library.view" in current_user_permissions %}
+          <div class="sl-menu-group {% if request.resolver_match.url_name == 'library_home' or request.resolver_match.url_name == 'book_list' or request.resolver_match.url_name == 'book_create' or request.resolver_match.url_name == 'book_update' or request.resolver_match.url_name == 'book_category_list' or request.resolver_match.url_name == 'book_category_create' or request.resolver_match.url_name == 'book_category_update' or request.resolver_match.url_name == 'borrow_list' or request.resolver_match.url_name == 'borrow_create' or request.resolver_match.url_name == 'borrow_detail' or request.resolver_match.url_name == 'borrow_return' %}open{% endif %}">
+            <button class="sl-menu-link sl-menu-toggle" type="button">
+              <span class="sl-menu-icon sl-icon-modules"></span>
+              <span class="sl-menu-text">{% trans "Library" %}</span>
+              <span class="sl-menu-arrow"></span>
+            </button>
+
+            <div class="sl-submenu">
+              <a href="{% url 'library_home' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'library_home' %}active{% endif %}">{% trans "Overview" %}</a>
+              <a href="{% url 'book_list' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'book_list' or request.resolver_match.url_name == 'book_update' %}active{% endif %}">{% trans "Books" %}</a>
+              <a href="{% url 'book_category_list' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'book_category_list' or request.resolver_match.url_name == 'book_category_create' or request.resolver_match.url_name == 'book_category_update' %}active{% endif %}">{% trans "Categories" %}</a>
+
+              {% if "library.manage" in current_user_permissions %}
+                <a href="{% url 'book_create' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'book_create' %}active{% endif %}">{% trans "Add Book" %}</a>
+                <a href="{% url 'borrow_create' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'borrow_create' %}active{% endif %}">{% trans "Borrow Book" %}</a>
+              {% endif %}
+
+              <a href="{% url 'borrow_list' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'borrow_list' or request.resolver_match.url_name == 'borrow_detail' or request.resolver_match.url_name == 'borrow_return' %}active{% endif %}">{% trans "Borrow Records" %}</a>
+            </div>
+          </div>
+        {% endif %}
+
+        {% if "hostel.view" in current_user_permissions %}
+          <div class="sl-menu-group {% if request.resolver_match.url_name == 'hostel_home' or request.resolver_match.url_name == 'hostel_list' or request.resolver_match.url_name == 'hostel_create' or request.resolver_match.url_name == 'hostel_update' or request.resolver_match.url_name == 'hostel_room_list' or request.resolver_match.url_name == 'hostel_room_create' or request.resolver_match.url_name == 'hostel_room_update' or request.resolver_match.url_name == 'hostel_bed_list' or request.resolver_match.url_name == 'hostel_bed_create' or request.resolver_match.url_name == 'hostel_bed_update' or request.resolver_match.url_name == 'boarding_allocation_list' or request.resolver_match.url_name == 'boarding_allocation_create' or request.resolver_match.url_name == 'boarding_allocation_detail' or request.resolver_match.url_name == 'boarding_allocation_checkout' %}open{% endif %}">
+            <button class="sl-menu-link sl-menu-toggle" type="button">
+              <span class="sl-menu-icon sl-icon-modules"></span>
+              <span class="sl-menu-text">{% trans "Hostel / Boarding" %}</span>
+              <span class="sl-menu-arrow"></span>
+            </button>
+
+            <div class="sl-submenu">
+              <a href="{% url 'hostel_home' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'hostel_home' %}active{% endif %}">{% trans "Overview" %}</a>
+              <a href="{% url 'hostel_list' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'hostel_list' or request.resolver_match.url_name == 'hostel_create' or request.resolver_match.url_name == 'hostel_update' %}active{% endif %}">{% trans "Hostels" %}</a>
+              <a href="{% url 'hostel_room_list' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'hostel_room_list' or request.resolver_match.url_name == 'hostel_room_create' or request.resolver_match.url_name == 'hostel_room_update' %}active{% endif %}">{% trans "Rooms" %}</a>
+              <a href="{% url 'hostel_bed_list' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'hostel_bed_list' or request.resolver_match.url_name == 'hostel_bed_create' or request.resolver_match.url_name == 'hostel_bed_update' %}active{% endif %}">{% trans "Beds" %}</a>
+
+              {% if "hostel.manage" in current_user_permissions %}
+                <a href="{% url 'boarding_allocation_create' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'boarding_allocation_create' %}active{% endif %}">{% trans "Allocate Student" %}</a>
+              {% endif %}
+
+              <a href="{% url 'boarding_allocation_list' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'boarding_allocation_list' or request.resolver_match.url_name == 'boarding_allocation_detail' or request.resolver_match.url_name == 'boarding_allocation_checkout' %}active{% endif %}">{% trans "Allocations" %}</a>
+            </div>
+          </div>
+        {% endif %}
+
+        {% if "transport.view" in current_user_permissions %}
+          <div class="sl-menu-group {% if request.resolver_match.url_name == 'transport_home' or request.resolver_match.url_name == 'vehicle_list' or request.resolver_match.url_name == 'vehicle_create' or request.resolver_match.url_name == 'vehicle_update' or request.resolver_match.url_name == 'driver_list' or request.resolver_match.url_name == 'driver_create' or request.resolver_match.url_name == 'driver_update' or request.resolver_match.url_name == 'transport_route_list' or request.resolver_match.url_name == 'transport_route_create' or request.resolver_match.url_name == 'transport_route_update' or request.resolver_match.url_name == 'transport_assignment_list' or request.resolver_match.url_name == 'transport_assignment_create' or request.resolver_match.url_name == 'transport_assignment_update' or request.resolver_match.url_name == 'trip_log_list' or request.resolver_match.url_name == 'trip_log_create' or request.resolver_match.url_name == 'trip_log_update' %}open{% endif %}">
+            <button class="sl-menu-link sl-menu-toggle" type="button">
+              <span class="sl-menu-icon sl-icon-modules"></span>
+              <span class="sl-menu-text">{% trans "Transport" %}</span>
+              <span class="sl-menu-arrow"></span>
+            </button>
+
+            <div class="sl-submenu">
+              <a href="{% url 'transport_home' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'transport_home' %}active{% endif %}">{% trans "Overview" %}</a>
+              <a href="{% url 'vehicle_list' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'vehicle_list' or request.resolver_match.url_name == 'vehicle_create' or request.resolver_match.url_name == 'vehicle_update' %}active{% endif %}">{% trans "Vehicles" %}</a>
+              <a href="{% url 'driver_list' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'driver_list' or request.resolver_match.url_name == 'driver_create' or request.resolver_match.url_name == 'driver_update' %}active{% endif %}">{% trans "Drivers" %}</a>
+              <a href="{% url 'transport_route_list' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'transport_route_list' or request.resolver_match.url_name == 'transport_route_create' or request.resolver_match.url_name == 'transport_route_update' %}active{% endif %}">{% trans "Routes" %}</a>
+
+              {% if "transport.manage" in current_user_permissions %}
+                <a href="{% url 'transport_assignment_create' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'transport_assignment_create' %}active{% endif %}">{% trans "Assign Student" %}</a>
+              {% endif %}
+
+              <a href="{% url 'transport_assignment_list' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'transport_assignment_list' or request.resolver_match.url_name == 'transport_assignment_update' %}active{% endif %}">{% trans "Assignments" %}</a>
+              <a href="{% url 'trip_log_list' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'trip_log_list' or request.resolver_match.url_name == 'trip_log_create' or request.resolver_match.url_name == 'trip_log_update' %}active{% endif %}">{% trans "Trip Logs" %}</a>
+            </div>
+          </div>
+        {% endif %}
+
+        {% if "inventory.view" in current_user_permissions %}
+          <div class="sl-menu-group {% if request.resolver_match.url_name == 'inventory_home' or request.resolver_match.url_name == 'inventory_item_list' or request.resolver_match.url_name == 'inventory_item_create' or request.resolver_match.url_name == 'inventory_item_update' or request.resolver_match.url_name == 'inventory_category_list' or request.resolver_match.url_name == 'inventory_category_create' or request.resolver_match.url_name == 'inventory_category_update' or request.resolver_match.url_name == 'supplier_list' or request.resolver_match.url_name == 'supplier_create' or request.resolver_match.url_name == 'supplier_update' or request.resolver_match.url_name == 'stock_in_list' or request.resolver_match.url_name == 'stock_in_create' or request.resolver_match.url_name == 'stock_in_update' or request.resolver_match.url_name == 'stock_out_list' or request.resolver_match.url_name == 'stock_out_create' or request.resolver_match.url_name == 'stock_out_update' %}open{% endif %}">
+            <button class="sl-menu-link sl-menu-toggle" type="button">
+              <span class="sl-menu-icon sl-icon-modules"></span>
+              <span class="sl-menu-text">{% trans "Inventory" %}</span>
+              <span class="sl-menu-arrow"></span>
+            </button>
+
+            <div class="sl-submenu">
+              <a href="{% url 'inventory_home' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'inventory_home' %}active{% endif %}">{% trans "Overview" %}</a>
+              <a href="{% url 'inventory_item_list' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'inventory_item_list' or request.resolver_match.url_name == 'inventory_item_create' or request.resolver_match.url_name == 'inventory_item_update' %}active{% endif %}">{% trans "Items" %}</a>
+              <a href="{% url 'inventory_category_list' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'inventory_category_list' or request.resolver_match.url_name == 'inventory_category_create' or request.resolver_match.url_name == 'inventory_category_update' %}active{% endif %}">{% trans "Categories" %}</a>
+              <a href="{% url 'supplier_list' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'supplier_list' or request.resolver_match.url_name == 'supplier_create' or request.resolver_match.url_name == 'supplier_update' %}active{% endif %}">{% trans "Suppliers" %}</a>
+
+              {% if "inventory.manage" in current_user_permissions %}
+                <a href="{% url 'stock_in_create' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'stock_in_create' %}active{% endif %}">{% trans "Add Stock In" %}</a>
+                <a href="{% url 'stock_out_create' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'stock_out_create' %}active{% endif %}">{% trans "Add Stock Out" %}</a>
+              {% endif %}
+
+              <a href="{% url 'stock_in_list' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'stock_in_list' or request.resolver_match.url_name == 'stock_in_update' %}active{% endif %}">{% trans "Stock In" %}</a>
+              <a href="{% url 'stock_out_list' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'stock_out_list' or request.resolver_match.url_name == 'stock_out_update' %}active{% endif %}">{% trans "Stock Out" %}</a>
+            </div>
+          </div>
+        {% endif %}
+
+        {% if "payroll.view" in current_user_permissions %}
+          <div class="sl-menu-group {% if request.resolver_match.url_name == 'payroll_home' or request.resolver_match.url_name == 'salary_structure_list' or request.resolver_match.url_name == 'salary_structure_create' or request.resolver_match.url_name == 'salary_structure_update' or request.resolver_match.url_name == 'payroll_record_list' or request.resolver_match.url_name == 'payroll_record_create' or request.resolver_match.url_name == 'payroll_record_update' or request.resolver_match.url_name == 'payroll_record_detail' or request.resolver_match.url_name == 'payroll_generate' %}open{% endif %}">
+            <button class="sl-menu-link sl-menu-toggle" type="button">
+              <span class="sl-menu-icon sl-icon-modules"></span>
+              <span class="sl-menu-text">{% trans "Payroll" %}</span>
+              <span class="sl-menu-arrow"></span>
+            </button>
+
+            <div class="sl-submenu">
+              <a href="{% url 'payroll_home' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'payroll_home' %}active{% endif %}">{% trans "Overview" %}</a>
+              <a href="{% url 'salary_structure_list' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'salary_structure_list' or request.resolver_match.url_name == 'salary_structure_create' or request.resolver_match.url_name == 'salary_structure_update' %}active{% endif %}">{% trans "Salary Structures" %}</a>
+
+              {% if "payroll.manage" in current_user_permissions %}
+                <a href="{% url 'salary_structure_create' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'salary_structure_create' %}active{% endif %}">{% trans "Add Structure" %}</a>
+                <a href="{% url 'payroll_generate' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'payroll_generate' %}active{% endif %}">{% trans "Generate Payroll" %}</a>
+                <a href="{% url 'payroll_record_create' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'payroll_record_create' %}active{% endif %}">{% trans "Manual Record" %}</a>
+              {% endif %}
+
+              <a href="{% url 'payroll_record_list' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'payroll_record_list' or request.resolver_match.url_name == 'payroll_record_update' or request.resolver_match.url_name == 'payroll_record_detail' %}active{% endif %}">{% trans "Payroll Records" %}</a>
+            </div>
+          </div>
+        {% endif %}
+      {% endif %}
+
+      {% if "reports.view" in current_user_permissions %}
+        <div class="sl-menu-group {% if request.resolver_match.url_name == 'reports_home' or request.resolver_match.url_name == 'student_report' or request.resolver_match.url_name == 'fees_report' or request.resolver_match.url_name == 'expenses_report' or request.resolver_match.url_name == 'attendance_report' or request.resolver_match.url_name == 'class_performance_report' %}open{% endif %}">
+          <button class="sl-menu-link sl-menu-toggle" type="button">
+            <span class="sl-menu-icon sl-icon-reports"></span>
+            <span class="sl-menu-text">{% trans "Reports" %}</span>
+            <span class="sl-menu-arrow"></span>
+          </button>
+
+          <div class="sl-submenu">
+            <a href="{% url 'reports_home' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'reports_home' %}active{% endif %}">{% trans "Reports Overview" %}</a>
+
+            {% if "reports.students" in current_user_permissions %}
+              <a href="{% url 'student_report' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'student_report' %}active{% endif %}">{% trans "Student Reports" %}</a>
+            {% endif %}
+
+            {% if "reports.finance" in current_user_permissions %}
+              <a href="{% url 'fees_report' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'fees_report' %}active{% endif %}">{% trans "Fee Reports" %}</a>
+              <a href="{% url 'expenses_report' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'expenses_report' %}active{% endif %}">{% trans "Expense Reports" %}</a>
+            {% endif %}
+
+            {% if "attendance.reports" in current_user_permissions %}
+              <a href="{% url 'attendance_report' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'attendance_report' %}active{% endif %}">{% trans "Attendance Reports" %}</a>
+            {% endif %}
+
+            {% if "reports.exams" in current_user_permissions %}
+              <a href="{% url 'class_performance_report' %}" class="sl-submenu-link {% if request.resolver_match.url_name == 'class_performance_report' %}active{% endif %}">{% trans "Exam Reports" %}</a>
+            {% endif %}
+          </div>
+        </div>
+      {% endif %}
+
+      <div class="sl-menu-section-title">{% trans "Account" %}</div>
+
+      <form method="post" action="{% url 'logout' %}" class="sl-logout-form">
+        {% csrf_token %}
+        <button type="submit" class="sl-menu-link sl-logout-link">
+          <span class="sl-menu-icon sl-icon-logout"></span>
+          <span class="sl-menu-text">{% trans "Logout" %}</span>
+        </button>
+      </form>
+
+    </nav>
+
+    <div class="sl-sidebar-footer">
+      <div class="sl-footer-avatar">
+        {{ request.user.username|slice:":1"|upper }}
+      </div>
+
+      <div class="sl-footer-user">
+        <div class="sl-footer-name">{{ request.user.username }}</div>
+        <div class="sl-footer-role">
+          {% if request.user.is_superuser %}
+            {% trans "System Administrator" %}
+          {% elif request.user.account_profile %}
+            {{ request.user.account_profile.get_role_display }}
+          {% else %}
+            {% trans "Staff User" %}
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+  </aside>
+
+  <main class="sl-main">
+    <header class="sl-topbar">
+      <div class="sl-topbar-left">
+        <button class="sl-sidebar-toggle-btn" data-sidebar-toggle type="button" title="Toggle sidebar">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+
+        <div>
+          <h1 class="sl-page-title">{% block page_title %}{% trans "Dashboard" %}{% endblock %}</h1>
+          <div class="sl-page-subtitle">{% block page_subtitle %}{% trans "Welcome to School Link" %}{% endblock %}</div>
+        </div>
+      </div>
+
+      <div class="sl-topbar-right">
+        <div class="sl-welcome-user">
+          {% trans "Welcome" %}, <strong>{{ request.user.get_full_name|default:request.user.username }}</strong>
+        </div>
+
+        <div class="sl-topbar-actions">
+          <form action="{% url 'set_language' %}" method="post" class="sl-language-form">
+            {% csrf_token %}
+            <input name="next" type="hidden" value="{{ request.get_full_path }}">
+
+            <select name="language" class="sl-language-select" onchange="this.form.submit()" aria-label="Choose language">
+              {% get_current_language as CURRENT_LANGUAGE %}
+              {% get_available_languages as AVAILABLE_LANGUAGES %}
+
+              {% for code, name in AVAILABLE_LANGUAGES %}
+                <option value="{{ code }}" {% if code == CURRENT_LANGUAGE %}selected{% endif %}>
+                  {% if code == "sw" %}
+                    Kiswahili
+                  {% else %}
+                    English
+                  {% endif %}
+                </option>
+              {% endfor %}
+            </select>
+          </form>
+
+          <button type="button" class="sl-theme-toggle" data-theme-toggle title="Switch dark mode">
+            <span class="sl-theme-icon">🌙</span>
+            <span class="sl-theme-text d-none d-md-inline">{% trans "Dark" %}</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <section class="sl-page">
+      {% if messages %}
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags }} alert-dismissible fade show small" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+
+      {% block content %}{% endblock %}
+    </section>
+  </main>
+
+</div>
+
+<script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'schoollink/js/app.js' %}"></script>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>

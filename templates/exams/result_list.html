@@ -1,0 +1,156 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}Results | School Link{% endblock %}
+
+{% block page_title %}Exam Results{% endblock %}
+{% block page_subtitle %}Student result summary by exam. Click Report Card to view all subjects and position.{% endblock %}
+
+{% block content %}
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <div>
+        <h5 class="fw-bold mb-1">Results Summary</h5>
+        <div class="small text-muted">
+          One row per student per exam, not one row per subject.
+        </div>
+      </div>
+
+      <div class="d-flex flex-wrap gap-2">
+        {% if "results.manage" in current_user_permissions %}
+          <a href="{% url 'bulk_marks_entry' %}" class="btn btn-sl-primary">Bulk Marks</a>
+          <a href="{% url 'result_create' %}" class="btn btn-light border">+ One Result</a>
+        {% endif %}
+
+        {% if "reports.exams" in current_user_permissions %}
+          <a href="{% url 'export_results_excel' %}?q={{ query }}&exam={{ exam_filter }}&class={{ class_filter }}&subject={{ subject_filter }}"
+             class="btn btn-light border">
+            Excel
+          </a>
+        {% endif %}
+      </div>
+    </div>
+
+    <form method="get" class="row g-2 mt-3">
+      <div class="col-md-3">
+        <input type="text" name="q" value="{{ query }}" class="form-control"
+               placeholder="Search student or admission no">
+      </div>
+
+      <div class="col-md-3">
+        <select name="exam" class="form-select">
+          <option value="">All exams</option>
+          {% for exam in exams %}
+            <option value="{{ exam.id }}" {% if exam_filter == exam.id|stringformat:"s" %}selected{% endif %}>
+              {{ exam.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <select name="class" class="form-select">
+          <option value="">All classes</option>
+          {% for class in classes %}
+            <option value="{{ class.id }}" {% if class_filter == class.id|stringformat:"s" %}selected{% endif %}>
+              {{ class.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <select name="subject" class="form-select">
+          <option value="">All subjects</option>
+          {% for subject in subjects %}
+            <option value="{{ subject.id }}" {% if subject_filter == subject.id|stringformat:"s" %}selected{% endif %}>
+              {{ subject.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <button class="btn btn-sl-primary w-100">Filter</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="sl-card">
+  <div class="sl-card-body">
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Class</th>
+            <th>Exam</th>
+            <th>Subjects</th>
+            <th class="text-end">Total</th>
+            <th class="text-end">Average</th>
+            <th class="text-center">Position</th>
+            <th class="text-end">Report</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for row in result_rows %}
+            <tr>
+              <td>
+                <div class="fw-bold">{{ row.student.full_name }}</div>
+                <div class="small text-muted">{{ row.student.admission_number }}</div>
+              </td>
+
+              <td>
+                {{ row.student.class_level.name }}
+                {{ row.student.stream.name|default:"" }}
+              </td>
+
+              <td>
+                <div class="fw-semibold">{{ row.exam.name }}</div>
+                <div class="small text-muted">{{ row.exam.exam_type.name }}</div>
+              </td>
+
+              <td>{{ row.subject_count }}</td>
+
+              <td class="text-end fw-bold">
+                {{ row.total_marks|floatformat:1 }}
+              </td>
+
+              <td class="text-end fw-bold">
+                {{ row.average_marks|floatformat:1 }}%
+              </td>
+
+              <td class="text-center">
+                {% if row.position %}
+                  <span class="badge badge-soft-primary">
+                    {{ row.position }} / {{ row.total_students }}
+                  </span>
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+
+              <td class="text-end">
+                <a href="{% url 'student_report_card' row.student.pk %}?exam={{ row.exam.pk }}"
+                   class="btn btn-sm btn-light border">
+                  Report Card
+                </a>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="8" class="text-center text-muted py-4">
+                No results found.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

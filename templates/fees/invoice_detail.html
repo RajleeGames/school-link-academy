@@ -1,0 +1,281 @@
+{% extends "base/dashboard_base.html" %}
+{% load humanize %}
+
+{% block title %}{{ invoice.invoice_number }} | School Link{% endblock %}
+
+{% block page_title %}Invoice Detail{% endblock %}
+{% block page_subtitle %}View invoice items, payments, balance, and student fee status.{% endblock %}
+
+{% block content %}
+
+<div class="row g-3">
+  <div class="col-lg-8">
+
+    <div class="sl-card mb-3">
+      <div class="sl-card-body">
+        <div class="d-flex flex-wrap justify-content-between gap-2">
+          <div>
+            <h4 class="fw-bold mb-1">{{ invoice.invoice_number }}</h4>
+            <div class="small text-muted">
+              {{ invoice.student.full_name }} · {{ invoice.student.admission_number }}
+            </div>
+          </div>
+
+          <div class="text-end">
+            {% if invoice.status == "paid" %}
+              <span class="badge badge-soft-success">Paid</span>
+            {% elif invoice.status == "partial" %}
+              <span class="badge badge-soft-warning">Partial</span>
+            {% elif invoice.status == "cancelled" %}
+              <span class="badge badge-soft-danger">Cancelled</span>
+            {% else %}
+              <span class="badge badge-soft-danger">Unpaid</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <hr>
+
+        <div class="row g-3 small">
+          <div class="col-md-3">
+            <div class="text-muted">Class</div>
+            <div class="fw-bold">
+              {{ invoice.student.class_level.name }}
+              {{ invoice.student.stream.name|default:"" }}
+            </div>
+          </div>
+
+          <div class="col-md-3">
+            <div class="text-muted">Academic Year</div>
+            <div class="fw-bold">{{ invoice.academic_year.name }}</div>
+          </div>
+
+          <div class="col-md-3">
+            <div class="text-muted">Term</div>
+            <div class="fw-bold">{{ invoice.term|default:"-" }}</div>
+          </div>
+
+          <div class="col-md-3">
+            <div class="text-muted">Invoice Date</div>
+            <div class="fw-bold">{{ invoice.invoice_date }}</div>
+          </div>
+
+          <div class="col-md-3">
+            <div class="text-muted">Due Date</div>
+            <div class="fw-bold">{{ invoice.due_date|default:"-" }}</div>
+          </div>
+
+          <div class="col-md-9">
+            <div class="text-muted">Notes</div>
+            <div class="fw-bold">{{ invoice.notes|default:"-" }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sl-card mb-3">
+      <div class="sl-card-body">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <div>
+            <h5 class="fw-bold mb-1">Invoice Items</h5>
+            <div class="small text-muted">Add fee items like tuition, transport, exam, boarding, or uniform.</div>
+          </div>
+        </div>
+
+        <form method="post" action="{% url 'invoice_add_item' invoice.pk %}" class="row g-2 mb-3">
+          {% csrf_token %}
+
+          <div class="col-md-4">
+            <label class="form-label small fw-bold">Category</label>
+            <select name="category" class="form-select" required>
+              <option value="">Select Category</option>
+              {% for category in categories %}
+                <option value="{{ category.id }}">{{ category.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label small fw-bold">Description</label>
+            <input type="text" name="description" class="form-control" placeholder="Optional description">
+          </div>
+
+          <div class="col-md-2">
+            <label class="form-label small fw-bold">Amount</label>
+            <input type="number" step="0.01" min="0" name="amount" class="form-control" placeholder="0.00" required>
+          </div>
+
+          <div class="col-md-2 d-flex align-items-end">
+            <button class="btn btn-sl-primary w-100" type="submit">
+              Add Item
+            </button>
+          </div>
+        </form>
+
+        {% if not categories %}
+          <div class="alert alert-warning small">
+            No fee categories found. Go to <a href="{% url 'fee_category_list' %}">Fee Categories</a> and create one first.
+          </div>
+        {% endif %}
+
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th>Description</th>
+                <th class="text-end">Amount</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for item in items %}
+                <tr>
+                  <td class="fw-bold">{{ item.category.name }}</td>
+                  <td>{{ item.description|default:"-" }}</td>
+                  <td class="text-end">TZS {{ item.amount|floatformat:0|intcomma }}</td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="3" class="text-center text-muted py-4">
+                    No invoice items added yet.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+
+            {% if items %}
+              <tfoot>
+                <tr>
+                  <th colspan="2" class="text-end">Total</th>
+                  <th class="text-end">TZS {{ invoice.total_amount|floatformat:0|intcomma }}</th>
+                </tr>
+              </tfoot>
+            {% endif %}
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="sl-card">
+      <div class="sl-card-body">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <div>
+            <h5 class="fw-bold mb-1">Payments</h5>
+            <div class="small text-muted">All payments recorded for this invoice.</div>
+          </div>
+
+          <a href="{% url 'payment_create' %}?invoice={{ invoice.pk }}" class="btn btn-sl-primary btn-sm">
+            Record Payment
+          </a>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th>Receipt</th>
+                <th>Date</th>
+                <th>Method</th>
+                <th>Status</th>
+                <th class="text-end">Amount</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for payment in payments %}
+                <tr>
+                  <td class="fw-bold">
+                    <a href="{% url 'receipt_detail' payment.pk %}">
+                      {{ payment.receipt_number }}
+                    </a>
+                  </td>
+                  <td>{{ payment.payment_date }}</td>
+                  <td>{{ payment.get_method_display }}</td>
+                  <td>
+                    {% if payment.status == "confirmed" %}
+                      <span class="badge badge-soft-success">Confirmed</span>
+                    {% elif payment.status == "pending" %}
+                      <span class="badge badge-soft-warning">Pending</span>
+                    {% else %}
+                      <span class="badge badge-soft-danger">Cancelled</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-end">TZS {{ payment.amount|floatformat:0|intcomma }}</td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="5" class="text-center text-muted py-4">
+                    No payments recorded yet.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <div class="col-lg-4">
+    <div class="sl-card mb-3">
+      <div class="sl-card-body">
+        <h5 class="fw-bold mb-3">Summary</h5>
+
+        <div class="d-flex justify-content-between border-bottom py-2">
+          <span>Total</span>
+          <strong>TZS {{ invoice.total_amount|floatformat:0|intcomma }}</strong>
+        </div>
+
+        <div class="d-flex justify-content-between border-bottom py-2">
+          <span>Discount</span>
+          <strong>TZS {{ invoice.discount_amount|floatformat:0|intcomma }}</strong>
+        </div>
+
+        <div class="d-flex justify-content-between border-bottom py-2">
+          <span>Payable</span>
+          <strong>TZS {{ invoice.payable_amount|floatformat:0|intcomma }}</strong>
+        </div>
+
+        <div class="d-flex justify-content-between border-bottom py-2">
+          <span>Paid</span>
+          <strong>TZS {{ invoice.paid_amount|floatformat:0|intcomma }}</strong>
+        </div>
+
+        <div class="d-flex justify-content-between py-2">
+          <span>Balance</span>
+          <strong>TZS {{ invoice.balance|floatformat:0|intcomma }}</strong>
+        </div>
+
+        <a href="{% url 'payment_create' %}?invoice={{ invoice.pk }}" class="btn btn-sl-primary w-100 mt-3">
+          Record Payment
+        </a>
+
+        <a href="{% url 'invoice_list' %}" class="btn btn-light border w-100 mt-2">
+          Back to Invoices
+        </a>
+      </div>
+    </div>
+
+    <div class="sl-card">
+      <div class="sl-card-body">
+        <h5 class="fw-bold mb-3">Student Contact</h5>
+
+        <div class="small">
+          <div class="text-muted">Parent / Guardian</div>
+          <div class="fw-bold mb-2">{{ invoice.student.parent_guardian.full_name }}</div>
+
+          <div class="text-muted">Phone</div>
+          <div class="fw-bold mb-2">{{ invoice.student.parent_guardian.phone }}</div>
+
+          <div class="text-muted">Status</div>
+          <div class="fw-bold">{{ invoice.student.get_status_display }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

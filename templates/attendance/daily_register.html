@@ -1,0 +1,282 @@
+{% extends "base/dashboard_base.html" %}
+{% load humanize %}
+
+{% block title %}Daily Register | School Link{% endblock %}
+
+{% block page_title %}Daily Register{% endblock %}
+{% block page_subtitle %}View student and staff attendance register for a selected day.{% endblock %}
+
+{% block content %}
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Students</div>
+      <div class="sl-stat-value">{{ student_total|intcomma }}</div>
+      <div class="sl-stat-note">Active students shown</div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Student Marked</div>
+      <div class="sl-stat-value">{{ student_marked_count|intcomma }}</div>
+      <div class="sl-stat-note">Attendance recorded</div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Staff</div>
+      <div class="sl-stat-value">{{ staff_total|intcomma }}</div>
+      <div class="sl-stat-note">Active staff shown</div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Staff Marked</div>
+      <div class="sl-stat-value">{{ staff_marked_count|intcomma }}</div>
+      <div class="sl-stat-note">Attendance recorded</div>
+    </div>
+  </div>
+</div>
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-md-2">
+        <label class="form-label small fw-bold">Date</label>
+        <input type="date" name="date" value="{{ selected_date }}" class="form-control form-control-sm">
+      </div>
+
+      <div class="col-md-2">
+        <label class="form-label small fw-bold">Class</label>
+        <select name="class" class="form-select form-select-sm">
+          <option value="">All Classes</option>
+          {% for class in classes %}
+            <option value="{{ class.id }}" {% if class_id == class.id|stringformat:"s" %}selected{% endif %}>
+              {{ class.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <label class="form-label small fw-bold">Stream</label>
+        <select name="stream" class="form-select form-select-sm">
+          <option value="">All Streams</option>
+          {% for stream in streams %}
+            <option value="{{ stream.id }}" {% if stream_id == stream.id|stringformat:"s" %}selected{% endif %}>
+              {{ stream }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <label class="form-label small fw-bold">Student Status</label>
+        <select name="student_status" class="form-select form-select-sm">
+          <option value="">All Students</option>
+          <option value="not_marked" {% if student_status == "not_marked" %}selected{% endif %}>Not Marked</option>
+          {% for value,label in student_status_choices %}
+            <option value="{{ value }}" {% if student_status == value %}selected{% endif %}>
+              {{ label }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <label class="form-label small fw-bold">Staff Status</label>
+        <select name="staff_status" class="form-select form-select-sm">
+          <option value="">All Staff</option>
+          <option value="not_marked" {% if staff_status == "not_marked" %}selected{% endif %}>Not Marked</option>
+          {% for value,label in staff_status_choices %}
+            <option value="{{ value }}" {% if staff_status == value %}selected{% endif %}>
+              {{ label }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-dark btn-sm w-100">
+          Filter
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-7">
+    <div class="sl-card h-100">
+      <div class="sl-card-body">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <div>
+            <h5 class="fw-bold mb-1">Student Daily Register</h5>
+            <div class="small text-muted">
+              {{ selected_date }} · Not marked: {{ student_not_marked_count|intcomma }}
+            </div>
+          </div>
+
+          <a href="{% url 'bulk_student_attendance' %}?date={{ selected_date }}{% if class_id %}&class={{ class_id }}{% endif %}{% if stream_id %}&stream={{ stream_id }}{% endif %}" class="btn btn-sl-primary btn-sm">
+            Mark Students
+          </a>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>Class</th>
+                <th>Status</th>
+                <th>Arrival</th>
+                <th>Remarks</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for row in student_rows %}
+                <tr>
+                  <td>
+                    <div class="fw-semibold">{{ row.student.full_name }}</div>
+                    <div class="small text-muted">{{ row.student.admission_number }}</div>
+                  </td>
+
+                  <td>
+                    {{ row.student.class_level|default:"-" }}
+                    {{ row.student.stream.name|default:"" }}
+                  </td>
+
+                  <td>
+                    {% if row.attendance %}
+                      {% if row.attendance.status == "present" %}
+                        <span class="badge bg-success-subtle text-success border border-success-subtle">Present</span>
+                      {% elif row.attendance.status == "late" %}
+                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle">Late</span>
+                      {% elif row.attendance.status == "absent" %}
+                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Absent</span>
+                      {% else %}
+                        <span class="badge bg-light text-dark border">{{ row.attendance.get_status_display }}</span>
+                      {% endif %}
+                    {% else %}
+                      <span class="badge bg-secondary-subtle text-secondary border">Not Marked</span>
+                    {% endif %}
+                  </td>
+
+                  <td>
+                    {% if row.attendance %}
+                      {{ row.attendance.arrival_time|default:"-" }}
+                    {% else %}
+                      -
+                    {% endif %}
+                  </td>
+
+                  <td>
+                    {% if row.attendance %}
+                      {{ row.attendance.remarks|default:"-" }}
+                    {% else %}
+                      -
+                    {% endif %}
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="5" class="text-center text-muted py-4">
+                    No students found for this filter.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="sl-card h-100">
+      <div class="sl-card-body">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <div>
+            <h5 class="fw-bold mb-1">Staff Daily Register</h5>
+            <div class="small text-muted">
+              {{ selected_date }} · Not marked: {{ staff_not_marked_count|intcomma }}
+            </div>
+          </div>
+
+          <a href="{% url 'staff_attendance_create' %}" class="btn btn-light border btn-sm">
+            Mark Staff
+          </a>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th>Staff</th>
+                <th>Status</th>
+                <th>In / Out</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for row in staff_rows %}
+                <tr>
+                  <td>
+                    <div class="fw-semibold">{{ row.staff.full_name }}</div>
+                    <div class="small text-muted">
+                      {{ row.staff.staff_id }} · {{ row.staff.get_role_display }}
+                    </div>
+                  </td>
+
+                  <td>
+                    {% if row.attendance %}
+                      {% if row.attendance.status == "present" %}
+                        <span class="badge bg-success-subtle text-success border border-success-subtle">Present</span>
+                      {% elif row.attendance.status == "late" %}
+                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle">Late</span>
+                      {% elif row.attendance.status == "absent" %}
+                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Absent</span>
+                      {% else %}
+                        <span class="badge bg-light text-dark border">{{ row.attendance.get_status_display }}</span>
+                      {% endif %}
+                    {% else %}
+                      <span class="badge bg-secondary-subtle text-secondary border">Not Marked</span>
+                    {% endif %}
+                  </td>
+
+                  <td>
+                    {% if row.attendance %}
+                      <div class="small">
+                        In: {{ row.attendance.check_in_time|default:"-" }}
+                      </div>
+                      <div class="small text-muted">
+                        Out: {{ row.attendance.check_out_time|default:"-" }}
+                      </div>
+                    {% else %}
+                      -
+                    {% endif %}
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="3" class="text-center text-muted py-4">
+                    No staff found for this filter.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

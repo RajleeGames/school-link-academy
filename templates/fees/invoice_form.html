@@ -1,0 +1,76 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}{{ title }} | School Link{% endblock %}
+
+{% block page_title %}{{ title }}{% endblock %}
+{% block page_subtitle %}Create a student fee invoice. You can add fee items after saving the invoice.{% endblock %}
+
+{% block content %}
+
+<div class="sl-card">
+  <div class="sl-card-body">
+    <form method="post">
+      {% csrf_token %}
+
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Invoice Number</label>
+          {{ form.invoice_number }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Student</label>
+          {{ form.student }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Academic Year</label>
+          {{ form.academic_year }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Term</label>
+          {{ form.term }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Invoice Date</label>
+          {{ form.invoice_date }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Due Date</label>
+          {{ form.due_date }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Total Amount</label>
+          {{ form.total_amount }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Discount Amount</label>
+          {{ form.discount_amount }}
+        </div>
+
+        <div class="col-md-12">
+          <label class="form-label small fw-bold">Notes</label>
+          {{ form.notes }}
+        </div>
+      </div>
+
+      {% if form.errors %}
+        <div class="alert alert-danger small mt-3">
+          {{ form.errors }}
+        </div>
+      {% endif %}
+
+      <div class="d-flex justify-content-between mt-4">
+        <a href="{% url 'invoice_list' %}" class="btn btn-light border">Cancel</a>
+        <button class="btn btn-sl-primary">Save Invoice</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

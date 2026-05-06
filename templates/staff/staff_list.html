@@ -1,0 +1,144 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}Staff | School Link{% endblock %}
+
+{% block page_title %}Staff Members{% endblock %}
+{% block page_subtitle %}Manage teachers, accountants, receptionists, librarians, transport staff, and support staff.{% endblock %}
+
+{% block content %}
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <div>
+        <h5 class="mb-1 fw-bold">Staff Records</h5>
+        <div class="small text-muted">Search and manage school staff members.</div>
+      </div>
+
+      <a href="{% url 'staff_create' %}" class="btn btn-sl-primary">
+        + Add Staff
+      </a>
+    </div>
+
+    <form method="get" class="row g-2 mt-3">
+      <div class="col-md-5">
+        <input type="text" name="q" value="{{ query }}" class="form-control"
+               placeholder="Search staff ID, name, phone, email">
+      </div>
+
+      <div class="col-md-3">
+        <select name="role" class="form-select">
+          <option value="">All roles</option>
+          {% for value, label in role_choices %}
+            <option value="{{ value }}" {% if role_filter == value %}selected{% endif %}>
+              {{ label }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <select name="status" class="form-select">
+          <option value="">All status</option>
+          {% for value, label in status_choices %}
+            <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>
+              {{ label }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <button class="btn btn-sl-primary w-100">Filter</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="sl-card">
+  <div class="sl-card-body">
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th>Staff</th>
+            <th>Staff ID</th>
+            <th>Role</th>
+            <th>Phone</th>
+            <th>Subjects</th>
+            <th>Classes</th>
+            <th>Status</th>
+            <th class="text-end">Action</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for staff in staff_members %}
+            <tr>
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  {% if staff.photo %}
+                    <img src="{{ staff.photo.url }}" alt="{{ staff.full_name }}"
+                         style="width:34px;height:34px;border-radius:50%;object-fit:cover;">
+                  {% else %}
+                    <div style="width:34px;height:34px;border-radius:50%;background:#417690;color:#f5dd5d;display:grid;place-items:center;font-weight:800;">
+                      {{ staff.first_name|slice:":1"|upper }}
+                    </div>
+                  {% endif %}
+
+                  <div>
+                    <div class="fw-bold">{{ staff.full_name }}</div>
+                    <div class="small text-muted">{{ staff.get_gender_display }}</div>
+                  </div>
+                </div>
+              </td>
+
+              <td>{{ staff.staff_id }}</td>
+              <td>{{ staff.get_role_display }}</td>
+              <td>{{ staff.phone }}</td>
+
+              <td>
+                {% for subject in staff.subjects.all|slice:":2" %}
+                  <span class="badge badge-soft-primary">{{ subject.code }}</span>
+                {% empty %}
+                  <span class="text-muted">-</span>
+                {% endfor %}
+              </td>
+
+              <td>
+                {% for class in staff.assigned_classes.all|slice:":2" %}
+                  <span class="badge badge-soft-primary">{{ class.name }}</span>
+                {% empty %}
+                  <span class="text-muted">-</span>
+                {% endfor %}
+              </td>
+
+              <td>
+                {% if staff.status == "active" %}
+                  <span class="badge badge-soft-success">Active</span>
+                {% elif staff.status == "suspended" %}
+                  <span class="badge badge-soft-danger">Suspended</span>
+                {% else %}
+                  <span class="badge badge-soft-primary">{{ staff.get_status_display }}</span>
+                {% endif %}
+              </td>
+
+              <td class="text-end">
+                <a href="{% url 'staff_detail' staff.pk %}" class="btn btn-sm btn-light border">View</a>
+                <a href="{% url 'staff_update' staff.pk %}" class="btn btn-sm btn-light border">Edit</a>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="8" class="text-center text-muted py-4">
+                No staff members found. Click <strong>Add Staff</strong> to create one.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

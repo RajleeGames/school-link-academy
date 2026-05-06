@@ -1,0 +1,112 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}Suppliers | School Link{% endblock %}
+
+{% block page_title %}Suppliers{% endblock %}
+{% block page_subtitle %}Manage supplier contacts used for school inventory purchases.{% endblock %}
+
+{% block content %}
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <div>
+        <h5 class="fw-bold mb-1">Supplier Records</h5>
+        <div class="small text-muted">Inventory supplier contacts.</div>
+      </div>
+
+      {% if "inventory.manage" in current_user_permissions %}
+        <a href="{% url 'supplier_create' %}" class="btn btn-sl-primary btn-sm">
+          + Add Supplier
+        </a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body">
+    <form method="get" class="row g-2">
+      <div class="col-md-10">
+        <input type="text" name="search" value="{{ search }}" class="form-control form-control-sm"
+               placeholder="Search supplier, phone, email, or contact person...">
+      </div>
+
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-dark btn-sm w-100">
+          Search
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="sl-card">
+  <div class="sl-card-body">
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th>Supplier</th>
+            <th>Phone</th>
+            <th>Email</th>
+            <th>Contact Person</th>
+            <th>Status</th>
+            {% if "inventory.manage" in current_user_permissions %}
+              <th class="text-end">Action</th>
+            {% endif %}
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for supplier in suppliers %}
+            <tr>
+              <td class="fw-semibold">{{ supplier.name }}</td>
+              <td>{{ supplier.phone|default:"-" }}</td>
+              <td>{{ supplier.email|default:"-" }}</td>
+              <td>{{ supplier.contact_person|default:"-" }}</td>
+              <td>
+                {% if supplier.is_active %}
+                  <span class="badge bg-success-subtle text-success border border-success-subtle">Active</span>
+                {% else %}
+                  <span class="badge bg-secondary-subtle text-secondary border">Inactive</span>
+                {% endif %}
+              </td>
+
+              {% if "inventory.manage" in current_user_permissions %}
+                <td class="text-end">
+                  <div class="d-inline-flex gap-1">
+                    <a href="{% url 'supplier_update' supplier.pk %}" class="btn btn-light border btn-sm">
+                      Edit
+                    </a>
+
+                    <form method="post"
+                          action="{% url 'supplier_delete' supplier.pk %}"
+                          onsubmit="return confirm('Delete this supplier? Only delete if it is not used.');">
+                      {% csrf_token %}
+                      <button class="btn btn-outline-danger btn-sm">
+                        Delete
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              {% endif %}
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="6" class="text-center text-muted py-4">
+                No suppliers found.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="alert alert-info small mt-3 mb-0">
+      Delete is blocked if the supplier is used in items or stock-in records. Use inactive status instead.
+    </div>
+  </div>
+</div>
+
+{% endblock %}

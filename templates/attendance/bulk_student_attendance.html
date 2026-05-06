@@ -1,0 +1,180 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}Bulk Student Attendance | School Link{% endblock %}
+
+{% block page_title %}Bulk Student Attendance{% endblock %}
+{% block page_subtitle %}Mark attendance for all students in a selected class and stream at once.{% endblock %}
+
+{% block content %}
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <div>
+        <h5 class="fw-bold mb-1">Choose Class, Stream and Date</h5>
+        <div class="small text-muted">Select a class to load students, then mark attendance.</div>
+      </div>
+
+      <a href="{% url 'student_attendance_list' %}" class="btn btn-light border">
+        View Records
+      </a>
+    </div>
+
+    <form method="get" class="row g-2 mt-3">
+      <div class="col-md-3">
+        <label class="form-label small fw-bold">Date</label>
+        <input type="date" name="date" value="{{ selected_date }}" class="form-control">
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label small fw-bold">Class</label>
+        <select name="class" class="form-select" required>
+          <option value="">Choose class</option>
+          {% for class in classes %}
+            <option value="{{ class.id }}" {% if class_id == class.id|stringformat:"s" %}selected{% endif %}>
+              {{ class.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label small fw-bold">Stream</label>
+        <select name="stream" class="form-select">
+          <option value="">All streams</option>
+          {% for stream in streams %}
+            <option value="{{ stream.id }}" {% if stream_id == stream.id|stringformat:"s" %}selected{% endif %}>
+              {{ stream.class_level.name }} - {{ stream.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2 d-flex align-items-end">
+        <button class="btn btn-sl-primary w-100" type="submit">
+          Load
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% if class_id %}
+  <form method="post">
+    {% csrf_token %}
+
+    <input type="hidden" name="date" value="{{ selected_date }}">
+    <input type="hidden" name="class" value="{{ class_id }}">
+    <input type="hidden" name="stream" value="{{ stream_id }}">
+
+    <div class="sl-card">
+      <div class="sl-card-body">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <div>
+            <h5 class="fw-bold mb-1">Students Attendance Sheet</h5>
+            <div class="small text-muted">
+              Total loaded students: <strong>{{ students.count }}</strong>
+            </div>
+          </div>
+
+          <div class="d-flex flex-wrap gap-2">
+            <button type="button" class="btn btn-light border btn-sm" onclick="setAllStatus('present')">
+              All Present
+            </button>
+            <button type="button" class="btn btn-light border btn-sm" onclick="setAllStatus('absent')">
+              All Absent
+            </button>
+            <button type="button" class="btn btn-light border btn-sm" onclick="setAllStatus('late')">
+              All Late
+            </button>
+            <button type="submit" class="btn btn-sl-primary btn-sm">
+              Save All
+            </button>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th style="width: 45px;">#</th>
+                <th>Student</th>
+                <th>Admission No</th>
+                <th>Class</th>
+                <th style="width: 170px;">Status</th>
+                <th style="width: 140px;">Arrival</th>
+                <th>Remarks</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for student in students %}
+                <tr>
+                  <td>{{ forloop.counter }}</td>
+
+                  <td>
+                    <div class="fw-bold">{{ student.full_name }}</div>
+                    <div class="small text-muted">{{ student.get_gender_display }}</div>
+                  </td>
+
+                  <td>{{ student.admission_number }}</td>
+
+                  <td>
+                    {{ student.class_level.name }}
+                    {% if student.stream %}
+                      {{ student.stream.name }}
+                    {% endif %}
+                  </td>
+
+                  <td>
+                    <select name="status_{{ student.id }}" class="form-select form-select-sm attendance-status">
+                      <option value="present">Present</option>
+                      <option value="absent">Absent</option>
+                      <option value="late">Late</option>
+                      <option value="sick">Sick</option>
+                      <option value="permission">Permission</option>
+                    </select>
+                  </td>
+
+                  <td>
+                    <input type="time" name="arrival_time_{{ student.id }}" class="form-control form-control-sm">
+                  </td>
+
+                  <td>
+                    <input type="text" name="remarks_{{ student.id }}" class="form-control form-control-sm" placeholder="Optional">
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="7" class="text-center text-muted py-4">
+                    No active students found for this class / stream.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        {% if students %}
+          <div class="d-flex justify-content-end mt-3">
+            <button type="submit" class="btn btn-sl-primary">
+              Save Attendance
+            </button>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </form>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function setAllStatus(status) {
+    document.querySelectorAll(".attendance-status").forEach(function (select) {
+      select.value = status;
+    });
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,142 @@
+{% extends "base/dashboard_base.html" %}
+{% load humanize %}
+
+{% block title %}Fee Structure | School Link{% endblock %}
+
+{% block page_title %}Fee Structure{% endblock %}
+{% block page_subtitle %}Set fee amounts by class, academic year, term, and category.{% endblock %}
+
+{% block content %}
+
+<div class="row g-3">
+  {% if "fees.setup" in current_user_permissions %}
+    <div class="col-lg-4">
+      <div class="sl-card">
+        <div class="sl-card-body">
+          <h5 class="fw-bold mb-3">Add Fee Structure</h5>
+
+          <form method="post">
+            {% csrf_token %}
+
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Category</label>
+              {{ form.category }}
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Academic Year</label>
+              {{ form.academic_year }}
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Term</label>
+              {{ form.term }}
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Class</label>
+              {{ form.class_level }}
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Amount</label>
+              {{ form.amount }}
+            </div>
+
+            <div class="form-check mb-2">
+              {{ form.is_required }}
+              <label class="form-check-label small fw-bold">Required Fee</label>
+            </div>
+
+            <div class="form-check mb-3">
+              {{ form.is_active }}
+              <label class="form-check-label small fw-bold">Active</label>
+            </div>
+
+            {% if form.errors %}
+              <div class="alert alert-danger small">{{ form.errors }}</div>
+            {% endif %}
+
+            <button class="btn btn-sl-primary w-100">Save Structure</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="{% if 'fees.setup' in current_user_permissions %}col-lg-8{% else %}col-12{% endif %}">
+    <div class="sl-card">
+      <div class="sl-card-body">
+        <h5 class="fw-bold mb-3">Configured Fee Structures</h5>
+
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th>Class</th>
+                <th>Category</th>
+                <th>Year</th>
+                <th>Term</th>
+                <th>Amount</th>
+                <th>Status</th>
+                {% if "fees.setup" in current_user_permissions %}
+                  <th class="text-end">Action</th>
+                {% endif %}
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for structure in structures %}
+                <tr>
+                  <td class="fw-bold">{{ structure.class_level.name }}</td>
+                  <td>{{ structure.category.name }}</td>
+                  <td>{{ structure.academic_year.name }}</td>
+                  <td>{{ structure.term|default:"-" }}</td>
+                  <td>TZS {{ structure.amount|floatformat:0|intcomma }}</td>
+                  <td>
+                    {% if structure.is_active %}
+                      <span class="badge badge-soft-success">Active</span>
+                    {% else %}
+                      <span class="badge badge-soft-danger">Inactive</span>
+                    {% endif %}
+                  </td>
+
+                  {% if "fees.setup" in current_user_permissions %}
+                    <td class="text-end">
+                      <div class="d-inline-flex gap-1">
+                        <a href="{% url 'fee_structure_update' structure.pk %}" class="btn btn-light border btn-sm">
+                          Edit
+                        </a>
+
+                        <form method="post"
+                              action="{% url 'fee_structure_delete' structure.pk %}"
+                              onsubmit="return confirm('Delete this fee structure? Only delete if it was created by mistake.');">
+                          {% csrf_token %}
+                          <button class="btn btn-outline-danger btn-sm">
+                            Delete
+                          </button>
+                        </form>
+                      </div>
+                    </td>
+                  {% endif %}
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="7" class="text-center text-muted py-4">
+                    No fee structures created yet.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="alert alert-info small mt-3 mb-0">
+          Use <strong>Edit</strong> to correct amount/class/term. Use <strong>Delete</strong> only for wrong duplicate structures.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,117 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}Parents | School Link{% endblock %}
+
+{% block page_title %}Parents / Guardians{% endblock %}
+{% block page_subtitle %}Manage parent and guardian contacts, linked students, and parent login access.{% endblock %}
+
+{% block content %}
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <div>
+        <h5 class="mb-1 fw-bold">Parent / Guardian Records</h5>
+        <div class="small text-muted">Search parent names, phone numbers, emails, and create parent portal logins.</div>
+      </div>
+
+      {% if "parents.manage" in current_user_permissions %}
+        <a href="{% url 'parent_create' %}" class="btn btn-sl-primary">
+          + Add Parent
+        </a>
+      {% endif %}
+    </div>
+
+    <form method="get" class="row g-2 mt-3">
+      <div class="col-md-10">
+        <input type="text" name="q" value="{{ query }}" class="form-control"
+               placeholder="Search parent, phone, email">
+      </div>
+
+      <div class="col-md-2">
+        <button class="btn btn-sl-primary w-100">Search</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="sl-card">
+  <div class="sl-card-body">
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th>Parent / Guardian</th>
+            <th>Relationship</th>
+            <th>Phone</th>
+            <th>Alternative Phone</th>
+            <th>Email</th>
+            <th>Students</th>
+            <th>Login Access</th>
+            <th class="text-end">Action</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for parent in parents %}
+            <tr>
+              <td>
+                <div class="fw-bold">{{ parent.full_name }}</div>
+                {% if parent.address %}
+                  <div class="small text-muted">{{ parent.address|truncatechars:50 }}</div>
+                {% endif %}
+              </td>
+
+              <td>{{ parent.get_relationship_display }}</td>
+              <td>{{ parent.phone }}</td>
+              <td>{{ parent.alternative_phone|default:"-" }}</td>
+              <td>{{ parent.email|default:"-" }}</td>
+              <td>{{ parent.students.count }}</td>
+
+              <td>
+                {% if parent.user %}
+                  <span class="badge bg-success-subtle text-success border border-success-subtle">
+                    Login Created
+                  </span>
+                  <div class="small text-muted mt-1">{{ parent.user.username }}</div>
+                {% else %}
+                  <span class="badge bg-secondary-subtle text-secondary border">
+                    No Login
+                  </span>
+                {% endif %}
+              </td>
+
+              <td class="text-end">
+                <div class="d-inline-flex flex-wrap justify-content-end gap-1">
+                  {% if "parents.manage" in current_user_permissions %}
+                    <a href="{% url 'parent_update' parent.pk %}"
+                       class="btn btn-light border btn-sm">
+                      Edit
+                    </a>
+                  {% endif %}
+
+                  {% if "parents.login.manage" in current_user_permissions %}
+                    {% if not parent.user %}
+                      <a href="{% url 'create_parent_login' parent.pk %}"
+                         class="btn btn-sl-primary btn-sm">
+                        Create Login
+                      </a>
+                    {% endif %}
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="8" class="text-center text-muted py-4">
+                No parents found. Click <strong>Add Parent</strong> to create one.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,154 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}{{ title }} | School Link{% endblock %}
+
+{% block page_title %}{{ title }}{% endblock %}
+{% block page_subtitle %}Register or update staff profile, role, subjects, classes, and login account.{% endblock %}
+
+{% block content %}
+
+<div class="sl-card">
+  <div class="sl-card-body">
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      <h5 class="fw-bold mb-3">Basic Information</h5>
+
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Staff ID</label>
+          {{ form.staff_id }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Role</label>
+          {{ form.role }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Status</label>
+          {{ form.status }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">First Name</label>
+          {{ form.first_name }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Middle Name</label>
+          {{ form.middle_name }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Last Name</label>
+          {{ form.last_name }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Gender</label>
+          {{ form.gender }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Date of Birth</label>
+          {{ form.date_of_birth }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Employment Date</label>
+          {{ form.employment_date }}
+        </div>
+      </div>
+
+      <hr>
+
+      <h5 class="fw-bold mb-3">Contact & Work Details</h5>
+
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Phone</label>
+          {{ form.phone }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Alternative Phone</label>
+          {{ form.alternative_phone }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Email</label>
+          {{ form.email }}
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label small fw-bold">Qualification</label>
+          {{ form.qualification }}
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label small fw-bold">Salary</label>
+          {{ form.salary }}
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label small fw-bold">Photo</label>
+          {{ form.photo }}
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label small fw-bold">Assigned Classes</label>
+          {{ form.assigned_classes }}
+          <div class="form-text">Hold CTRL to select multiple classes.</div>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label small fw-bold">Subjects</label>
+          {{ form.subjects }}
+          <div class="form-text">Hold CTRL to select multiple subjects.</div>
+        </div>
+
+        <div class="col-12">
+          <label class="form-label small fw-bold">Address</label>
+          {{ form.address }}
+        </div>
+      </div>
+
+      <hr>
+
+      <h5 class="fw-bold mb-3">Optional Login Account</h5>
+
+      <div class="row g-3">
+        <div class="col-12">
+          <div class="form-check">
+            {{ form.create_login_account }}
+            <label class="form-check-label small fw-bold">Create login account for this staff</label>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label small fw-bold">Username</label>
+          {{ form.username }}
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label small fw-bold">Password</label>
+          {{ form.password }}
+        </div>
+      </div>
+
+      {% if form.errors %}
+        <div class="alert alert-danger small mt-3">
+          {{ form.errors }}
+        </div>
+      {% endif %}
+
+      <div class="d-flex justify-content-between mt-4">
+        <a href="{% url 'staff_list' %}" class="btn btn-light border">Cancel</a>
+        <button class="btn btn-sl-primary">Save Staff</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

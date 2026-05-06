@@ -1,0 +1,203 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}{{ record.title }} | School Link{% endblock %}
+
+{% block page_title %}Discipline Detail{% endblock %}
+{% block page_subtitle %}View full discipline record, action taken, parent notification, and follow-ups.{% endblock %}
+
+{% block content %}
+
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="sl-card mb-3">
+      <div class="sl-card-body">
+        <div class="d-flex flex-wrap justify-content-between gap-2">
+          <div>
+            <h4 class="fw-bold mb-1">{{ record.title }}</h4>
+            <div class="small text-muted">
+              {{ record.student.full_name }} · {{ record.student.admission_number }}
+            </div>
+          </div>
+
+          <span class="badge badge-soft-primary">{{ record.get_status_display }}</span>
+        </div>
+
+        <hr>
+
+        <div class="row g-3 small">
+          <div class="col-md-4">
+            <div class="text-muted">Student</div>
+            <div class="fw-bold">{{ record.student.full_name }}</div>
+          </div>
+
+          <div class="col-md-4">
+            <div class="text-muted">Class</div>
+            <div class="fw-bold">
+              {{ record.student.class_level.name }}
+              {{ record.student.stream.name|default:"" }}
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <div class="text-muted">Parent</div>
+            <div class="fw-bold">{{ record.student.parent_guardian.full_name }}</div>
+          </div>
+
+          <div class="col-md-4">
+            <div class="text-muted">Type</div>
+            <div class="fw-bold">{{ record.get_record_type_display }}</div>
+          </div>
+
+          <div class="col-md-4">
+            <div class="text-muted">Category</div>
+            <div class="fw-bold">{{ record.category|default:"-" }}</div>
+          </div>
+
+          <div class="col-md-4">
+            <div class="text-muted">Severity</div>
+            <div class="fw-bold">{{ record.get_severity_display }}</div>
+          </div>
+
+          <div class="col-md-4">
+            <div class="text-muted">Date / Time</div>
+            <div class="fw-bold">
+              {{ record.incident_date }}
+              {% if record.incident_time %} {{ record.incident_time }}{% endif %}
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <div class="text-muted">Reported By</div>
+            <div class="fw-bold">
+              {% if record.reported_by %}
+                {{ record.reported_by.full_name }}
+              {% else %}
+                -
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <div class="text-muted">Parent Notified</div>
+            <div class="fw-bold">{{ record.parent_notified|yesno:"Yes,No" }}</div>
+          </div>
+
+          <div class="col-12">
+            <div class="text-muted">Description</div>
+            <div class="fw-bold">{{ record.description|linebreaks }}</div>
+          </div>
+
+          <div class="col-12">
+            <div class="text-muted">Action Taken</div>
+            <div class="fw-bold">{{ record.action_taken|default:"-"|linebreaks }}</div>
+          </div>
+
+          <div class="col-12">
+            <div class="text-muted">Parent Feedback</div>
+            <div class="fw-bold">{{ record.parent_feedback|default:"-"|linebreaks }}</div>
+          </div>
+
+          {% if record.attachment %}
+            <div class="col-12">
+              <a href="{{ record.attachment.url }}" target="_blank" class="btn btn-light border btn-sm">
+                View Attachment
+              </a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="sl-card">
+      <div class="sl-card-body">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <div>
+            <h5 class="fw-bold mb-1">Follow Ups</h5>
+            <div class="small text-muted">Follow-up actions and notes for this discipline record.</div>
+          </div>
+
+          {% if "discipline.manage" in current_user_permissions %}
+            <a href="{% url 'followup_create' %}?record={{ record.pk }}" class="btn btn-sl-primary btn-sm">
+              + Add Follow Up
+            </a>
+          {% endif %}
+        </div>
+
+        {% for followup in followups %}
+          <div class="border-bottom py-3">
+            <div class="d-flex justify-content-between gap-2">
+              <div class="fw-bold">{{ followup.follow_up_date }}</div>
+              <div class="small text-muted">
+                {% if followup.handled_by %}
+                  {{ followup.handled_by.full_name }}
+                {% else %}
+                  -
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="small mt-2">{{ followup.note|linebreaks }}</div>
+
+            {% if followup.next_action %}
+              <div class="small text-muted">
+                Next action: <strong>{{ followup.next_action }}</strong>
+              </div>
+            {% endif %}
+
+            {% if "discipline.manage" in current_user_permissions %}
+              <div class="d-flex gap-1 mt-2">
+                <a href="{% url 'followup_update' followup.pk %}" class="btn btn-light border btn-sm">
+                  Edit
+                </a>
+
+                <form method="post"
+                      action="{% url 'followup_delete' followup.pk %}"
+                      onsubmit="return confirm('Delete this follow-up?');">
+                  {% csrf_token %}
+                  <button class="btn btn-outline-danger btn-sm">
+                    Delete
+                  </button>
+                </form>
+              </div>
+            {% endif %}
+          </div>
+        {% empty %}
+          <div class="text-muted small">No follow-ups added yet.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="sl-card">
+      <div class="sl-card-body">
+        <h5 class="fw-bold mb-3">Quick Actions</h5>
+
+        <div class="d-grid gap-2">
+          {% if "discipline.manage" in current_user_permissions %}
+            <a href="{% url 'discipline_record_update' record.pk %}" class="btn btn-light border text-start small">
+              Edit Record
+            </a>
+
+            <form method="post"
+                  action="{% url 'discipline_record_delete' record.pk %}"
+                  onsubmit="return confirm('Delete this discipline record? Only delete if it was created by mistake.');">
+              {% csrf_token %}
+              <button class="btn btn-outline-danger w-100 text-start small">
+                Delete Record
+              </button>
+            </form>
+
+            <a href="{% url 'followup_create' %}?record={{ record.pk }}" class="btn btn-sl-primary text-start small">Add Follow Up</a>
+            <a href="{% url 'discipline_record_create' %}" class="btn btn-light border text-start small">Add New Record</a>
+          {% endif %}
+
+          <a href="{% url 'discipline_record_list' %}" class="btn btn-light border text-start small">Back to Records</a>
+          <a href="{% url 'discipline_home' %}" class="btn btn-light border text-start small">Discipline Dashboard</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,137 @@
+{% extends "base/dashboard_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Subjects" %} | School Link{% endblock %}
+
+{% block page_title %}{% trans "Subjects" %}{% endblock %}
+{% block page_subtitle %}{% trans "Create subjects and assign them to class levels." %}{% endblock %}
+
+{% block content %}
+
+<div class="row g-3">
+  {% if "subjects.manage" in current_user_permissions %}
+    <div class="col-lg-4">
+      <div class="sl-card">
+        <div class="sl-card-body">
+          <h5 class="fw-bold mb-3">{% trans "Add Subject" %}</h5>
+
+          <form method="post" action="{% url 'subject_create' %}">
+            {% csrf_token %}
+
+            <div class="mb-3">
+              <label class="form-label small fw-bold">{% trans "Subject Name" %}</label>
+              {{ form.name }}
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-bold">{% trans "Subject Code" %}</label>
+              {{ form.code }}
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-bold">{% trans "Subject Type" %}</label>
+              {{ form.subject_type }}
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-bold">{% trans "Assign Classes" %}</label>
+              {{ form.class_levels }}
+              <div class="form-text small">{% trans "Hold CTRL to select many classes." %}</div>
+            </div>
+
+            <div class="form-check mb-3">
+              {{ form.is_active }}
+              <label class="form-check-label small fw-bold">{% trans "Active" %}</label>
+            </div>
+
+            {% if form.errors %}
+              <div class="alert alert-danger small">
+                {{ form.errors }}
+              </div>
+            {% endif %}
+
+            <button class="btn btn-sl-primary w-100">{% trans "Save Subject" %}</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="{% if 'subjects.manage' in current_user_permissions %}col-lg-8{% else %}col-12{% endif %}">
+    <div class="sl-card">
+      <div class="sl-card-body">
+        <h5 class="fw-bold mb-3">{% trans "Subjects" %}</h5>
+
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th>{% trans "Subject" %}</th>
+                <th>{% trans "Code" %}</th>
+                <th>{% trans "Type" %}</th>
+                <th>{% trans "Classes" %}</th>
+                <th>{% trans "Status" %}</th>
+                {% if "subjects.manage" in current_user_permissions %}
+                  <th class="text-end">{% trans "Action" %}</th>
+                {% endif %}
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for subject in subjects %}
+                <tr>
+                  <td class="fw-bold">{{ subject.name }}</td>
+                  <td>{{ subject.code }}</td>
+                  <td>{{ subject.get_subject_type_display }}</td>
+                  <td>
+                    {% for class in subject.class_levels.all %}
+                      <span class="badge badge-soft-primary me-1 mb-1">{{ class.name }}</span>
+                    {% empty %}
+                      <span class="text-muted small">{% trans "No class assigned" %}</span>
+                    {% endfor %}
+                  </td>
+                  <td>
+                    {% if subject.is_active %}
+                      <span class="badge badge-soft-success">{% trans "Active" %}</span>
+                    {% else %}
+                      <span class="badge badge-soft-danger">{% trans "Inactive" %}</span>
+                    {% endif %}
+                  </td>
+
+                  {% if "subjects.manage" in current_user_permissions %}
+                    <td class="text-end">
+                      <div class="d-inline-flex gap-1">
+                        <a href="{% url 'subject_update' subject.pk %}" class="btn btn-light border btn-sm">
+                          {% trans "Edit" %}
+                        </a>
+
+                        {% trans "Delete this subject? Only delete if it was created by mistake." as delete_message %}
+                        <form method="post"
+                              action="{% url 'subject_delete' subject.pk %}"
+                              onsubmit="return confirm('{{ delete_message|escapejs }}');">
+                          {% csrf_token %}
+                          <button class="btn btn-outline-danger btn-sm">
+                            {% trans "Delete" %}
+                          </button>
+                        </form>
+                      </div>
+                    </td>
+                  {% endif %}
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="6" class="text-center text-muted py-4">
+                    {% trans "No subjects added yet." %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,92 @@
+{% extends "base/dashboard_base.html" %}
+{% load humanize %}
+
+{% block title %}Receipt {{ payment.receipt_number }} | School Link{% endblock %}
+
+{% block page_title %}Payment Receipt{% endblock %}
+{% block page_subtitle %}Printable student payment receipt.{% endblock %}
+
+{% block content %}
+
+<div class="sl-card">
+  <div class="sl-card-body">
+    <div class="d-flex justify-content-between align-items-start mb-3">
+      <div>
+        <h3 class="fw-bold mb-1">School Link</h3>
+        <div class="small text-muted">Official Payment Receipt</div>
+      </div>
+
+      <button onclick="window.print()" class="btn btn-sl-primary btn-sm">Print</button>
+    </div>
+
+    <hr>
+
+    <div class="row g-3 small">
+      <div class="col-md-4">
+        <div class="text-muted">Receipt Number</div>
+        <div class="fw-bold">{{ payment.receipt_number }}</div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="text-muted">Payment Date</div>
+        <div class="fw-bold">{{ payment.payment_date }}</div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="text-muted">Payment Method</div>
+        <div class="fw-bold">{{ payment.get_method_display }}</div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="text-muted">Student</div>
+        <div class="fw-bold">{{ payment.invoice.student.full_name }}</div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="text-muted">Admission Number</div>
+        <div class="fw-bold">{{ payment.invoice.student.admission_number }}</div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="text-muted">Class</div>
+        <div class="fw-bold">
+          {{ payment.invoice.student.class_level.name }}
+          {{ payment.invoice.student.stream.name|default:"" }}
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="text-muted">Invoice</div>
+        <div class="fw-bold">{{ payment.invoice.invoice_number }}</div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="text-muted">Reference</div>
+        <div class="fw-bold">{{ payment.reference|default:"-" }}</div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="text-muted">Received By</div>
+        <div class="fw-bold">{{ payment.received_by|default:"-" }}</div>
+      </div>
+    </div>
+
+    <div class="mt-4 p-3 border rounded">
+      <div class="d-flex justify-content-between">
+        <span>Amount Paid</span>
+        <strong>TZS {{ payment.amount|floatformat:0|intcomma }}</strong>
+      </div>
+
+      <div class="d-flex justify-content-between mt-2">
+        <span>Invoice Balance</span>
+        <strong>TZS {{ payment.invoice.balance|floatformat:0|intcomma }}</strong>
+      </div>
+    </div>
+
+    <div class="text-center mt-4 small text-muted">
+      Thank you for your payment.
+    </div>
+  </div>
+</div>
+
+{% endblock %}

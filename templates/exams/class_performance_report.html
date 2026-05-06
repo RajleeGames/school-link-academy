@@ -1,0 +1,138 @@
+{% extends "base/dashboard_base.html" %}
+{% load humanize %}
+
+{% block title %}Class Performance | School Link{% endblock %}
+
+{% block page_title %}Class Performance{% endblock %}
+{% block page_subtitle %}View student ranking, total marks, average marks, and report cards for a selected exam.{% endblock %}
+
+{% block content %}
+
+<div class="sl-card mb-3 no-print">
+  <div class="sl-card-body">
+    <form method="get" class="row g-2">
+      <div class="col-md-8">
+        <label class="form-label small fw-bold">Exam</label>
+        <select name="exam" class="form-select" required>
+          <option value="">Choose exam</option>
+          {% for exam in exams %}
+            <option value="{{ exam.id }}" {% if exam_id == exam.id|stringformat:"s" %}selected{% endif %}>
+              {{ exam.name }} - {{ exam.class_level.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-4 d-flex align-items-end gap-2">
+        <button class="btn btn-sl-primary w-100">Load</button>
+
+        <button type="button" onclick="window.print()" class="btn btn-light border">
+          Print
+        </button>
+
+        <a href="{% url 'export_class_performance_excel' %}?exam={{ exam_id }}"
+           class="btn btn-light border">
+          Excel
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% if selected_exam %}
+  <div class="row g-3 mb-3">
+    <div class="col-md-3">
+      <div class="sl-stat-card">
+        <div class="sl-stat-label">Exam</div>
+        <div class="sl-stat-value" style="font-size: 1rem;">{{ selected_exam.name }}</div>
+        <div class="sl-stat-note">{{ selected_exam.class_level.name }}</div>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="sl-stat-card">
+        <div class="sl-stat-label">Students</div>
+        <div class="sl-stat-value">{{ performance_rows|length|intcomma }}</div>
+        <div class="sl-stat-note">Loaded students</div>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="sl-stat-card">
+        <div class="sl-stat-label">Exam Type</div>
+        <div class="sl-stat-value" style="font-size: 1rem;">{{ selected_exam.exam_type.name }}</div>
+        <div class="sl-stat-note">Assessment type</div>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="sl-stat-card">
+        <div class="sl-stat-label">Status</div>
+        <div class="sl-stat-value" style="font-size: 1rem;">{{ selected_exam.get_status_display }}</div>
+        <div class="sl-stat-note">Current exam status</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sl-card">
+    <div class="sl-card-body">
+      <div class="report-print-head mb-3">
+        <h4 class="fw-bold mb-1">Class Performance Report</h4>
+        <div class="small text-muted">
+          {{ selected_exam.name }} · {{ selected_exam.class_level.name }} · School Link
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table align-middle">
+          <thead>
+            <tr>
+              <th>Position</th>
+              <th>Student</th>
+              <th>Admission No</th>
+              <th>Class</th>
+              <th>Subjects</th>
+              <th class="text-end">Total Marks</th>
+              <th class="text-end">Average</th>
+              <th class="text-end no-print">Action</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for row in performance_rows %}
+              <tr>
+                <td class="fw-bold">{{ row.position }}</td>
+                <td class="fw-bold">{{ row.student.full_name }}</td>
+                <td>{{ row.student.admission_number }}</td>
+
+                <td>
+                  {{ row.student.class_level.name }}
+                  {{ row.student.stream.name|default:"" }}
+                </td>
+
+                <td>{{ row.subject_count }}</td>
+                <td class="text-end">{{ row.total_marks|floatformat:1 }}</td>
+                <td class="text-end fw-bold">{{ row.average_marks|floatformat:1 }}%</td>
+
+                <td class="text-end no-print">
+                  <a href="{% url 'student_report_card' row.student.pk %}?exam={{ selected_exam.pk }}"
+                     class="btn btn-sm btn-light border">
+                    Report Card
+                  </a>
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="8" class="text-center text-muted py-4">
+                  No performance records found for this exam.
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+{% endif %}
+
+{% endblock %}

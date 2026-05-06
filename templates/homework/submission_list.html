@@ -1,0 +1,137 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}Submissions | School Link{% endblock %}
+
+{% block page_title %}Homework Submissions{% endblock %}
+{% block page_subtitle %}Search and manage student homework submissions and checking status.{% endblock %}
+
+{% block content %}
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <div>
+        <h5 class="fw-bold mb-1">Submissions</h5>
+        <div class="small text-muted">Track submitted, late, checked, and pending homework.</div>
+      </div>
+
+      {% if "homework.manage" in current_user_permissions %}
+        <a href="{% url 'submission_create' %}" class="btn btn-sl-primary">+ Add Submission</a>
+      {% endif %}
+    </div>
+
+    <form method="get" class="row g-2 mt-3">
+      <div class="col-md-5">
+        <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="Search student, admission no, homework">
+      </div>
+
+      <div class="col-md-4">
+        <select name="homework" class="form-select">
+          <option value="">All homework</option>
+          {% for item in homeworks %}
+            <option value="{{ item.id }}" {% if homework_filter == item.id|stringformat:"s" %}selected{% endif %}>
+              {{ item.title }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <select name="status" class="form-select">
+          <option value="">All status</option>
+          {% for value, label in status_choices %}
+            <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>
+              {{ label }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-1">
+        <button class="btn btn-sl-primary w-100">Go</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="sl-card">
+  <div class="sl-card-body">
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Class</th>
+            <th>Homework</th>
+            <th>Status</th>
+            <th>Submitted Date</th>
+            <th>Marks</th>
+            <th>Comment</th>
+            {% if "homework.manage" in current_user_permissions %}
+              <th class="text-end">Action</th>
+            {% endif %}
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for sub in submissions %}
+            <tr>
+              <td>
+                <div class="fw-bold">{{ sub.student.full_name }}</div>
+                <div class="small text-muted">{{ sub.student.admission_number }}</div>
+              </td>
+
+              <td>
+                {{ sub.student.class_level.name }}
+                {{ sub.student.stream.name|default:"" }}
+              </td>
+
+              <td>{{ sub.homework.title }}</td>
+              <td>
+                {% if sub.status == "submitted" %}
+                  <span class="badge badge-soft-success">{{ sub.get_status_display }}</span>
+                {% elif sub.status == "late" %}
+                  <span class="badge badge-soft-warning">{{ sub.get_status_display }}</span>
+                {% elif sub.status == "not_submitted" %}
+                  <span class="badge badge-soft-danger">{{ sub.get_status_display }}</span>
+                {% else %}
+                  <span class="badge badge-soft-primary">{{ sub.get_status_display }}</span>
+                {% endif %}
+              </td>
+              <td>{{ sub.submitted_date|default:"-" }}</td>
+              <td>{{ sub.marks|default:"-" }}</td>
+              <td>{{ sub.teacher_comment|default:"-" }}</td>
+
+              {% if "homework.manage" in current_user_permissions %}
+                <td class="text-end">
+                  <div class="d-inline-flex gap-1">
+                    <a href="{% url 'submission_update' sub.pk %}" class="btn btn-light border btn-sm">
+                      Edit
+                    </a>
+
+                    <form method="post"
+                          action="{% url 'submission_delete' sub.pk %}"
+                          onsubmit="return confirm('Delete this submission record?');">
+                      {% csrf_token %}
+                      <button class="btn btn-outline-danger btn-sm">
+                        Delete
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              {% endif %}
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="8" class="text-center text-muted py-4">
+                No submissions found.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

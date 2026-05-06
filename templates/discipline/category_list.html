@@ -1,0 +1,122 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}Discipline Categories | School Link{% endblock %}
+
+{% block page_title %}Discipline Categories{% endblock %}
+{% block page_subtitle %}Create categories for incidents, warnings, rewards, and follow-ups.{% endblock %}
+
+{% block content %}
+
+<div class="row g-3">
+  {% if "discipline.manage" in current_user_permissions %}
+    <div class="col-lg-4">
+      <div class="sl-card">
+        <div class="sl-card-body">
+          <h5 class="fw-bold mb-3">Add Category</h5>
+
+          <form method="post">
+            {% csrf_token %}
+
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Name</label>
+              {{ form.name }}
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Category Type</label>
+              {{ form.category_type }}
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Description</label>
+              {{ form.description }}
+            </div>
+
+            <div class="form-check mb-3">
+              {{ form.is_active }}
+              <label class="form-check-label small fw-bold">Active</label>
+            </div>
+
+            {% if form.errors %}
+              <div class="alert alert-danger small">{{ form.errors }}</div>
+            {% endif %}
+
+            <button class="btn btn-sl-primary w-100">Save Category</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="{% if 'discipline.manage' in current_user_permissions %}col-lg-8{% else %}col-12{% endif %}">
+    <div class="sl-card">
+      <div class="sl-card-body">
+        <h5 class="fw-bold mb-3">Categories</h5>
+
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Description</th>
+                <th>Status</th>
+                {% if "discipline.manage" in current_user_permissions %}
+                  <th class="text-end">Action</th>
+                {% endif %}
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for category in categories %}
+                <tr>
+                  <td class="fw-bold">{{ category.name }}</td>
+                  <td>{{ category.get_category_type_display }}</td>
+                  <td>{{ category.description|default:"-" }}</td>
+                  <td>
+                    {% if category.is_active %}
+                      <span class="badge badge-soft-success">Active</span>
+                    {% else %}
+                      <span class="badge badge-soft-danger">Inactive</span>
+                    {% endif %}
+                  </td>
+
+                  {% if "discipline.manage" in current_user_permissions %}
+                    <td class="text-end">
+                      <div class="d-inline-flex gap-1">
+                        <a href="{% url 'discipline_category_update' category.pk %}" class="btn btn-light border btn-sm">
+                          Edit
+                        </a>
+
+                        <form method="post"
+                              action="{% url 'discipline_category_delete' category.pk %}"
+                              onsubmit="return confirm('Delete this discipline category? Only delete if it was created by mistake.');">
+                          {% csrf_token %}
+                          <button class="btn btn-outline-danger btn-sm">
+                            Delete
+                          </button>
+                        </form>
+                      </div>
+                    </td>
+                  {% endif %}
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="5" class="text-center text-muted py-4">
+                    No categories created yet.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="alert alert-info small mt-3 mb-0">
+          Use <strong>Inactive</strong> for categories already used. Use <strong>Delete</strong> only for wrong duplicate categories.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,187 @@
+{% extends "base/dashboard_base.html" %}
+{% load humanize %}
+
+{% block title %}Invoices | School Link{% endblock %}
+
+{% block page_title %}Student Invoices{% endblock %}
+{% block page_subtitle %}Search, filter, and manage student fee invoices and balances.{% endblock %}
+
+{% block content %}
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <div>
+        <h5 class="fw-bold mb-1">Invoices</h5>
+        <div class="small text-muted">View student fee invoices, payments, and balances.</div>
+      </div>
+
+      <div class="d-flex flex-wrap gap-2">
+        <a href="{% url 'debtor_list' %}" class="btn btn-light border">
+          Debtors
+        </a>
+
+        {% if "invoices.manage" in current_user_permissions %}
+          <a href="{% url 'invoice_create' %}" class="btn btn-sl-primary">
+            + Create Invoice
+          </a>
+        {% endif %}
+      </div>
+    </div>
+
+    <form method="get" class="row g-2 mt-3">
+      <div class="col-md-5">
+        <input type="text" name="q" value="{{ query }}" class="form-control"
+               placeholder="Search invoice, admission no, student name">
+      </div>
+
+      <div class="col-md-3">
+        <select name="class" class="form-select">
+          <option value="">All classes</option>
+          {% for class in classes %}
+            <option value="{{ class.id }}" {% if class_filter == class.id|stringformat:"s" %}selected{% endif %}>
+              {{ class.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <select name="status" class="form-select">
+          <option value="">All status</option>
+          {% for value, label in status_choices %}
+            <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>
+              {{ label }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <button class="btn btn-sl-primary w-100">Filter</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="sl-card">
+  <div class="sl-card-body">
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th>Invoice</th>
+            <th>Student</th>
+            <th>Class</th>
+            <th>Total</th>
+            <th>Paid</th>
+            <th>Balance</th>
+            <th>Status</th>
+            <th class="text-end">Action</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for invoice in invoices %}
+            <tr>
+              <td>
+                <div class="fw-bold">{{ invoice.invoice_number }}</div>
+                <div class="small text-muted">
+                  {{ invoice.invoice_date }}
+                </div>
+              </td>
+
+              <td>
+                <div class="fw-bold">{{ invoice.student.full_name }}</div>
+                <div class="small text-muted">{{ invoice.student.admission_number }}</div>
+              </td>
+
+              <td>
+                {{ invoice.student.class_level.name }}
+                {% if invoice.student.stream %}
+                  {{ invoice.student.stream.name }}
+                {% endif %}
+              </td>
+
+              <td>TZS {{ invoice.payable_amount|floatformat:0|intcomma }}</td>
+              <td>TZS {{ invoice.paid_amount|floatformat:0|intcomma }}</td>
+
+              <td>
+                {% if invoice.balance > 0 %}
+                  <span class="fw-bold text-danger">
+                    TZS {{ invoice.balance|floatformat:0|intcomma }}
+                  </span>
+                {% else %}
+                  <span class="fw-bold text-success">
+                    TZS {{ invoice.balance|floatformat:0|intcomma }}
+                  </span>
+                {% endif %}
+              </td>
+
+              <td>
+                {% if invoice.status == "paid" %}
+                  <span class="badge badge-soft-success">Paid</span>
+                {% elif invoice.status == "partial" %}
+                  <span class="badge badge-soft-warning">Partial</span>
+                {% elif invoice.status == "cancelled" %}
+                  <span class="badge badge-soft-danger">Cancelled</span>
+                {% else %}
+                  <span class="badge badge-soft-danger">Unpaid</span>
+                {% endif %}
+              </td>
+
+              <td class="text-end">
+                <div class="d-inline-flex flex-wrap justify-content-end gap-1">
+                  <a href="{% url 'invoice_detail' invoice.pk %}" class="btn btn-sm btn-light border">
+                    View
+                  </a>
+
+                  {% if "invoices.manage" in current_user_permissions %}
+                    {% if invoice.status != "cancelled" %}
+                      <a href="{% url 'invoice_update' invoice.pk %}" class="btn btn-sm btn-light border">
+                        Edit
+                      </a>
+                    {% endif %}
+                  {% endif %}
+
+                  {% if "payments.manage" in current_user_permissions %}
+                    {% if invoice.status != "cancelled" and invoice.balance > 0 %}
+                      <a href="{% url 'payment_create' %}?invoice={{ invoice.pk }}" class="btn btn-sm btn-sl-primary">
+                        Pay
+                      </a>
+                    {% endif %}
+                  {% endif %}
+
+                  {% if "invoices.manage" in current_user_permissions %}
+                    {% if not invoice.payments.exists %}
+                      <form method="post"
+                            action="{% url 'invoice_delete' invoice.pk %}"
+                            onsubmit="return confirm('Delete this invoice? Only delete if it was created by mistake and has no payments.');">
+                        {% csrf_token %}
+                        <button class="btn btn-sm btn-outline-danger">
+                          Delete
+                        </button>
+                      </form>
+                    {% endif %}
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="8" class="text-center text-muted py-4">
+                No invoices found.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="alert alert-info small mt-3 mb-0">
+      Use <strong>Edit</strong> to correct invoice details. Use <strong>Delete</strong> only for wrong invoices with no payments. If an invoice has payments, keep it for records.
+    </div>
+  </div>
+</div>
+
+{% endblock %}

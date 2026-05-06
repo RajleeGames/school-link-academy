@@ -1,0 +1,60 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}Edit User Role | School Link{% endblock %}
+
+{% block page_title %}Edit User Role{% endblock %}
+{% block page_subtitle %}Change system role and access status for this user.{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="sl-card">
+      <div class="sl-card-body">
+
+        <div class="mb-4">
+          <h5 class="fw-bold mb-1">{{ user_obj.username }}</h5>
+          <div class="small text-muted">{{ user_obj.email|default:"No email" }}</div>
+        </div>
+
+        <form method="post">
+          {% csrf_token %}
+
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Role</label>
+            {{ form.role }}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Phone</label>
+            {{ form.phone }}
+          </div>
+
+          <div class="form-check mb-2">
+            {{ form.must_change_password }}
+            <label class="form-check-label small fw-bold">Must Change Password</label>
+          </div>
+
+          <div class="form-check mb-3">
+            {{ form.is_active_profile }}
+            <label class="form-check-label small fw-bold">Active Profile</label>
+          </div>
+
+          {% if form.errors %}
+            <div class="alert alert-danger small">
+              {{ form.errors }}
+            </div>
+          {% endif %}
+
+          <div class="d-flex justify-content-end gap-2">
+            <a href="{% url 'user_role_list' %}" class="btn btn-light border btn-sm">Cancel</a>
+            <button type="submit" class="btn btn-sl-primary btn-sm">Save Role</button>
+          </div>
+        </form>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

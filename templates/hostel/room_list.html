@@ -1,0 +1,135 @@
+{% extends "base/dashboard_base.html" %}
+{% load humanize %}
+
+{% block title %}Hostel Rooms | School Link{% endblock %}
+
+{% block page_title %}Hostel Rooms{% endblock %}
+{% block page_subtitle %}Manage rooms under each hostel and track room capacity.{% endblock %}
+
+{% block content %}
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <div>
+        <h5 class="fw-bold mb-1">Room Records</h5>
+        <div class="small text-muted">Rooms grouped by hostel.</div>
+      </div>
+
+      {% if "hostel.manage" in current_user_permissions %}
+        <a href="{% url 'hostel_room_create' %}" class="btn btn-sl-primary btn-sm">
+          + Add Room
+        </a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body">
+    <form method="get" class="row g-2">
+      <div class="col-md-6">
+        <input type="text"
+               name="search"
+               value="{{ search }}"
+               class="form-control form-control-sm"
+               placeholder="Search room number or hostel...">
+      </div>
+
+      <div class="col-md-4">
+        <select name="hostel" class="form-select form-select-sm">
+          <option value="">All Hostels</option>
+          {% for hostel in hostels %}
+            <option value="{{ hostel.id }}" {% if selected_hostel == hostel.id|stringformat:"s" %}selected{% endif %}>
+              {{ hostel.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-dark btn-sm w-100">
+          Filter
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="sl-card">
+  <div class="sl-card-body">
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th>Room</th>
+            <th>Hostel</th>
+            <th>Type</th>
+            <th>Capacity</th>
+            <th>Beds</th>
+            <th>Status</th>
+            {% if "hostel.manage" in current_user_permissions %}
+              <th class="text-end">Action</th>
+            {% endif %}
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for room in rooms %}
+            <tr>
+              <td class="fw-semibold">{{ room.room_number }}</td>
+              <td>{{ room.hostel.name }}</td>
+              <td>{{ room.get_room_type_display }}</td>
+              <td>{{ room.capacity|intcomma }}</td>
+              <td>{{ room.bed_count|intcomma }}</td>
+              <td>
+                {% if room.is_active %}
+                  <span class="badge bg-success-subtle text-success border border-success-subtle">
+                    Active
+                  </span>
+                {% else %}
+                  <span class="badge bg-secondary-subtle text-secondary border">
+                    Inactive
+                  </span>
+                {% endif %}
+              </td>
+
+              {% if "hostel.manage" in current_user_permissions %}
+                <td class="text-end">
+                  <div class="d-inline-flex gap-1">
+                    <a href="{% url 'hostel_room_update' room.pk %}" class="btn btn-light border btn-sm">
+                      Edit
+                    </a>
+
+                    {% if room.bed_count == 0 %}
+                      <form method="post"
+                            action="{% url 'hostel_room_delete' room.pk %}"
+                            onsubmit="return confirm('Delete this room? Only delete if created by mistake.');">
+                        {% csrf_token %}
+                        <button class="btn btn-outline-danger btn-sm">
+                          Delete
+                        </button>
+                      </form>
+                    {% endif %}
+                  </div>
+                </td>
+              {% endif %}
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="7" class="text-center text-muted py-4">
+                No rooms found.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="alert alert-info small mt-3 mb-0">
+      Delete appears only when a room has no beds. If used, mark it inactive instead.
+    </div>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,135 @@
+{% extends "base/dashboard_base.html" %}
+{% load humanize %}
+
+{% block title %}Discipline | School Link{% endblock %}
+
+{% block page_title %}Discipline{% endblock %}
+{% block page_subtitle %}Track student behavior, incidents, rewards, actions, and parent follow-ups.{% endblock %}
+
+{% block content %}
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Total Records</div>
+      <div class="sl-stat-value">{{ total_records|intcomma }}</div>
+      <div class="sl-stat-note">All discipline records</div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Open Cases</div>
+      <div class="sl-stat-value">{{ open_records|intcomma }}</div>
+      <div class="sl-stat-note">Need attention</div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Resolved</div>
+      <div class="sl-stat-value">{{ resolved_records|intcomma }}</div>
+      <div class="sl-stat-note">Completed actions</div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Rewards</div>
+      <div class="sl-stat-value">{{ reward_records|intcomma }}</div>
+      <div class="sl-stat-note">Positive behavior</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="sl-card">
+      <div class="sl-card-body">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <div>
+            <h5 class="fw-bold mb-1">Recent Discipline Records</h5>
+            <div class="small text-muted">Latest student behavior records.</div>
+          </div>
+
+          <a href="{% url 'discipline_record_create' %}" class="btn btn-sl-primary btn-sm">
+            + Add Record
+          </a>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>Type</th>
+                <th>Title</th>
+                <th>Severity</th>
+                <th>Status</th>
+                <th class="text-end">Action</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for record in recent_records %}
+                <tr>
+                  <td>
+                    <div class="fw-bold">{{ record.student.full_name }}</div>
+                    <div class="small text-muted">{{ record.student.admission_number }}</div>
+                  </td>
+                  <td>{{ record.get_record_type_display }}</td>
+                  <td>{{ record.title }}</td>
+                  <td>{{ record.get_severity_display }}</td>
+                  <td>{{ record.get_status_display }}</td>
+                  <td class="text-end">
+                    <a href="{% url 'discipline_record_detail' record.pk %}" class="btn btn-sm btn-light border">View</a>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="6" class="text-center text-muted py-4">
+                    No discipline records yet.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="sl-card mb-3">
+      <div class="sl-card-body">
+        <h5 class="fw-bold mb-3">Quick Actions</h5>
+
+        <div class="d-grid gap-2">
+          <a href="{% url 'discipline_category_list' %}" class="btn btn-light border text-start small">Discipline Categories</a>
+          <a href="{% url 'discipline_record_create' %}" class="btn btn-light border text-start small">Add Discipline Record</a>
+          <a href="{% url 'discipline_record_list' %}" class="btn btn-light border text-start small">View Records</a>
+          <a href="{% url 'followup_create' %}" class="btn btn-light border text-start small">Add Follow Up</a>
+          <a href="{% url 'followup_list' %}" class="btn btn-light border text-start small">Follow Up List</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="sl-card">
+      <div class="sl-card-body">
+        <h5 class="fw-bold mb-3">Recent Follow Ups</h5>
+
+        {% for followup in recent_followups %}
+          <div class="border-bottom py-2">
+            <div class="fw-bold small">{{ followup.record.student.full_name }}</div>
+            <div class="small text-muted">{{ followup.next_action|default:followup.note|truncatechars:60 }}</div>
+          </div>
+        {% empty %}
+          <div class="text-muted small">No follow-ups yet.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

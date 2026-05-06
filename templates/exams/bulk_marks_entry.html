@@ -1,0 +1,142 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}Bulk Marks Entry | School Link{% endblock %}
+
+{% block page_title %}Bulk Marks Entry{% endblock %}
+{% block page_subtitle %}Choose exam and subject, then enter or update marks for all students in that exam class.{% endblock %}
+
+{% block content %}
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body">
+    <form method="get" class="row g-2">
+      <div class="col-md-5">
+        <label class="form-label small fw-bold">Exam</label>
+        <select name="exam" class="form-select" required>
+          <option value="">Choose exam</option>
+          {% for exam in exams %}
+            <option value="{{ exam.id }}" {% if selected_exam_id == exam.id|stringformat:"s" %}selected{% endif %}>
+              {{ exam.name }} - {{ exam.class_level.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-5">
+        <label class="form-label small fw-bold">Subject</label>
+        <select name="subject" class="form-select" required>
+          <option value="">Choose subject</option>
+          {% for subject in subjects %}
+            <option value="{{ subject.id }}" {% if selected_subject_id == subject.id|stringformat:"s" %}selected{% endif %}>
+              {{ subject.name }}{% if subject.code %} - {{ subject.code }}{% endif %}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2 d-flex align-items-end">
+        <button class="btn btn-sl-primary w-100">Load</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% if selected_exam and selected_subject %}
+  <form method="post">
+    {% csrf_token %}
+
+    <input type="hidden" name="exam" value="{{ selected_exam.id }}">
+    <input type="hidden" name="subject" value="{{ selected_subject.id }}">
+
+    <div class="sl-card">
+      <div class="sl-card-body">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <div>
+            <h5 class="fw-bold mb-1">{{ selected_exam.name }}</h5>
+            <div class="small text-muted">
+              {{ selected_exam.class_level.name }} · {{ selected_subject.name }} · Total students: {{ student_rows|length }}
+            </div>
+          </div>
+
+          <button class="btn btn-sl-primary btn-sm" type="submit">
+            Save Marks
+          </button>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th style="width: 45px;">#</th>
+                <th>Student</th>
+                <th>Admission No</th>
+                <th>Class</th>
+                <th style="width: 150px;">Marks</th>
+                <th>Grade</th>
+                <th>Remark</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for row in student_rows %}
+                <tr>
+                  <td>{{ forloop.counter }}</td>
+
+                  <td class="fw-bold">{{ row.student.full_name }}</td>
+
+                  <td>{{ row.student.admission_number }}</td>
+
+                  <td>
+                    {{ row.student.class_level.name }}
+                    {{ row.student.stream.name|default:"" }}
+                  </td>
+
+                  <td>
+                    <input type="number"
+                           name="marks_{{ row.student.id }}"
+                           value="{{ row.marks }}"
+                           class="form-control form-control-sm"
+                           step="0.01"
+                           min="0"
+                           max="100"
+                           placeholder="0 - 100">
+                  </td>
+
+                  <td class="fw-bold">
+                    {% if row.grade %}
+                      {{ row.grade }}
+                    {% else %}
+                      -
+                    {% endif %}
+                  </td>
+
+                  <td>
+                    {% if row.remark %}
+                      {{ row.remark }}
+                    {% else %}
+                      -
+                    {% endif %}
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="7" class="text-center text-muted py-4">
+                    No active students found for this exam class.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        {% if student_rows %}
+          <div class="d-flex justify-content-end mt-3">
+            <button class="btn btn-sl-primary">Save Marks</button>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </form>
+{% endif %}
+
+{% endblock %}

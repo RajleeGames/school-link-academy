@@ -1,0 +1,140 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}Grading System | School Link{% endblock %}
+
+{% block page_title %}Grading System{% endblock %}
+{% block page_subtitle %}Configure score ranges, grades, points, and remarks.{% endblock %}
+
+{% block content %}
+
+<div class="row g-3">
+  {% if "exams.manage" in current_user_permissions %}
+    <div class="col-lg-4">
+      <div class="sl-card">
+        <div class="sl-card-body">
+          <h5 class="fw-bold mb-3">Add Grade</h5>
+
+          <form method="post">
+            {% csrf_token %}
+
+            <div class="row g-2">
+              <div class="col-md-6">
+                <label class="form-label small fw-bold">Grade</label>
+                {{ form.grade }}
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label small fw-bold">Points</label>
+                {{ form.points }}
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label small fw-bold">Min Score</label>
+                {{ form.min_score }}
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label small fw-bold">Max Score</label>
+                {{ form.max_score }}
+              </div>
+
+              <div class="col-12">
+                <label class="form-label small fw-bold">Remark</label>
+                {{ form.remark }}
+              </div>
+
+              <div class="col-12">
+                <div class="form-check mb-3">
+                  {{ form.is_active }}
+                  <label class="form-check-label small fw-bold">Active</label>
+                </div>
+              </div>
+            </div>
+
+            {% if form.errors %}
+              <div class="alert alert-danger small">{{ form.errors }}</div>
+            {% endif %}
+
+            <button class="btn btn-sl-primary w-100">Save Grade</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="{% if 'exams.manage' in current_user_permissions %}col-lg-8{% else %}col-12{% endif %}">
+    <div class="sl-card">
+      <div class="sl-card-body">
+        <h5 class="fw-bold mb-3">Grade Scale</h5>
+
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th>Grade</th>
+                <th>Min</th>
+                <th>Max</th>
+                <th>Points</th>
+                <th>Remark</th>
+                <th>Status</th>
+                {% if "exams.manage" in current_user_permissions %}
+                  <th class="text-end">Action</th>
+                {% endif %}
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for grade in grades %}
+                <tr>
+                  <td class="fw-bold">{{ grade.grade }}</td>
+                  <td>{{ grade.min_score|floatformat:0 }}</td>
+                  <td>{{ grade.max_score|floatformat:0 }}</td>
+                  <td>{{ grade.points }}</td>
+                  <td>{{ grade.remark|default:"-" }}</td>
+                  <td>
+                    {% if grade.is_active %}
+                      <span class="badge badge-soft-success">Active</span>
+                    {% else %}
+                      <span class="badge badge-soft-danger">Inactive</span>
+                    {% endif %}
+                  </td>
+
+                  {% if "exams.manage" in current_user_permissions %}
+                    <td class="text-end">
+                      <div class="d-inline-flex gap-1">
+                        <a href="{% url 'grade_scale_update' grade.pk %}" class="btn btn-light border btn-sm">
+                          Edit
+                        </a>
+
+                        <form method="post"
+                              action="{% url 'grade_scale_delete' grade.pk %}"
+                              onsubmit="return confirm('Delete this grade scale? Only delete if it was created by mistake.');">
+                          {% csrf_token %}
+                          <button class="btn btn-outline-danger btn-sm">
+                            Delete
+                          </button>
+                        </form>
+                      </div>
+                    </td>
+                  {% endif %}
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="7" class="text-center text-muted py-4">
+                    No grades created yet.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="alert alert-info small mt-3 mb-0">
+          Example Tanzania style: A = 75-100, B = 65-74, C = 45-64, D = 30-44, F = 0-29.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

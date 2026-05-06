@@ -1,0 +1,60 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}Edit User Permissions | School Link{% endblock %}
+
+{% block page_title %}Edit User Permissions{% endblock %}
+{% block page_subtitle %}Update access permissions for this user account.{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="sl-card">
+      <div class="sl-card-body">
+
+        <div class="mb-4">
+          <h5 class="fw-bold mb-1">{{ user_obj.username }}</h5>
+          <div class="small text-muted">{{ user_obj.email|default:"No email" }}</div>
+        </div>
+
+        <form method="post">
+          {% csrf_token %}
+
+          <div class="d-grid gap-3">
+            <div class="form-check">
+              {{ form.is_active }}
+              <label class="form-check-label small fw-semibold">Active Account</label>
+              <div class="small text-muted">Allow this user to login.</div>
+            </div>
+
+            <div class="form-check">
+              {{ form.is_staff }}
+              <label class="form-check-label small fw-semibold">Staff Access</label>
+              <div class="small text-muted">Allow access to admin/staff areas where required.</div>
+            </div>
+
+            <div class="form-check">
+              {{ form.is_superuser }}
+              <label class="form-check-label small fw-semibold">Superuser Access</label>
+              <div class="small text-muted">Full system administrator access.</div>
+            </div>
+          </div>
+
+          {% if form.errors %}
+            <div class="alert alert-danger small mt-3">
+              {{ form.errors }}
+            </div>
+          {% endif %}
+
+          <div class="d-flex flex-wrap justify-content-end gap-2 mt-4">
+            <a href="{% url 'user_permissions' %}" class="btn btn-light border btn-sm">Cancel</a>
+            <button type="submit" class="btn btn-sl-primary btn-sm">Save Permissions</button>
+          </div>
+        </form>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

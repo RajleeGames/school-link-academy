@@ -1,0 +1,115 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}Class Timetable | School Link{% endblock %}
+
+{% block page_title %}Class Timetable{% endblock %}
+{% block page_subtitle %}View and print timetable by class and stream.{% endblock %}
+
+{% block content %}
+
+<div class="sl-card mb-3 no-print">
+  <div class="sl-card-body">
+    <form method="get" class="row g-2">
+      <div class="col-md-5">
+        <label class="form-label small fw-bold">Class</label>
+        <select name="class" class="form-select" required>
+          <option value="">Choose class</option>
+          {% for class in classes %}
+            <option value="{{ class.id }}" {% if class_filter == class.id|stringformat:"s" %}selected{% endif %}>
+              {{ class.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label small fw-bold">Stream</label>
+        <select name="stream" class="form-select">
+          <option value="">All streams</option>
+          {% for stream in streams %}
+            <option value="{{ stream.id }}" {% if stream_filter == stream.id|stringformat:"s" %}selected{% endif %}>
+              {{ stream.class_level.name }} - {{ stream.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-3 d-flex align-items-end gap-2">
+        <button class="btn btn-sl-primary w-100">Load</button>
+        <button type="button" onclick="window.print()" class="btn btn-light border">Print</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="sl-card">
+  <div class="sl-card-body">
+    <div class="report-print-head mb-3">
+      <h4 class="fw-bold mb-1">Class Timetable</h4>
+      <div class="small text-muted">
+        {% if selected_class %}
+          {{ selected_class.name }}
+          {% if selected_stream %} - {{ selected_stream.name }}{% endif %}
+        {% else %}
+          Choose class to load timetable
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table align-middle timetable-table">
+        <thead>
+          <tr>
+            <th>Day / Time</th>
+            {% for slot in slots %}
+              <th>
+                <div class="fw-bold">{{ slot.name }}</div>
+                <div class="small text-muted">{{ slot.start_time }} - {{ slot.end_time }}</div>
+              </th>
+            {% endfor %}
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for row in table_rows %}
+            <tr>
+              <td class="fw-bold">{{ row.day_label }}</td>
+
+              {% for cell in row.cells %}
+                <td>
+                  {% if cell.entry %}
+                    {% if cell.slot.is_break %}
+                      <div class="fw-bold text-muted">Break</div>
+                    {% else %}
+                      <div class="fw-bold">{{ cell.entry.subject.name|default:"-" }}</div>
+                      <div class="small text-muted">
+                        {% if cell.entry.teacher %}
+                          {{ cell.entry.teacher.full_name }}
+                        {% else %}
+                          No teacher
+                        {% endif %}
+                      </div>
+                      <div class="small text-muted">
+                        {{ cell.entry.room.name|default:"No room" }}
+                      </div>
+                    {% endif %}
+                  {% else %}
+                    <span class="text-muted small">-</span>
+                  {% endif %}
+                </td>
+              {% endfor %}
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="10" class="text-center text-muted py-4">
+                No timetable loaded.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

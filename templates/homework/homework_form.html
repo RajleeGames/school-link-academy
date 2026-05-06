@@ -1,0 +1,113 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}{{ title }} | School Link{% endblock %}
+
+{% block page_title %}{{ title }}{% endblock %}
+{% block page_subtitle %}
+  {% if is_update %}
+    Update homework assignment with class, subject, due date, and instructions.
+  {% else %}
+    Create homework assignment with class, subject, due date, and instructions.
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+
+<div class="sl-card">
+  <div class="sl-card-body">
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      <div class="row g-3">
+        <div class="col-md-8">
+          <label class="form-label small fw-bold">Homework Title</label>
+          {{ form.title }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Status</label>
+          {{ form.status }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Academic Year</label>
+          {{ form.academic_year }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Term</label>
+          {{ form.term }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Subject</label>
+          {{ form.subject }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Class</label>
+          {{ form.class_level }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Stream</label>
+          {{ form.stream }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Teacher</label>
+          {{ form.teacher }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Assigned Date</label>
+          {{ form.assigned_date }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Due Date</label>
+          {{ form.due_date }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Attachment</label>
+          {{ form.attachment }}
+
+          {% if is_update and homework and homework.attachment %}
+            <div class="form-text small">
+              Current file:
+              <a href="{{ homework.attachment.url }}" target="_blank">View attachment</a>
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="col-12">
+          <label class="form-label small fw-bold">Instructions / Description</label>
+          {{ form.description }}
+        </div>
+
+        <div class="col-12">
+          <div class="form-check mb-2">
+            {{ form.is_active }}
+            <label class="form-check-label small fw-bold">Active</label>
+          </div>
+        </div>
+      </div>
+
+      {% if form.errors %}
+        <div class="alert alert-danger small mt-3">
+          {{ form.errors }}
+        </div>
+      {% endif %}
+
+      <div class="d-flex justify-content-between mt-4">
+        <a href="{% url 'homework_list' %}" class="btn btn-light border">Cancel</a>
+        <button class="btn btn-sl-primary">
+          {{ button_text|default:"Save Homework" }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

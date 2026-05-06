@@ -1,0 +1,191 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}{{ title }} | School Link{% endblock %}
+
+{% block page_title %}{{ title }}{% endblock %}
+{% block page_subtitle %}
+  {% if is_category_form %}
+    Save library book category information.
+  {% else %}
+    Save library book information, copies, category, cover image, and availability.
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+  <div class="col-lg-10">
+    <div class="sl-card">
+      <div class="sl-card-body">
+
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+
+          {% if is_category_form %}
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold">Category Name</label>
+                {{ form.name }}
+
+                {% for error in form.name.errors %}
+                  <div class="text-danger small mt-1">{{ error }}</div>
+                {% endfor %}
+              </div>
+
+              <div class="col-12">
+                <label class="form-label small fw-semibold">Description</label>
+                {{ form.description }}
+
+                {% for error in form.description.errors %}
+                  <div class="text-danger small mt-1">{{ error }}</div>
+                {% endfor %}
+              </div>
+            </div>
+          {% else %}
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold">Book Title</label>
+                {{ form.title }}
+
+                {% for error in form.title.errors %}
+                  <div class="text-danger small mt-1">{{ error }}</div>
+                {% endfor %}
+              </div>
+
+              <div class="col-md-3">
+                <label class="form-label small fw-semibold">Category</label>
+                {{ form.category }}
+
+                {% for error in form.category.errors %}
+                  <div class="text-danger small mt-1">{{ error }}</div>
+                {% endfor %}
+              </div>
+
+              <div class="col-md-3">
+                <label class="form-label small fw-semibold">Book Code</label>
+                {{ form.book_code }}
+
+                {% for error in form.book_code.errors %}
+                  <div class="text-danger small mt-1">{{ error }}</div>
+                {% endfor %}
+              </div>
+
+              <div class="col-md-4">
+                <label class="form-label small fw-semibold">Author</label>
+                {{ form.author }}
+
+                {% for error in form.author.errors %}
+                  <div class="text-danger small mt-1">{{ error }}</div>
+                {% endfor %}
+              </div>
+
+              <div class="col-md-4">
+                <label class="form-label small fw-semibold">Publisher</label>
+                {{ form.publisher }}
+
+                {% for error in form.publisher.errors %}
+                  <div class="text-danger small mt-1">{{ error }}</div>
+                {% endfor %}
+              </div>
+
+              <div class="col-md-4">
+                <label class="form-label small fw-semibold">ISBN</label>
+                {{ form.isbn }}
+
+                {% for error in form.isbn.errors %}
+                  <div class="text-danger small mt-1">{{ error }}</div>
+                {% endfor %}
+              </div>
+
+              <div class="col-md-4">
+                <label class="form-label small fw-semibold">Shelf Location</label>
+                {{ form.shelf_location }}
+
+                {% for error in form.shelf_location.errors %}
+                  <div class="text-danger small mt-1">{{ error }}</div>
+                {% endfor %}
+              </div>
+
+              <div class="col-md-2">
+                <label class="form-label small fw-semibold">Total Copies</label>
+                {{ form.total_copies }}
+
+                {% for error in form.total_copies.errors %}
+                  <div class="text-danger small mt-1">{{ error }}</div>
+                {% endfor %}
+              </div>
+
+              <div class="col-md-2">
+                <label class="form-label small fw-semibold">Available</label>
+                {{ form.available_copies }}
+
+                {% for error in form.available_copies.errors %}
+                  <div class="text-danger small mt-1">{{ error }}</div>
+                {% endfor %}
+              </div>
+
+              <div class="col-md-4">
+                <label class="form-label small fw-semibold">Status</label>
+                {{ form.status }}
+
+                {% for error in form.status.errors %}
+                  <div class="text-danger small mt-1">{{ error }}</div>
+                {% endfor %}
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold">Cover Image</label>
+                {{ form.cover_image }}
+
+                {% if is_update and book and book.cover_image %}
+                  <div class="form-text small">
+                    Current cover:
+                    <a href="{{ book.cover_image.url }}" target="_blank">View image</a>
+                  </div>
+                {% endif %}
+
+                {% for error in form.cover_image.errors %}
+                  <div class="text-danger small mt-1">{{ error }}</div>
+                {% endfor %}
+              </div>
+
+              <div class="col-12">
+                <label class="form-label small fw-semibold">Description</label>
+                {{ form.description }}
+
+                {% for error in form.description.errors %}
+                  <div class="text-danger small mt-1">{{ error }}</div>
+                {% endfor %}
+              </div>
+            </div>
+          {% endif %}
+
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger small mt-3">
+              {{ form.non_field_errors }}
+            </div>
+          {% endif %}
+
+          <div class="d-flex flex-wrap justify-content-end gap-2 mt-4">
+            {% if is_category_form %}
+              <a href="{% url 'book_category_list' %}" class="btn btn-light border btn-sm">
+                Cancel
+              </a>
+            {% else %}
+              <a href="{% url 'book_list' %}" class="btn btn-light border btn-sm">
+                Cancel
+              </a>
+            {% endif %}
+
+            <button type="submit" class="btn btn-sl-primary btn-sm">
+              {{ button_text }}
+            </button>
+          </div>
+        </form>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,94 @@
+{% extends "base/dashboard_base.html" %}
+{% load humanize %}
+
+{% block title %}Book Categories | School Link{% endblock %}
+
+{% block page_title %}Book Categories{% endblock %}
+{% block page_subtitle %}Manage library book categories and linked book counts.{% endblock %}
+
+{% block content %}
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <div>
+        <h5 class="fw-bold mb-1">Book Categories</h5>
+        <div class="small text-muted">Edit or delete categories created by mistake.</div>
+      </div>
+
+      <div class="d-flex flex-wrap gap-2">
+        <a href="{% url 'book_list' %}" class="btn btn-light border btn-sm">
+          Books
+        </a>
+
+        {% if "library.manage" in current_user_permissions %}
+          <a href="{% url 'book_category_create' %}" class="btn btn-sl-primary btn-sm">
+            + Add Category
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="sl-card">
+  <div class="sl-card-body">
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Description</th>
+            <th>Books</th>
+            {% if "library.manage" in current_user_permissions %}
+              <th class="text-end">Action</th>
+            {% endif %}
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for category in categories %}
+            <tr>
+              <td class="fw-bold">{{ category.name }}</td>
+              <td>{{ category.description|default:"-" }}</td>
+              <td>{{ category.book_count|intcomma }}</td>
+
+              {% if "library.manage" in current_user_permissions %}
+                <td class="text-end">
+                  <div class="d-inline-flex gap-1">
+                    <a href="{% url 'book_category_update' category.pk %}" class="btn btn-light border btn-sm">
+                      Edit
+                    </a>
+
+                    {% if category.book_count == 0 %}
+                      <form method="post"
+                            action="{% url 'book_category_delete' category.pk %}"
+                            onsubmit="return confirm('Delete this category?');">
+                        {% csrf_token %}
+                        <button class="btn btn-outline-danger btn-sm">
+                          Delete
+                        </button>
+                      </form>
+                    {% endif %}
+                  </div>
+                </td>
+              {% endif %}
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="4" class="text-center text-muted py-4">
+                No book categories found.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="alert alert-info small mt-3 mb-0">
+      Delete is shown only when a category has no books. If it has books, edit it or move books first.
+    </div>
+  </div>
+</div>
+
+{% endblock %}

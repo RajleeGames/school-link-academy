@@ -1,0 +1,115 @@
+{% extends "base/dashboard_base.html" %}
+{% load humanize %}
+
+{% block title %}Invoices | Parent Portal{% endblock %}
+
+{% block page_title %}Student Invoices{% endblock %}
+{% block page_subtitle %}Invoices for {{ student.full_name }}.{% endblock %}
+
+{% block content %}
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body d-flex flex-wrap justify-content-between align-items-center gap-2">
+    <div>
+      <h5 class="fw-bold mb-1">{{ student.full_name }}</h5>
+      <div class="small text-muted">
+        {{ student.admission_number }} · {{ student.class_level.name }}
+        {% if student.stream %} {{ student.stream.name }}{% endif %}
+      </div>
+    </div>
+
+    <a href="{% url 'parent_portal_home' %}" class="btn btn-light border btn-sm">
+      Back to Children
+    </a>
+  </div>
+</div>
+
+<div class="sl-card">
+  <div class="sl-card-body">
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th>Invoice</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Total</th>
+            <th>Paid</th>
+            <th>Balance</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for invoice in invoices %}
+            <tr>
+              <td class="fw-semibold">
+                {% if invoice.invoice_number %}
+                  {{ invoice.invoice_number }}
+                {% else %}
+                  INV-{{ invoice.id }}
+                {% endif %}
+              </td>
+
+              <td>
+                {% if invoice.created_at %}
+                  {{ invoice.created_at|date:"d M Y" }}
+                {% elif invoice.invoice_date %}
+                  {{ invoice.invoice_date|date:"d M Y" }}
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+
+              <td>
+                {% if invoice.status %}
+                  {{ invoice.status|title }}
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+
+              <td>
+                TZS
+                {% if invoice.total_amount %}
+                  {{ invoice.total_amount|floatformat:0|intcomma }}
+                {% elif invoice.amount %}
+                  {{ invoice.amount|floatformat:0|intcomma }}
+                {% else %}
+                  0
+                {% endif %}
+              </td>
+
+              <td>
+                TZS
+                {% if invoice.amount_paid %}
+                  {{ invoice.amount_paid|floatformat:0|intcomma }}
+                {% elif invoice.paid_amount %}
+                  {{ invoice.paid_amount|floatformat:0|intcomma }}
+                {% else %}
+                  0
+                {% endif %}
+              </td>
+
+              <td>
+                TZS
+                {% if invoice.balance %}
+                  {{ invoice.balance|floatformat:0|intcomma }}
+                {% else %}
+                  0
+                {% endif %}
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="6" class="text-center text-muted py-4">
+                No invoices found for this student.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

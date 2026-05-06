@@ -1,0 +1,116 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}{{ title }} | School Link{% endblock %}
+
+{% block page_title %}{{ title }}{% endblock %}
+{% block page_subtitle %}
+  {% if is_update %}
+    Update student incident, reward, warning, action taken, and parent notification.
+  {% else %}
+    Record student incident, reward, warning, action taken, and parent notification.
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+
+<div class="sl-card">
+  <div class="sl-card-body">
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label small fw-bold">Student</label>
+          {{ form.student }}
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label small fw-bold">Record Type</label>
+          {{ form.record_type }}
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label small fw-bold">Category</label>
+          {{ form.category }}
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label small fw-bold">Title</label>
+          {{ form.title }}
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label small fw-bold">Incident Date</label>
+          {{ form.incident_date }}
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label small fw-bold">Incident Time</label>
+          {{ form.incident_time }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Severity</label>
+          {{ form.severity }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Reported By</label>
+          {{ form.reported_by }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Status</label>
+          {{ form.status }}
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label small fw-bold">Description</label>
+          {{ form.description }}
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label small fw-bold">Action Taken</label>
+          {{ form.action_taken }}
+        </div>
+
+        <div class="col-md-6">
+          <div class="form-check mb-2">
+            {{ form.parent_notified }}
+            <label class="form-check-label small fw-bold">Parent Notified</label>
+          </div>
+
+          <label class="form-label small fw-bold">Parent Feedback</label>
+          {{ form.parent_feedback }}
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label small fw-bold">Attachment</label>
+          {{ form.attachment }}
+
+          {% if is_update and record and record.attachment %}
+            <div class="form-text small">
+              Current file:
+              <a href="{{ record.attachment.url }}" target="_blank">View attachment</a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      {% if form.errors %}
+        <div class="alert alert-danger small mt-3">
+          {{ form.errors }}
+        </div>
+      {% endif %}
+
+      <div class="d-flex justify-content-between mt-4">
+        <a href="{% url 'discipline_record_list' %}" class="btn btn-light border">Cancel</a>
+        <button class="btn btn-sl-primary">
+          {{ button_text|default:"Save Record" }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

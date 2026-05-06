@@ -1,0 +1,120 @@
+{% extends "base/dashboard_base.html" %}
+{% load humanize %}
+
+{% block title %}Transport Routes | School Link{% endblock %}
+
+{% block page_title %}Transport Routes{% endblock %}
+{% block page_subtitle %}Manage pickup routes, monthly fees, vehicles, and drivers.{% endblock %}
+
+{% block content %}
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <div>
+        <h5 class="fw-bold mb-1">Route Records</h5>
+        <div class="small text-muted">Routes used by school transport.</div>
+      </div>
+
+      {% if "transport.manage" in current_user_permissions %}
+        <a href="{% url 'transport_route_create' %}" class="btn btn-sl-primary btn-sm">
+          + Add Route
+        </a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body">
+    <form method="get" class="row g-2">
+      <div class="col-md-8">
+        <input type="text" name="search" value="{{ search }}" class="form-control form-control-sm"
+               placeholder="Search route, area, vehicle, or driver...">
+      </div>
+
+      <div class="col-md-2">
+        <select name="status" class="form-select form-select-sm">
+          <option value="">All Status</option>
+          <option value="active" {% if selected_status == "active" %}selected{% endif %}>Active</option>
+          <option value="inactive" {% if selected_status == "inactive" %}selected{% endif %}>Inactive</option>
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-dark btn-sm w-100">Filter</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="sl-card">
+  <div class="sl-card-body">
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th>Route</th>
+            <th>Pickup Area</th>
+            <th>Monthly Fee</th>
+            <th>Vehicle</th>
+            <th>Driver</th>
+            <th>Students</th>
+            {% if "transport.manage" in current_user_permissions %}
+              <th class="text-end">Action</th>
+            {% endif %}
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for route in routes %}
+            <tr>
+              <td>
+                <div class="fw-semibold">{{ route.name }}</div>
+                <div class="small text-muted">{{ route.dropoff_area|default:"No dropoff area" }}</div>
+              </td>
+              <td>{{ route.pickup_area }}</td>
+              <td>{{ route.monthly_fee|floatformat:0|intcomma }}</td>
+              <td>{{ route.vehicle|default:"-" }}</td>
+              <td>{{ route.driver|default:"-" }}</td>
+              <td>{{ route.student_count|intcomma }}</td>
+
+              {% if "transport.manage" in current_user_permissions %}
+                <td class="text-end">
+                  <div class="d-inline-flex gap-1">
+                    <a href="{% url 'transport_route_update' route.pk %}" class="btn btn-light border btn-sm">
+                      Edit
+                    </a>
+
+                    {% if route.student_count == 0 %}
+                      <form method="post"
+                            action="{% url 'transport_route_delete' route.pk %}"
+                            onsubmit="return confirm('Delete this route? Only delete if no students or trip logs use it.');">
+                        {% csrf_token %}
+                        <button class="btn btn-outline-danger btn-sm">
+                          Delete
+                        </button>
+                      </form>
+                    {% endif %}
+                  </div>
+                </td>
+              {% endif %}
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="7" class="text-center text-muted py-4">
+                No routes found.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="alert alert-info small mt-3 mb-0">
+      Delete appears only when a route has no assigned students. If used, mark it inactive instead.
+    </div>
+  </div>
+</div>
+
+{% endblock %}

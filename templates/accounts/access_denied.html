@@ -1,0 +1,35 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}Access Denied | School Link{% endblock %}
+
+{% block page_title %}Access Denied{% endblock %}
+{% block page_subtitle %}You do not have permission to open this page.{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="sl-card">
+      <div class="sl-card-body text-center py-5">
+        <div style="font-size: 3rem; line-height: 1;">🔒</div>
+
+        <h4 class="fw-bold mt-3 mb-2">You are not allowed to view this page</h4>
+
+        <p class="text-muted mb-4">
+          Your account role does not have permission for this section.
+        </p>
+
+        <div class="small text-muted mb-4">
+          Required permission:
+          <strong>{{ permission_code }}</strong>
+        </div>
+
+        <a href="{% url 'account_redirect' %}" class="btn btn-sl-primary">
+          Go Back
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

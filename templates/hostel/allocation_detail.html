@@ -1,0 +1,131 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}Boarding Detail | School Link{% endblock %}
+
+{% block page_title %}Boarding Detail{% endblock %}
+{% block page_subtitle %}View student hostel allocation, bed information, and checkout status.{% endblock %}
+
+{% block content %}
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <div>
+        <h5 class="fw-bold mb-1">{{ allocation.student.full_name }}</h5>
+        <div class="small text-muted">{{ allocation.student.admission_number }}</div>
+      </div>
+
+      <div class="d-flex flex-wrap gap-2">
+        {% if "hostel.manage" in current_user_permissions %}
+          <a href="{% url 'boarding_allocation_checkout' allocation.pk %}" class="btn btn-sl-primary btn-sm">
+            Checkout / Update
+          </a>
+
+          <form method="post"
+                action="{% url 'boarding_allocation_delete' allocation.pk %}"
+                onsubmit="return confirm('Delete this allocation? If active, the bed will become available again.');">
+            {% csrf_token %}
+            <button class="btn btn-outline-danger btn-sm">
+              Delete
+            </button>
+          </form>
+        {% endif %}
+
+        <a href="{% url 'boarding_allocation_list' %}" class="btn btn-light border btn-sm">
+          Back
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-6">
+    <div class="sl-card h-100">
+      <div class="sl-card-body">
+        <h5 class="fw-bold mb-3">Student Information</h5>
+
+        <div class="row g-3 small">
+          <div class="col-md-6">
+            <div class="text-muted">Student</div>
+            <div class="fw-semibold">{{ allocation.student.full_name }}</div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="text-muted">Admission Number</div>
+            <div class="fw-semibold">{{ allocation.student.admission_number }}</div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="text-muted">Class</div>
+            <div class="fw-semibold">{{ allocation.student.class_level|default:"-" }}</div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="text-muted">Stream</div>
+            <div class="fw-semibold">{{ allocation.student.stream|default:"-" }}</div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="text-muted">Guardian Contact</div>
+            <div class="fw-semibold">{{ allocation.guardian_contact|default:"-" }}</div>
+          </div>
+
+          <div class="col-12">
+            <div class="text-muted">Notes</div>
+            <div class="fw-semibold">{{ allocation.notes|default:"-" }}</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="sl-card h-100">
+      <div class="sl-card-body">
+        <h5 class="fw-bold mb-3">Hostel Information</h5>
+
+        <div class="row g-3 small">
+          <div class="col-md-6">
+            <div class="text-muted">Hostel</div>
+            <div class="fw-semibold">{{ allocation.hostel }}</div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="text-muted">Room</div>
+            <div class="fw-semibold">{{ allocation.room.room_number }}</div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="text-muted">Bed</div>
+            <div class="fw-semibold">{{ allocation.bed.bed_number }}</div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="text-muted">Bed Status</div>
+            <div class="fw-semibold">{{ allocation.bed.get_status_display }}</div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="text-muted">Check In</div>
+            <div class="fw-semibold">{{ allocation.check_in_date }}</div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="text-muted">Check Out</div>
+            <div class="fw-semibold">{{ allocation.check_out_date|default:"-" }}</div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="text-muted">Status</div>
+            <div class="fw-semibold">{{ allocation.get_status_display }}</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

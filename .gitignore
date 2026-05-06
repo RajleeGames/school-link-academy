@@ -1,0 +1,96 @@
+# =========================
+# Secrets / environment
+# =========================
+.env
+.env.*
+!.env.sample
+!.env.example
+
+# =========================
+# Python
+# =========================
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.egg-info/
+.eggs/
+
+# =========================
+# Virtual environments
+# =========================
+venv/
+env/
+.venv/
+ENV/
+
+# =========================
+# Django database
+# =========================
+db.sqlite3
+*.sqlite
+*.sqlite3
+
+# =========================
+# Django generated files
+# =========================
+staticfiles/
+media/
+uploads/
+app_data/
+
+# =========================
+# User uploaded files / private docs
+# =========================
+*.xlsx
+*.xls
+*.csv
+*.pdf
+*.docx
+
+# Keep sample import templates if you have them
+!sample*.xlsx
+!template*.xlsx
+!templates/*.xlsx
+
+# =========================
+# Logs / backups
+# =========================
+*.log
+logs/
+backups/
+*.bak
+*.backup
+
+# =========================
+# OS files
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# IDE / editor
+# =========================
+.vscode/
+.idea/
+
+# =========================
+# Node / frontend if used
+# =========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+dist/
+build/
+
+# =========================
+# Docker / database volumes
+# =========================
+postgres_data/
+mysql_data/
+
+# =========================
+# Packaging
+# =========================
+*.spec

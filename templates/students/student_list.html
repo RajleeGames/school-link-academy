@@ -1,0 +1,128 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}Students | School Link{% endblock %}
+
+{% block page_title %}Students{% endblock %}
+{% block page_subtitle %}Manage student admissions, profiles, classes, streams, and guardians.{% endblock %}
+
+{% block content %}
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <div>
+        <h5 class="mb-1 fw-bold">Student Records</h5>
+        <div class="small text-muted">Search and manage all admitted students.</div>
+      </div>
+
+      <a href="{% url 'student_create' %}" class="btn btn-sl-primary">
+        + Admit Student
+      </a>
+    </div>
+
+    <form method="get" class="row g-2 mt-3">
+      <div class="col-md-5">
+        <input type="text" name="q" value="{{ query }}" class="form-control"
+               placeholder="Search admission no, student, parent, phone">
+      </div>
+
+      <div class="col-md-3">
+        <select name="class" class="form-select">
+          <option value="">All classes</option>
+          {% for class in classes %}
+            <option value="{{ class.id }}" {% if class_filter == class.id|stringformat:"s" %}selected{% endif %}>
+              {{ class.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <select name="status" class="form-select">
+          <option value="">All status</option>
+          <option value="active" {% if status_filter == "active" %}selected{% endif %}>Active</option>
+          <option value="inactive" {% if status_filter == "inactive" %}selected{% endif %}>Inactive</option>
+          <option value="graduated" {% if status_filter == "graduated" %}selected{% endif %}>Graduated</option>
+          <option value="transferred" {% if status_filter == "transferred" %}selected{% endif %}>Transferred</option>
+          <option value="suspended" {% if status_filter == "suspended" %}selected{% endif %}>Suspended</option>
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <button class="btn btn-sl-primary w-100" type="submit">Filter</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="sl-card">
+  <div class="sl-card-body">
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Admission No</th>
+            <th>Class</th>
+            <th>Stream</th>
+            <th>Parent</th>
+            <th>Phone</th>
+            <th>Status</th>
+            <th class="text-end">Action</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for student in students %}
+            <tr>
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  {% if student.photo %}
+                    <img src="{{ student.photo.url }}" alt="{{ student.full_name }}"
+                         style="width:34px;height:34px;border-radius:50%;object-fit:cover;">
+                  {% else %}
+                    <div style="width:34px;height:34px;border-radius:50%;background:#417690;color:#f5dd5d;display:grid;place-items:center;font-weight:800;">
+                      {{ student.first_name|slice:":1"|upper }}
+                    </div>
+                  {% endif %}
+
+                  <div>
+                    <div class="fw-bold">{{ student.full_name }}</div>
+                    <div class="small text-muted">{{ student.get_gender_display }}</div>
+                  </div>
+                </div>
+              </td>
+
+              <td>{{ student.admission_number }}</td>
+              <td>{{ student.class_level.name }}</td>
+              <td>{{ student.stream.name|default:"-" }}</td>
+              <td>{{ student.parent_guardian.full_name }}</td>
+              <td>{{ student.parent_guardian.phone }}</td>
+              <td>
+                {% if student.status == "active" %}
+                  <span class="badge badge-soft-success">Active</span>
+                {% elif student.status == "suspended" %}
+                  <span class="badge badge-soft-danger">Suspended</span>
+                {% else %}
+                  <span class="badge badge-soft-primary">{{ student.get_status_display }}</span>
+                {% endif %}
+              </td>
+              <td class="text-end">
+                <a href="{% url 'student_detail' student.pk %}" class="btn btn-sm btn-light border">View</a>
+                <a href="{% url 'student_update' student.pk %}" class="btn btn-sm btn-light border">Edit</a>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="8" class="text-center text-muted py-4">
+                No students found. Click <strong>Admit Student</strong> to add one.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

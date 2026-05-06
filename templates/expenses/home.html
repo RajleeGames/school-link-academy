@@ -1,0 +1,160 @@
+{% extends "base/dashboard_base.html" %}
+{% load humanize %}
+
+{% block title %}Expenses | School Link{% endblock %}
+
+{% block page_title %}Expenses{% endblock %}
+{% block page_subtitle %}Track school spending, money out, pending expenses, and net cashflow.{% endblock %}
+
+{% block content %}
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Total Income</div>
+      <div class="sl-stat-value">TZS {{ total_income|floatformat:0|intcomma }}</div>
+      <div class="sl-stat-note">Confirmed fee payments</div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Paid Expenses</div>
+      <div class="sl-stat-value">TZS {{ total_expenses|floatformat:0|intcomma }}</div>
+      <div class="sl-stat-note">Money spent</div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Pending Expenses</div>
+      <div class="sl-stat-value">TZS {{ pending_expenses|floatformat:0|intcomma }}</div>
+      <div class="sl-stat-note">Not yet paid</div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Net Cash</div>
+      <div class="sl-stat-value">TZS {{ net_cash|floatformat:0|intcomma }}</div>
+      <div class="sl-stat-note">Income minus paid expenses</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="sl-card">
+      <div class="sl-card-body">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <div>
+            <h5 class="fw-bold mb-1">Recent Expenses</h5>
+            <div class="small text-muted">Latest school expense records.</div>
+          </div>
+
+          <a href="{% url 'expense_create' %}" class="btn btn-sl-primary btn-sm">
+            + Record Expense
+          </a>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th>Expense</th>
+                <th>Category</th>
+                <th>Date</th>
+                <th>Method</th>
+                <th>Status</th>
+                <th class="text-end">Amount</th>
+                <th class="text-end">Action</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for expense in recent_expenses %}
+                <tr>
+                  <td>
+                    <div class="fw-bold">{{ expense.title }}</div>
+                    <div class="small text-muted">{{ expense.expense_number }}</div>
+                  </td>
+                  <td>{{ expense.category.name }}</td>
+                  <td>{{ expense.expense_date }}</td>
+                  <td>{{ expense.get_payment_method_display }}</td>
+                  <td>
+                    {% if expense.status == "paid" %}
+                      <span class="badge badge-soft-success">Paid</span>
+                    {% elif expense.status == "pending" %}
+                      <span class="badge badge-soft-warning">Pending</span>
+                    {% else %}
+                      <span class="badge badge-soft-danger">Cancelled</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-end">TZS {{ expense.amount|floatformat:0|intcomma }}</td>
+                  <td class="text-end">
+                    <a href="{% url 'expense_detail' expense.pk %}" class="btn btn-sm btn-light border">View</a>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="7" class="text-center text-muted py-4">
+                    No expenses recorded yet.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="sl-card mb-3">
+      <div class="sl-card-body">
+        <h5 class="fw-bold mb-3">Quick Actions</h5>
+
+        <div class="d-grid gap-2">
+          <a href="{% url 'expense_category_list' %}" class="btn btn-light border text-start small">
+            Expense Categories
+          </a>
+          <a href="{% url 'expense_create' %}" class="btn btn-light border text-start small">
+            Record Expense
+          </a>
+          <a href="{% url 'expense_list' %}" class="btn btn-light border text-start small">
+            View Expenses
+          </a>
+          <a href="{% url 'fees_home' %}" class="btn btn-light border text-start small">
+            Fees Dashboard
+          </a>
+          <a href="{% url 'payment_list' %}" class="btn btn-light border text-start small">
+            View Income Payments
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="sl-card">
+      <div class="sl-card-body">
+        <h5 class="fw-bold mb-3">Recent Income</h5>
+
+        {% for payment in recent_payments %}
+          <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+            <div>
+              <div class="fw-bold small">{{ payment.receipt_number }}</div>
+              <div class="small text-muted">{{ payment.invoice.student.full_name }}</div>
+            </div>
+            <div class="small fw-bold">TZS {{ payment.amount|floatformat:0|intcomma }}</div>
+          </div>
+        {% empty %}
+          <div class="text-muted small">
+            No income payments recorded yet.
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

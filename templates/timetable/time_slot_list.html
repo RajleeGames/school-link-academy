@@ -1,0 +1,162 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}Time Slots | School Link{% endblock %}
+
+{% block page_title %}Time Slots{% endblock %}
+{% block page_subtitle %}Create periods, breaks, lunch, and lesson times for the timetable.{% endblock %}
+
+{% block content %}
+
+<div class="row g-3">
+  {% if "timetable.manage" in current_user_permissions %}
+    <div class="col-lg-4">
+      <div class="sl-card mb-3">
+        <div class="sl-card-body">
+          <h5 class="fw-bold mb-2">Auto Create Slots</h5>
+          <p class="small text-muted mb-3">
+            Click once to create a standard school day timetable. Existing slots with the same names will be updated, not duplicated.
+          </p>
+
+          <form method="post" action="{% url 'auto_create_default_time_slots' %}">
+            {% csrf_token %}
+            <button class="btn btn-sl-primary w-100" type="submit">
+              Create Default Time Slots
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <div class="sl-card">
+        <div class="sl-card-body">
+          <h5 class="fw-bold mb-3">Add Time Slot Manually</h5>
+
+          <form method="post">
+            {% csrf_token %}
+
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Name</label>
+              {{ form.name }}
+            </div>
+
+            <div class="row g-2">
+              <div class="col-md-6">
+                <label class="form-label small fw-bold">Start Time</label>
+                {{ form.start_time }}
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label small fw-bold">End Time</label>
+                {{ form.end_time }}
+              </div>
+            </div>
+
+            <div class="form-check mt-3 mb-2">
+              {{ form.is_break }}
+              <label class="form-check-label small fw-bold">This is a break</label>
+            </div>
+
+            <div class="form-check mb-3">
+              {{ form.is_active }}
+              <label class="form-check-label small fw-bold">Active</label>
+            </div>
+
+            {% if form.errors %}
+              <div class="alert alert-danger small">{{ form.errors }}</div>
+            {% endif %}
+
+            <button class="btn btn-light border w-100">Save Manual Slot</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="{% if 'timetable.manage' in current_user_permissions %}col-lg-8{% else %}col-12{% endif %}">
+    <div class="sl-card">
+      <div class="sl-card-body">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <div>
+            <h5 class="fw-bold mb-1">Time Slots</h5>
+            <div class="small text-muted">Periods are ordered by start time.</div>
+          </div>
+
+          <a href="{% url 'timetable_home' %}" class="btn btn-sm btn-light border">
+            Back
+          </a>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Start</th>
+                <th>End</th>
+                <th>Break</th>
+                <th>Status</th>
+                {% if "timetable.manage" in current_user_permissions %}
+                  <th class="text-end">Action</th>
+                {% endif %}
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for slot in slots %}
+                <tr>
+                  <td class="fw-bold">{{ slot.name }}</td>
+                  <td>{{ slot.start_time }}</td>
+                  <td>{{ slot.end_time }}</td>
+                  <td>
+                    {% if slot.is_break %}
+                      <span class="badge badge-soft-warning">Break</span>
+                    {% else %}
+                      <span class="badge badge-soft-primary">Lesson</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if slot.is_active %}
+                      <span class="badge badge-soft-success">Active</span>
+                    {% else %}
+                      <span class="badge badge-soft-danger">Inactive</span>
+                    {% endif %}
+                  </td>
+
+                  {% if "timetable.manage" in current_user_permissions %}
+                    <td class="text-end">
+                      <div class="d-inline-flex gap-1">
+                        <a href="{% url 'time_slot_update' slot.pk %}" class="btn btn-light border btn-sm">
+                          Edit
+                        </a>
+
+                        <form method="post"
+                              action="{% url 'time_slot_delete' slot.pk %}"
+                              onsubmit="return confirm('Delete this time slot? Only delete if it was created by mistake.');">
+                          {% csrf_token %}
+                          <button class="btn btn-outline-danger btn-sm">
+                            Delete
+                          </button>
+                        </form>
+                      </div>
+                    </td>
+                  {% endif %}
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="6" class="text-center text-muted py-4">
+                    No time slots created yet. Click “Create Default Time Slots” to add them automatically.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="alert alert-info small mt-3 mb-0">
+          Use <strong>Inactive</strong> for slots already used in timetable entries. Use <strong>Delete</strong> only for wrong duplicate slots.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

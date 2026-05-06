@@ -1,0 +1,117 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}Transport Assignments | School Link{% endblock %}
+
+{% block page_title %}Transport Assignments{% endblock %}
+{% block page_subtitle %}Assign students to transport routes and pickup points.{% endblock %}
+
+{% block content %}
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <div>
+        <h5 class="fw-bold mb-1">Assignment Records</h5>
+        <div class="small text-muted">Students assigned to transport routes.</div>
+      </div>
+
+      {% if "transport.manage" in current_user_permissions %}
+        <a href="{% url 'transport_assignment_create' %}" class="btn btn-sl-primary btn-sm">
+          + Assign Student
+        </a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body">
+    <form method="get" class="row g-2">
+      <div class="col-md-8">
+        <input type="text" name="search" value="{{ search }}" class="form-control form-control-sm"
+               placeholder="Search student, admission number, route, or pickup point...">
+      </div>
+
+      <div class="col-md-2">
+        <select name="status" class="form-select form-select-sm">
+          <option value="">All Status</option>
+          <option value="active" {% if selected_status == "active" %}selected{% endif %}>Active</option>
+          <option value="stopped" {% if selected_status == "stopped" %}selected{% endif %}>Stopped</option>
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-dark btn-sm w-100">Filter</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="sl-card">
+  <div class="sl-card-body">
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Route</th>
+            <th>Pickup Point</th>
+            <th>Guardian Phone</th>
+            <th>Start Date</th>
+            <th>Status</th>
+            {% if "transport.manage" in current_user_permissions %}
+              <th class="text-end">Action</th>
+            {% endif %}
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for item in assignments %}
+            <tr>
+              <td>
+                <div class="fw-semibold">{{ item.student.full_name }}</div>
+                <div class="small text-muted">{{ item.student.admission_number }}</div>
+              </td>
+              <td>{{ item.route.name }}</td>
+              <td>{{ item.pickup_point|default:"-" }}</td>
+              <td>{{ item.guardian_phone|default:"-" }}</td>
+              <td>{{ item.start_date }}</td>
+              <td>
+                <span class="badge bg-light text-dark border">
+                  {{ item.get_status_display }}
+                </span>
+              </td>
+
+              {% if "transport.manage" in current_user_permissions %}
+                <td class="text-end">
+                  <div class="d-inline-flex gap-1">
+                    <a href="{% url 'transport_assignment_update' item.pk %}" class="btn btn-light border btn-sm">
+                      Edit
+                    </a>
+
+                    <form method="post"
+                          action="{% url 'transport_assignment_delete' item.pk %}"
+                          onsubmit="return confirm('Delete this transport assignment?');">
+                      {% csrf_token %}
+                      <button class="btn btn-outline-danger btn-sm">
+                        Delete
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              {% endif %}
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="7" class="text-center text-muted py-4">
+                No transport assignments found.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

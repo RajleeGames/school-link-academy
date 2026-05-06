@@ -1,0 +1,169 @@
+{% extends "base/dashboard_base.html" %}
+{% load humanize %}
+
+{% block title %}Books | School Link{% endblock %}
+
+{% block page_title %}Books{% endblock %}
+{% block page_subtitle %}Manage library books, categories, authors, copies, and availability.{% endblock %}
+
+{% block content %}
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <div>
+        <h5 class="fw-bold mb-1">Library Books</h5>
+        <div class="small text-muted">Search and manage all registered books.</div>
+      </div>
+
+      <div class="d-flex flex-wrap gap-2">
+        <a href="{% url 'book_category_list' %}" class="btn btn-light border btn-sm">
+          Categories
+        </a>
+
+        {% if "library.manage" in current_user_permissions %}
+          <a href="{% url 'book_category_create' %}" class="btn btn-light border btn-sm">
+            + Category
+          </a>
+          <a href="{% url 'book_create' %}" class="btn btn-sl-primary btn-sm">
+            + Add Book
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body">
+    <form method="get" class="row g-2">
+      <div class="col-md-5">
+        <input type="text"
+               name="search"
+               value="{{ search }}"
+               class="form-control form-control-sm"
+               placeholder="Search title, code, author, or ISBN...">
+      </div>
+
+      <div class="col-md-3">
+        <select name="category" class="form-select form-select-sm">
+          <option value="">All Categories</option>
+          {% for category in categories %}
+            <option value="{{ category.id }}" {% if selected_category == category.id|stringformat:"s" %}selected{% endif %}>
+              {{ category.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <select name="status" class="form-select form-select-sm">
+          <option value="">All Status</option>
+          <option value="available" {% if selected_status == "available" %}selected{% endif %}>Available</option>
+          <option value="unavailable" {% if selected_status == "unavailable" %}selected{% endif %}>Unavailable</option>
+          <option value="lost" {% if selected_status == "lost" %}selected{% endif %}>Lost</option>
+          <option value="damaged" {% if selected_status == "damaged" %}selected{% endif %}>Damaged</option>
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-dark btn-sm w-100">Filter</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="sl-card">
+  <div class="sl-card-body">
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th>Book</th>
+            <th>Category</th>
+            <th>Author</th>
+            <th>Copies</th>
+            <th>Status</th>
+            <th class="text-end">Action</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for book in books %}
+            <tr>
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  {% if book.cover_image %}
+                    <img src="{{ book.cover_image.url }}"
+                         alt="{{ book.title }}"
+                         style="width:42px;height:42px;border-radius:12px;object-fit:cover;">
+                  {% else %}
+                    <div style="width:42px;height:42px;border-radius:12px;background:#eef4ff;display:grid;place-items:center;font-weight:800;color:#2563eb;">
+                      B
+                    </div>
+                  {% endif %}
+
+                  <div>
+                    <div class="fw-semibold">{{ book.title }}</div>
+                    <div class="small text-muted">{{ book.book_code }}</div>
+                  </div>
+                </div>
+              </td>
+
+              <td>{{ book.category|default:"-" }}</td>
+              <td>{{ book.author|default:"-" }}</td>
+
+              <td>
+                <span class="fw-semibold">{{ book.available_copies|intcomma }}</span>
+                <span class="text-muted">/ {{ book.total_copies|intcomma }}</span>
+              </td>
+
+              <td>
+                {% if book.is_available %}
+                  <span class="badge bg-success-subtle text-success border border-success-subtle">
+                    Available
+                  </span>
+                {% else %}
+                  <span class="badge bg-danger-subtle text-danger border border-danger-subtle">
+                    {{ book.get_status_display }}
+                  </span>
+                {% endif %}
+              </td>
+
+              <td class="text-end">
+                <div class="d-inline-flex gap-1">
+                  {% if "library.manage" in current_user_permissions %}
+                    <a href="{% url 'book_update' book.pk %}" class="btn btn-light border btn-sm">
+                      Edit
+                    </a>
+
+                    <form method="post"
+                          action="{% url 'book_delete' book.pk %}"
+                          onsubmit="return confirm('Delete this book? Only delete if it has no borrow history.');">
+                      {% csrf_token %}
+                      <button class="btn btn-outline-danger btn-sm">
+                        Delete
+                      </button>
+                    </form>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="6" class="text-center text-muted py-4">
+                No books found.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="alert alert-info small mt-3 mb-0">
+      If a book has borrow history, delete will be blocked. Change its status instead.
+    </div>
+  </div>
+</div>
+
+{% endblock %}

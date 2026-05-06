@@ -1,0 +1,105 @@
+{% extends "base/dashboard_base.html" %}
+{% load i18n %}
+{% load school_filters %}
+
+{% block title %}{% trans "Academics" %} | School Link{% endblock %}
+
+{% block page_title %}{% trans "Academics" %}{% endblock %}
+{% block page_subtitle %}{% trans "Academic setup center for years, terms, classes, streams, and subjects." %}{% endblock %}
+
+{% block content %}
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">{% trans "Academic Years" %}</div>
+      <div class="sl-stat-value">{{ academic_years_count|numcomma }}</div>
+      <div class="sl-stat-note">
+        {% if current_year %}
+          {% blocktrans with year=current_year.name %}Current: {{ year }}{% endblocktrans %}
+        {% else %}
+          {% trans "No current year" %}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">{% trans "Terms" %}</div>
+      <div class="sl-stat-value">{{ terms_count|numcomma }}</div>
+      <div class="sl-stat-note">
+        {% if current_term %}
+          {% blocktrans with term=current_term.get_name_display %}Current: {{ term }}{% endblocktrans %}
+        {% else %}
+          {% trans "No current term" %}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">{% trans "Classes" %}</div>
+      <div class="sl-stat-value">{{ classes_count|numcomma }}</div>
+      <div class="sl-stat-note">{% trans "Primary and secondary levels" %}</div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">{% trans "Subjects" %}</div>
+      <div class="sl-stat-value">{{ subjects_count|numcomma }}</div>
+      <div class="sl-stat-note">{% trans "School subjects" %}</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-md-6 col-xl-4">
+    <a href="{% url 'academic_year_list' %}" class="sl-card d-block h-100 text-decoration-none">
+      <div class="sl-card-body">
+        <h5 class="fw-bold mb-2">{% trans "Academic Years" %}</h5>
+        <p class="small text-muted mb-0">{% trans "Create and manage school years like 2026 or 2026/2027." %}</p>
+      </div>
+    </a>
+  </div>
+
+  <div class="col-md-6 col-xl-4">
+    <a href="{% url 'term_list' %}" class="sl-card d-block h-100 text-decoration-none">
+      <div class="sl-card-body">
+        <h5 class="fw-bold mb-2">{% trans "Terms / Semesters" %}</h5>
+        <p class="small text-muted mb-0">{% trans "Manage Term 1, Term 2, Term 3, or semester structure." %}</p>
+      </div>
+    </a>
+  </div>
+
+  <div class="col-md-6 col-xl-4">
+    <a href="{% url 'class_level_list' %}" class="sl-card d-block h-100 text-decoration-none">
+      <div class="sl-card-body">
+        <h5 class="fw-bold mb-2">{% trans "Classes" %}</h5>
+        <p class="small text-muted mb-0">{% trans "Setup Standard 1-7, Form 1-4, or Advanced levels." %}</p>
+      </div>
+    </a>
+  </div>
+
+  <div class="col-md-6 col-xl-4">
+    <a href="{% url 'stream_list' %}" class="sl-card d-block h-100 text-decoration-none">
+      <div class="sl-card-body">
+        <h5 class="fw-bold mb-2">{% trans "Streams" %}</h5>
+        <p class="small text-muted mb-0">{% trans "Manage streams like A, B, C, Science, Arts, and Business." %}</p>
+      </div>
+    </a>
+  </div>
+
+  <div class="col-md-6 col-xl-4">
+    <a href="{% url 'subject_list' %}" class="sl-card d-block h-100 text-decoration-none">
+      <div class="sl-card-body">
+        <h5 class="fw-bold mb-2">{% trans "Subjects" %}</h5>
+        <p class="small text-muted mb-0">{% trans "Create subjects and assign them to selected class levels." %}</p>
+      </div>
+    </a>
+  </div>
+</div>
+
+{% endblock %}

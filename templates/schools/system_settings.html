@@ -1,0 +1,111 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}System Settings | School Link{% endblock %}
+
+{% block page_title %}System Settings{% endblock %}
+{% block page_subtitle %}Configure global school system behavior, prefixes, portals, and alerts.{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+  <div class="col-lg-10">
+    <div class="sl-card">
+      <div class="sl-card-body">
+
+        <form method="post">
+          {% csrf_token %}
+
+          <h5 class="fw-bold mb-3">General Settings</h5>
+
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Default Currency</label>
+              {{ form.default_currency }}
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Attendance Mode</label>
+              {{ form.attendance_mode }}
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Low Stock Alert Level</label>
+              {{ form.low_stock_alert_level }}
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Receipt Prefix</label>
+              {{ form.receipt_prefix }}
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Invoice Prefix</label>
+              {{ form.invoice_prefix }}
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Admission Prefix</label>
+              {{ form.admission_prefix }}
+            </div>
+          </div>
+
+          <hr class="my-4">
+
+          <h5 class="fw-bold mb-3">Enable Features</h5>
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <div class="form-check">
+                {{ form.academic_year_auto_create }}
+                <label class="form-check-label small fw-semibold">Auto Create Academic Year</label>
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="form-check">
+                {{ form.enable_sms_notifications }}
+                <label class="form-check-label small fw-semibold">Enable SMS Notifications</label>
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="form-check">
+                {{ form.enable_email_notifications }}
+                <label class="form-check-label small fw-semibold">Enable Email Notifications</label>
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="form-check">
+                {{ form.enable_parent_portal }}
+                <label class="form-check-label small fw-semibold">Enable Parent Portal</label>
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="form-check">
+                {{ form.enable_student_portal }}
+                <label class="form-check-label small fw-semibold">Enable Student Portal</label>
+              </div>
+            </div>
+          </div>
+
+          {% if form.errors %}
+            <div class="alert alert-danger small mt-3">
+              {{ form.errors }}
+            </div>
+          {% endif %}
+
+          <div class="d-flex justify-content-end mt-4">
+            <button type="submit" class="btn btn-sl-primary btn-sm">
+              Save Settings
+            </button>
+          </div>
+        </form>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

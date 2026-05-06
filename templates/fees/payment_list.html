@@ -1,0 +1,105 @@
+{% extends "base/dashboard_base.html" %}
+{% load humanize %}
+
+{% block title %}Payments | School Link{% endblock %}
+
+{% block page_title %}Payments{% endblock %}
+{% block page_subtitle %}View payment summary by student. Open a student to see full payment history and receipts.{% endblock %}
+
+{% block content %}
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <div>
+        <h5 class="fw-bold mb-1">Student Payment Summary</h5>
+        <div class="small text-muted">One row per student, not one row per receipt.</div>
+      </div>
+
+      {% if "payments.manage" in current_user_permissions %}
+        <a href="{% url 'payment_create' %}" class="btn btn-sl-primary">+ Record Payment</a>
+      {% endif %}
+    </div>
+
+    <form method="get" class="row g-2 mt-3">
+      <div class="col-md-10">
+        <input type="text" name="q" value="{{ query }}" class="form-control"
+               placeholder="Search student, admission no, receipt, or invoice">
+      </div>
+
+      <div class="col-md-2">
+        <button class="btn btn-sl-primary w-100">Search</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="sl-card">
+  <div class="sl-card-body">
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Class</th>
+            <th>Receipts</th>
+            <th class="text-end">Confirmed Paid</th>
+            <th class="text-end">Pending</th>
+            <th>Last Payment</th>
+            <th class="text-end">Action</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for row in payment_rows %}
+            <tr>
+              <td>
+                <div class="fw-bold">{{ row.student.full_name }}</div>
+                <div class="small text-muted">{{ row.student.admission_number }}</div>
+              </td>
+
+              <td>
+                {{ row.student.class_level.name }}
+                {{ row.student.stream.name|default:"" }}
+              </td>
+
+              <td>{{ row.payment_count|intcomma }}</td>
+
+              <td class="text-end fw-bold">
+                TZS {{ row.confirmed_total|floatformat:0|intcomma }}
+              </td>
+
+              <td class="text-end">
+                TZS {{ row.pending_total|floatformat:0|intcomma }}
+              </td>
+
+              <td>
+                {% if row.last_payment %}
+                  <div>{{ row.last_payment.payment_date }}</div>
+                  <div class="small text-muted">{{ row.last_payment.receipt_number }}</div>
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+
+              <td class="text-end">
+                <a href="{% url 'student_payment_history' row.student.pk %}"
+                   class="btn btn-sm btn-light border">
+                  History
+                </a>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="7" class="text-center text-muted py-4">
+                No student payments found.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

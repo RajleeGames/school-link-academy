@@ -1,0 +1,69 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}{{ title }} | School Link{% endblock %}
+
+{% block page_title %}{{ title }}{% endblock %}
+{% block page_subtitle %}
+  {% if is_update %}
+    Update staff attendance with check-in time, check-out time, and remarks.
+  {% else %}
+    Record staff attendance with check-in time, check-out time, and remarks.
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+
+<div class="sl-card">
+  <div class="sl-card-body">
+    <form method="post">
+      {% csrf_token %}
+
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label small fw-bold">Staff Member</label>
+          {{ form.staff }}
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label small fw-bold">Date</label>
+          {{ form.date }}
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label small fw-bold">Status</label>
+          {{ form.status }}
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label small fw-bold">Check In Time</label>
+          {{ form.check_in_time }}
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label small fw-bold">Check Out Time</label>
+          {{ form.check_out_time }}
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label small fw-bold">Remarks</label>
+          {{ form.remarks }}
+        </div>
+      </div>
+
+      {% if form.errors %}
+        <div class="alert alert-danger small mt-3">
+          {{ form.errors }}
+        </div>
+      {% endif %}
+
+      <div class="d-flex justify-content-between mt-4">
+        <a href="{% url 'staff_attendance_list' %}" class="btn btn-light border">Cancel</a>
+        <button class="btn btn-sl-primary">
+          {{ button_text|default:"Save Attendance" }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

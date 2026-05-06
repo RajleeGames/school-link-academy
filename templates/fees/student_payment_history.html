@@ -1,0 +1,207 @@
+{% extends "base/dashboard_base.html" %}
+{% load humanize %}
+
+{% block title %}Payment History | School Link{% endblock %}
+
+{% block page_title %}Payment History{% endblock %}
+{% block page_subtitle %}All invoices, payments, balances, and receipts for one student.{% endblock %}
+
+{% block content %}
+
+<div class="row g-3 mb-3">
+  <div class="col-md-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Student</div>
+      <div class="sl-stat-value" style="font-size:1rem;">{{ student.full_name }}</div>
+      <div class="sl-stat-note">{{ student.admission_number }}</div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Confirmed Paid</div>
+      <div class="sl-stat-value">TZS {{ confirmed_total|floatformat:0|intcomma }}</div>
+      <div class="sl-stat-note">Received money</div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Pending</div>
+      <div class="sl-stat-value">TZS {{ pending_total|floatformat:0|intcomma }}</div>
+      <div class="sl-stat-note">Not confirmed</div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Outstanding</div>
+      <div class="sl-stat-value">TZS {{ outstanding_balance|floatformat:0|intcomma }}</div>
+      <div class="sl-stat-note">Total unpaid balance</div>
+    </div>
+  </div>
+</div>
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body">
+    <div class="d-flex flex-wrap justify-content-between gap-2">
+      <div>
+        <h5 class="fw-bold mb-1">{{ student.full_name }}</h5>
+        <div class="small text-muted">
+          {{ student.class_level.name }} {{ student.stream.name|default:"" }} ·
+          Parent: {{ student.parent_guardian.full_name }} ·
+          {{ student.parent_guardian.phone }}
+        </div>
+      </div>
+
+      <div class="d-flex flex-wrap gap-2">
+        <a href="{% url 'payment_list' %}" class="btn btn-light border btn-sm">Back</a>
+
+        {% if "payments.manage" in current_user_permissions %}
+          <a href="{% url 'payment_create' %}" class="btn btn-sl-primary btn-sm">Record Payment</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body">
+    <h5 class="fw-bold mb-3">Invoices</h5>
+
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th>Invoice</th>
+            <th>Year</th>
+            <th>Term</th>
+            <th>Status</th>
+            <th class="text-end">Payable</th>
+            <th class="text-end">Paid</th>
+            <th class="text-end">Balance</th>
+            <th class="text-end">Action</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for invoice in invoices %}
+            <tr>
+              <td class="fw-bold">{{ invoice.invoice_number }}</td>
+              <td>{{ invoice.academic_year.name }}</td>
+              <td>{{ invoice.term|default:"-" }}</td>
+
+              <td>
+                {% if invoice.status == "paid" %}
+                  <span class="badge badge-soft-success">Paid</span>
+                {% elif invoice.status == "partial" %}
+                  <span class="badge badge-soft-warning">Partial</span>
+                {% elif invoice.status == "cancelled" %}
+                  <span class="badge badge-soft-danger">Cancelled</span>
+                {% else %}
+                  <span class="badge badge-soft-danger">Unpaid</span>
+                {% endif %}
+              </td>
+
+              <td class="text-end">TZS {{ invoice.payable_amount|floatformat:0|intcomma }}</td>
+              <td class="text-end">TZS {{ invoice.paid_amount|floatformat:0|intcomma }}</td>
+              <td class="text-end fw-bold">TZS {{ invoice.balance|floatformat:0|intcomma }}</td>
+
+              <td class="text-end">
+                <div class="d-inline-flex gap-1">
+                  <a href="{% url 'invoice_detail' invoice.pk %}" class="btn btn-light border btn-sm">View</a>
+
+                  {% if "invoices.manage" in current_user_permissions %}
+                    <a href="{% url 'invoice_update' invoice.pk %}" class="btn btn-light border btn-sm">Edit</a>
+                  {% endif %}
+
+                  {% if "payments.manage" in current_user_permissions and invoice.balance > 0 and invoice.status != "cancelled" %}
+                    <a href="{% url 'payment_create' %}?invoice={{ invoice.pk }}" class="btn btn-sl-primary btn-sm">Pay</a>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="8" class="text-center text-muted py-4">
+                No invoices found for this student.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="sl-card">
+  <div class="sl-card-body">
+    <h5 class="fw-bold mb-3">Payment Receipts</h5>
+
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th>Receipt</th>
+            <th>Invoice</th>
+            <th>Date</th>
+            <th>Method</th>
+            <th>Status</th>
+            <th class="text-end">Amount</th>
+            <th class="text-end">Action</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for payment in payments %}
+            <tr>
+              <td class="fw-bold">{{ payment.receipt_number }}</td>
+              <td>{{ payment.invoice.invoice_number }}</td>
+              <td>{{ payment.payment_date }}</td>
+              <td>{{ payment.get_method_display }}</td>
+
+              <td>
+                {% if payment.status == "confirmed" %}
+                  <span class="badge badge-soft-success">Confirmed</span>
+                {% elif payment.status == "pending" %}
+                  <span class="badge badge-soft-warning">Pending</span>
+                {% else %}
+                  <span class="badge badge-soft-danger">Cancelled</span>
+                {% endif %}
+              </td>
+
+              <td class="text-end fw-bold">
+                TZS {{ payment.amount|floatformat:0|intcomma }}
+              </td>
+
+              <td class="text-end">
+                <div class="d-inline-flex gap-1">
+                  <a href="{% url 'receipt_detail' payment.pk %}" class="btn btn-light border btn-sm">Receipt</a>
+
+                  {% if "payments.manage" in current_user_permissions %}
+                    <a href="{% url 'payment_update' payment.pk %}" class="btn btn-light border btn-sm">Edit</a>
+
+                    <form method="post"
+                          action="{% url 'payment_delete' payment.pk %}"
+                          onsubmit="return confirm('Delete this payment? This will update invoice balance.');">
+                      {% csrf_token %}
+                      <button class="btn btn-outline-danger btn-sm">Delete</button>
+                    </form>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="7" class="text-center text-muted py-4">
+                No payments found for this student.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

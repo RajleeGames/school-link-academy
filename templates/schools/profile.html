@@ -1,0 +1,123 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}School Setup | School Link{% endblock %}
+
+{% block page_title %}School Setup{% endblock %}
+{% block page_subtitle %}Configure your school identity, type, contact details, and branding.{% endblock %}
+
+{% block content %}
+
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="sl-card">
+      <div class="sl-card-body">
+        <h5 class="fw-bold mb-3">School Profile</h5>
+
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+
+          <div class="row g-3">
+            <div class="col-md-8">
+              <label class="form-label small fw-bold">School Name</label>
+              {{ form.name }}
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label small fw-bold">Short Name</label>
+              {{ form.short_name }}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label small fw-bold">Motto</label>
+              {{ form.motto }}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label small fw-bold">Registration Number</label>
+              {{ form.registration_number }}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label small fw-bold">School Type</label>
+              {{ form.school_type }}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label small fw-bold">School Mode</label>
+              {{ form.school_mode }}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label small fw-bold">Phone</label>
+              {{ form.phone }}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label small fw-bold">Email</label>
+              {{ form.email }}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label small fw-bold">Website</label>
+              {{ form.website }}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label small fw-bold">Currency</label>
+              {{ form.currency }}
+            </div>
+
+            <div class="col-12">
+              <label class="form-label small fw-bold">Address</label>
+              {{ form.address }}
+            </div>
+
+            <div class="col-md-8">
+              <label class="form-label small fw-bold">School Logo</label>
+              {{ form.logo }}
+            </div>
+
+            <div class="col-md-4 d-flex align-items-end">
+              <div class="form-check mb-2">
+                {{ form.is_active }}
+                <label class="form-check-label small fw-bold">Active School</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-end mt-4">
+            <button class="btn btn-sl-primary" type="submit">
+              Save School Profile
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="sl-card">
+      <div class="sl-card-body">
+        <h5 class="fw-bold mb-3">Preview</h5>
+
+        {% if profile and profile.logo %}
+          <img src="{{ profile.logo.url }}" class="img-fluid rounded-4 border mb-3" alt="School Logo">
+        {% else %}
+          <div class="rounded-4 border d-flex align-items-center justify-content-center mb-3"
+               style="height:150px;background:#f8fafc;">
+            <span class="text-muted small">No logo uploaded</span>
+          </div>
+        {% endif %}
+
+        <div class="fw-bold">{{ profile.name|default:"School Link Academy" }}</div>
+        <div class="small text-muted">{{ profile.motto|default:"Smart school management" }}</div>
+
+        <hr>
+
+        <div class="small text-muted">This information will appear on report cards, receipts, and official school documents.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

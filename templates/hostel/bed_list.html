@@ -1,0 +1,137 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}Hostel Beds | School Link{% endblock %}
+
+{% block page_title %}Hostel Beds{% endblock %}
+{% block page_subtitle %}Manage bed spaces, availability, occupancy, and damaged beds.{% endblock %}
+
+{% block content %}
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <div>
+        <h5 class="fw-bold mb-1">Bed Records</h5>
+        <div class="small text-muted">Track available, occupied, reserved, and damaged beds.</div>
+      </div>
+
+      {% if "hostel.manage" in current_user_permissions %}
+        <a href="{% url 'hostel_bed_create' %}" class="btn btn-sl-primary btn-sm">
+          + Add Bed
+        </a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body">
+    <form method="get" class="row g-2">
+      <div class="col-md-8">
+        <input type="text"
+               name="search"
+               value="{{ search }}"
+               class="form-control form-control-sm"
+               placeholder="Search bed, room, or hostel...">
+      </div>
+
+      <div class="col-md-2">
+        <select name="status" class="form-select form-select-sm">
+          <option value="">All Status</option>
+          <option value="available" {% if selected_status == "available" %}selected{% endif %}>Available</option>
+          <option value="occupied" {% if selected_status == "occupied" %}selected{% endif %}>Occupied</option>
+          <option value="reserved" {% if selected_status == "reserved" %}selected{% endif %}>Reserved</option>
+          <option value="damaged" {% if selected_status == "damaged" %}selected{% endif %}>Damaged</option>
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-dark btn-sm w-100">
+          Filter
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="sl-card">
+  <div class="sl-card-body">
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th>Bed</th>
+            <th>Room</th>
+            <th>Hostel</th>
+            <th>Status</th>
+            <th>Notes</th>
+            {% if "hostel.manage" in current_user_permissions %}
+              <th class="text-end">Action</th>
+            {% endif %}
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for bed in beds %}
+            <tr>
+              <td class="fw-semibold">{{ bed.bed_number }}</td>
+              <td>{{ bed.room.room_number }}</td>
+              <td>{{ bed.room.hostel.name }}</td>
+
+              <td>
+                {% if bed.status == "available" %}
+                  <span class="badge bg-success-subtle text-success border border-success-subtle">
+                    Available
+                  </span>
+                {% elif bed.status == "occupied" %}
+                  <span class="badge bg-danger-subtle text-danger border border-danger-subtle">
+                    Occupied
+                  </span>
+                {% else %}
+                  <span class="badge bg-light text-dark border">
+                    {{ bed.get_status_display }}
+                  </span>
+                {% endif %}
+              </td>
+
+              <td>{{ bed.notes|default:"-"|truncatechars:50 }}</td>
+
+              {% if "hostel.manage" in current_user_permissions %}
+                <td class="text-end">
+                  <div class="d-inline-flex gap-1">
+                    <a href="{% url 'hostel_bed_update' bed.pk %}" class="btn btn-light border btn-sm">
+                      Edit
+                    </a>
+
+                    {% if bed.status != "occupied" %}
+                      <form method="post"
+                            action="{% url 'hostel_bed_delete' bed.pk %}"
+                            onsubmit="return confirm('Delete this bed? Only delete if it has no allocation history.');">
+                        {% csrf_token %}
+                        <button class="btn btn-outline-danger btn-sm">
+                          Delete
+                        </button>
+                      </form>
+                    {% endif %}
+                  </div>
+                </td>
+              {% endif %}
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="6" class="text-center text-muted py-4">
+                No beds found.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="alert alert-info small mt-3 mb-0">
+      Delete is blocked if the bed has allocation history. Use status reserved/damaged instead.
+    </div>
+  </div>
+</div>
+
+{% endblock %}

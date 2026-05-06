@@ -1,0 +1,150 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}Discipline Records | School Link{% endblock %}
+
+{% block page_title %}Discipline Records{% endblock %}
+{% block page_subtitle %}Search and filter student behavior records by class, type, severity, and status.{% endblock %}
+
+{% block content %}
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <div>
+        <h5 class="fw-bold mb-1">Records</h5>
+        <div class="small text-muted">Manage incidents, warnings, rewards, and follow-ups.</div>
+      </div>
+
+      {% if "discipline.manage" in current_user_permissions %}
+        <a href="{% url 'discipline_record_create' %}" class="btn btn-sl-primary">+ Add Record</a>
+      {% endif %}
+    </div>
+
+    <form method="get" class="row g-2 mt-3">
+      <div class="col-md-3">
+        <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="Search student or record">
+      </div>
+
+      <div class="col-md-2">
+        <select name="class" class="form-select">
+          <option value="">All classes</option>
+          {% for class in classes %}
+            <option value="{{ class.id }}" {% if class_filter == class.id|stringformat:"s" %}selected{% endif %}>
+              {{ class.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <select name="stream" class="form-select">
+          <option value="">All streams</option>
+          {% for stream in streams %}
+            <option value="{{ stream.id }}" {% if stream_filter == stream.id|stringformat:"s" %}selected{% endif %}>
+              {{ stream.class_level.name }} - {{ stream.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <select name="type" class="form-select">
+          <option value="">All types</option>
+          {% for value, label in record_type_choices %}
+            <option value="{{ value }}" {% if type_filter == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <select name="status" class="form-select">
+          <option value="">All status</option>
+          {% for value, label in status_choices %}
+            <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-1">
+        <button class="btn btn-sl-primary w-100">Go</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="sl-card">
+  <div class="sl-card-body">
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Class</th>
+            <th>Type</th>
+            <th>Title</th>
+            <th>Date</th>
+            <th>Severity</th>
+            <th>Status</th>
+            <th class="text-end">Action</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for record in records %}
+            <tr>
+              <td>
+                <div class="fw-bold">{{ record.student.full_name }}</div>
+                <div class="small text-muted">{{ record.student.admission_number }}</div>
+              </td>
+              <td>
+                {{ record.student.class_level.name }}
+                {{ record.student.stream.name|default:"" }}
+              </td>
+              <td>{{ record.get_record_type_display }}</td>
+              <td>{{ record.title }}</td>
+              <td>{{ record.incident_date }}</td>
+              <td>{{ record.get_severity_display }}</td>
+              <td>
+                {% if record.status == "resolved" %}
+                  <span class="badge badge-soft-success">{{ record.get_status_display }}</span>
+                {% elif record.status == "open" %}
+                  <span class="badge badge-soft-warning">{{ record.get_status_display }}</span>
+                {% else %}
+                  <span class="badge badge-soft-primary">{{ record.get_status_display }}</span>
+                {% endif %}
+              </td>
+              <td class="text-end">
+                <div class="d-inline-flex flex-wrap justify-content-end gap-1">
+                  <a href="{% url 'discipline_record_detail' record.pk %}" class="btn btn-sm btn-light border">View</a>
+
+                  {% if "discipline.manage" in current_user_permissions %}
+                    <a href="{% url 'discipline_record_update' record.pk %}" class="btn btn-sm btn-light border">Edit</a>
+
+                    <form method="post"
+                          action="{% url 'discipline_record_delete' record.pk %}"
+                          onsubmit="return confirm('Delete this discipline record? Only delete if it was created by mistake.');">
+                      {% csrf_token %}
+                      <button class="btn btn-sm btn-outline-danger">Delete</button>
+                    </form>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="8" class="text-center text-muted py-4">
+                No records found.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="alert alert-info small mt-3 mb-0">
+      Use <strong>Edit</strong> to correct record details. Use <strong>Delete</strong> only for records created by mistake.
+    </div>
+  </div>
+</div>
+
+{% endblock %}

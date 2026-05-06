@@ -1,0 +1,167 @@
+{% extends "base/dashboard_base.html" %}
+{% load humanize %}
+
+{% block title %}Hostel / Boarding | School Link{% endblock %}
+
+{% block page_title %}Hostel / Boarding{% endblock %}
+{% block page_subtitle %}Manage hostels, rooms, beds, student allocations, check-ins, and check-outs.{% endblock %}
+
+{% block content %}
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-2">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Hostels</div>
+      <div class="sl-stat-value">{{ total_hostels|intcomma }}</div>
+      <div class="sl-stat-note">Boarding houses</div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-2">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Rooms</div>
+      <div class="sl-stat-value">{{ total_rooms|intcomma }}</div>
+      <div class="sl-stat-note">Available rooms</div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-2">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Beds</div>
+      <div class="sl-stat-value">{{ total_beds|intcomma }}</div>
+      <div class="sl-stat-note">Total bed spaces</div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-2">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Available</div>
+      <div class="sl-stat-value">{{ available_beds|intcomma }}</div>
+      <div class="sl-stat-note">Free beds</div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-2">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Occupied</div>
+      <div class="sl-stat-value">{{ occupied_beds|intcomma }}</div>
+      <div class="sl-stat-note">Used beds</div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-2">
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">Allocations</div>
+      <div class="sl-stat-value">{{ active_allocations|intcomma }}</div>
+      <div class="sl-stat-note">Active students</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="sl-card">
+      <div class="sl-card-body">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <div>
+            <h5 class="fw-bold mb-1">Recent Boarding Allocations</h5>
+            <div class="small text-muted">Latest students allocated to hostel beds.</div>
+          </div>
+
+          <a href="{% url 'boarding_allocation_create' %}" class="btn btn-sl-primary btn-sm">
+            + Allocate Student
+          </a>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>Hostel</th>
+                <th>Room / Bed</th>
+                <th>Check In</th>
+                <th>Status</th>
+                <th class="text-end">Action</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for allocation in recent_allocations %}
+                <tr>
+                  <td>
+                    <div class="fw-semibold">{{ allocation.student.full_name }}</div>
+                    <div class="small text-muted">{{ allocation.student.admission_number }}</div>
+                  </td>
+
+                  <td>{{ allocation.hostel }}</td>
+
+                  <td>
+                    <div class="fw-semibold">{{ allocation.room.room_number }}</div>
+                    <div class="small text-muted">Bed {{ allocation.bed.bed_number }}</div>
+                  </td>
+
+                  <td>{{ allocation.check_in_date }}</td>
+
+                  <td>
+                    <span class="badge bg-light text-dark border">
+                      {{ allocation.get_status_display }}
+                    </span>
+                  </td>
+
+                  <td class="text-end">
+                    <a href="{% url 'boarding_allocation_detail' allocation.pk %}" class="btn btn-light border btn-sm">
+                      View
+                    </a>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="6" class="text-center text-muted py-4">
+                    No boarding allocations yet.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="sl-card">
+      <div class="sl-card-body">
+        <h5 class="fw-bold mb-3">Quick Actions</h5>
+
+        <div class="d-grid gap-2">
+          <a href="{% url 'hostel_list' %}" class="btn btn-light border text-start small">Hostels</a>
+          <a href="{% url 'hostel_room_list' %}" class="btn btn-light border text-start small">Rooms</a>
+          <a href="{% url 'hostel_bed_list' %}" class="btn btn-light border text-start small">Beds</a>
+          <a href="{% url 'boarding_allocation_create' %}" class="btn btn-light border text-start small">Allocate Student</a>
+          <a href="{% url 'boarding_allocation_list' %}" class="btn btn-light border text-start small">Boarding Allocations</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="sl-card mt-3">
+      <div class="sl-card-body">
+        <h5 class="fw-bold mb-3">Hostel Summary</h5>
+
+        {% for hostel in hostels %}
+          <div class="border-bottom py-2 small">
+            <div class="fw-semibold">{{ hostel.name }}</div>
+            <div class="text-muted">
+              {{ hostel.room_count|intcomma }} rooms · {{ hostel.bed_count|intcomma }} beds
+            </div>
+          </div>
+        {% empty %}
+          <div class="text-muted small">No hostels found.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

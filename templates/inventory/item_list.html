@@ -1,0 +1,153 @@
+{% extends "base/dashboard_base.html" %}
+{% load humanize %}
+
+{% block title %}Inventory Items | School Link{% endblock %}
+
+{% block page_title %}Inventory Items{% endblock %}
+{% block page_subtitle %}Manage school store items, quantities, reorder levels, and suppliers.{% endblock %}
+
+{% block content %}
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <div>
+        <h5 class="fw-bold mb-1">Inventory Item Records</h5>
+        <div class="small text-muted">All registered inventory items.</div>
+      </div>
+
+      {% if "inventory.manage" in current_user_permissions %}
+        <a href="{% url 'inventory_item_create' %}" class="btn btn-sl-primary btn-sm">
+          + Add Item
+        </a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="sl-card mb-3">
+  <div class="sl-card-body">
+    <form method="get" class="row g-2">
+      <div class="col-md-4">
+        <input type="text" name="search" value="{{ search }}" class="form-control form-control-sm"
+               placeholder="Search item, code, category, supplier...">
+      </div>
+
+      <div class="col-md-3">
+        <select name="category" class="form-select form-select-sm">
+          <option value="">All Categories</option>
+          {% for category in categories %}
+            <option value="{{ category.id }}" {% if selected_category == category.id|stringformat:"s" %}selected{% endif %}>
+              {{ category.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <select name="status" class="form-select form-select-sm">
+          <option value="">All Status</option>
+          <option value="active" {% if selected_status == "active" %}selected{% endif %}>Active</option>
+          <option value="inactive" {% if selected_status == "inactive" %}selected{% endif %}>Inactive</option>
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <select name="stock" class="form-select form-select-sm">
+          <option value="">All Stock</option>
+          <option value="low" {% if selected_stock == "low" %}selected{% endif %}>Low Stock</option>
+        </select>
+      </div>
+
+      <div class="col-md-1">
+        <button type="submit" class="btn btn-dark btn-sm w-100">
+          Go
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="sl-card">
+  <div class="sl-card-body">
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Category</th>
+            <th>Supplier</th>
+            <th>Quantity</th>
+            <th>Reorder</th>
+            <th>Location</th>
+            <th>Status</th>
+            {% if "inventory.manage" in current_user_permissions %}
+              <th class="text-end">Action</th>
+            {% endif %}
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for item in items %}
+            <tr>
+              <td>
+                <div class="fw-semibold">{{ item.name }}</div>
+                <div class="small text-muted">{{ item.item_code }}</div>
+              </td>
+              <td>{{ item.category|default:"-" }}</td>
+              <td>{{ item.supplier|default:"-" }}</td>
+              <td>
+                <span class="fw-semibold">{{ item.quantity|intcomma }}</span>
+                <span class="text-muted">{{ item.unit }}</span>
+
+                {% if item.is_low_stock %}
+                  <span class="badge bg-danger-subtle text-danger border border-danger-subtle ms-1">
+                    Low
+                  </span>
+                {% endif %}
+              </td>
+              <td>{{ item.reorder_level|intcomma }}</td>
+              <td>{{ item.location|default:"-" }}</td>
+              <td>
+                <span class="badge bg-light text-dark border">
+                  {{ item.get_status_display }}
+                </span>
+              </td>
+
+              {% if "inventory.manage" in current_user_permissions %}
+                <td class="text-end">
+                  <div class="d-inline-flex gap-1">
+                    <a href="{% url 'inventory_item_update' item.pk %}" class="btn btn-light border btn-sm">
+                      Edit
+                    </a>
+
+                    <form method="post"
+                          action="{% url 'inventory_item_delete' item.pk %}"
+                          onsubmit="return confirm('Delete this item? Only delete if it has no stock movement history.');">
+                      {% csrf_token %}
+                      <button class="btn btn-outline-danger btn-sm">
+                        Delete
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              {% endif %}
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="8" class="text-center text-muted py-4">
+                No inventory items found.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="alert alert-info small mt-3 mb-0">
+      Delete is blocked if the item has stock-in or stock-out history. Use inactive status instead.
+    </div>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}{{ title }} | School Link{% endblock %}
+
+{% block page_title %}{{ title }}{% endblock %}
+{% block page_subtitle %}
+  {% if is_update %}
+    Update follow-up note, next action, and responsible staff member.
+  {% else %}
+    Add follow-up note, next action, and responsible staff member.
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+
+<div class="sl-card">
+  <div class="sl-card-body">
+    <form method="post">
+      {% csrf_token %}
+
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label small fw-bold">Record</label>
+          {{ form.record }}
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label small fw-bold">Follow Up Date</label>
+          {{ form.follow_up_date }}
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label small fw-bold">Handled By</label>
+          {{ form.handled_by }}
+        </div>
+
+        <div class="col-12">
+          <label class="form-label small fw-bold">Note</label>
+          {{ form.note }}
+        </div>
+
+        <div class="col-12">
+          <label class="form-label small fw-bold">Next Action</label>
+          {{ form.next_action }}
+        </div>
+      </div>
+
+      {% if form.errors %}
+        <div class="alert alert-danger small mt-3">
+          {{ form.errors }}
+        </div>
+      {% endif %}
+
+      <div class="d-flex justify-content-between mt-4">
+        <a href="{% url 'followup_list' %}" class="btn btn-light border">Cancel</a>
+        <button class="btn btn-sl-primary">
+          {{ button_text|default:"Save Follow Up" }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}
