@@ -1,4 +1,5 @@
 {% extends "base/dashboard_base.html" %}
+{% load humanize %}
 
 {% block title %}Results | Parent Portal{% endblock %}
 
@@ -7,56 +8,138 @@
 
 {% block content %}
 
-<div class="sl-card mb-3">
-  <div class="sl-card-body d-flex flex-wrap justify-content-between align-items-center gap-2">
+<div class="sl-parent-result-head mb-3">
+  <div class="sl-parent-result-student">
+    <div class="sl-parent-result-avatar">
+      {% if student.photo %}
+        <img src="{{ student.photo.url }}" alt="{{ student.full_name }}">
+      {% else %}
+        <span>{{ student.first_name|slice:":1"|upper }}{{ student.last_name|slice:":1"|upper }}</span>
+      {% endif %}
+    </div>
+
     <div>
-      <h5 class="fw-bold mb-1">{{ student.full_name }}</h5>
-      <div class="small text-muted">
+      <h5 class="sl-parent-result-name">{{ student.full_name }}</h5>
+      <div class="sl-parent-result-meta">
         {{ student.admission_number }} · {{ student.class_level.name }}
         {% if student.stream %} {{ student.stream.name }}{% endif %}
       </div>
     </div>
-
-    <a href="{% url 'parent_portal_home' %}" class="btn btn-light border btn-sm">
-      Back to Children
-    </a>
   </div>
+
+  <a href="{% url 'parent_portal_home' %}" class="btn btn-light border btn-sm">
+    Back to Children
+  </a>
 </div>
 
-<div class="sl-card">
-  <div class="sl-card-body">
-    <div class="table-responsive">
-      <table class="table align-middle">
-        <thead>
+<div class="sl-parent-result-filter mb-3">
+  <form method="get" class="row g-2 align-items-end">
+    <div class="col-md-8 col-lg-6">
+      <label class="form-label">Select Exam / Test</label>
+      <select name="exam" class="form-select" onchange="this.form.submit()">
+        {% if exam_options %}
+          {% for exam in exam_options %}
+            <option value="{{ exam.id }}" {% if selected_exam_id == exam.id|stringformat:"s" %}selected{% endif %}>
+              {{ exam }}
+            </option>
+          {% endfor %}
+        {% else %}
+          <option value="">No exam found</option>
+        {% endif %}
+      </select>
+    </div>
+
+    <div class="col-md-4 col-lg-2">
+      <button type="submit" class="btn btn-sl-primary w-100">
+        View
+      </button>
+    </div>
+  </form>
+</div>
+
+{% if selected_exam %}
+  <div class="sl-parent-result-summary mb-3">
+    <div class="sl-parent-result-stat">
+      <div class="sl-parent-result-stat-label">Exam</div>
+      <div class="sl-parent-result-stat-value sl-parent-result-stat-small">
+        {{ selected_exam }}
+      </div>
+    </div>
+
+    <div class="sl-parent-result-stat">
+      <div class="sl-parent-result-stat-label">Total Marks</div>
+      <div class="sl-parent-result-stat-value">
+        {{ total_marks|floatformat:0|intcomma }}
+      </div>
+    </div>
+
+    <div class="sl-parent-result-stat">
+      <div class="sl-parent-result-stat-label">Average</div>
+      <div class="sl-parent-result-stat-value">
+        {{ average_marks|floatformat:1 }}
+      </div>
+    </div>
+
+    <div class="sl-parent-result-stat">
+      <div class="sl-parent-result-stat-label">Position</div>
+      <div class="sl-parent-result-stat-value">
+        {% if class_position %}
+          {{ class_position }} / {{ total_students }}
+        {% else %}
+          -
+        {% endif %}
+      </div>
+    </div>
+  </div>
+{% endif %}
+
+<div class="sl-parent-results-card">
+  <div class="sl-parent-results-card-head">
+    <div>
+      <h5>Subject Results</h5>
+      <p>
+        {% if selected_exam %}
+          Showing results for {{ selected_exam }}.
+        {% else %}
+          Select an exam to view results.
+        {% endif %}
+      </p>
+    </div>
+
+    {% if highest_total %}
+      <div class="sl-parent-highest-pill">
+        Highest: {{ highest_total|floatformat:0|intcomma }}
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="table-responsive">
+    <table class="table align-middle sl-parent-results-table">
+      <thead>
+        <tr>
+          <th>Subject</th>
+          <th class="text-center">Marks</th>
+          <th class="text-center">Grade</th>
+          <th>Remark</th>
+          <th>Teacher</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for result in results %}
           <tr>
-            <th>Exam</th>
-            <th>Subject</th>
-            <th>Marks</th>
-            <th>Grade</th>
-            <th>Remark</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          {% for result in results %}
-            <tr>
-              <td>
-                {% if result.exam %}
-                  {{ result.exam }}
-                {% else %}
-                  -
-                {% endif %}
-              </td>
-
-              <td>
+            <td>
+              <div class="sl-result-subject">
                 {% if result.subject %}
                   {{ result.subject.name }}
                 {% else %}
                   -
                 {% endif %}
-              </td>
+              </div>
+            </td>
 
-              <td>
+            <td class="text-center">
+              <span class="sl-result-mark">
                 {% if result.marks %}
                   {{ result.marks }}
                 {% elif result.score %}
@@ -64,36 +147,44 @@
                 {% else %}
                   -
                 {% endif %}
-              </td>
+              </span>
+            </td>
 
-              <td>
-                {% if result.grade %}
-                  {{ result.grade }}
-                {% else %}
-                  -
-                {% endif %}
-              </td>
+            <td class="text-center">
+              {% if result.grade %}
+                <span class="sl-result-grade">{{ result.grade }}</span>
+              {% else %}
+                <span class="text-muted">-</span>
+              {% endif %}
+            </td>
 
-              <td>
-                {% if result.remark %}
-                  {{ result.remark }}
-                {% elif result.remarks %}
-                  {{ result.remarks }}
-                {% else %}
-                  -
-                {% endif %}
-              </td>
-            </tr>
-          {% empty %}
-            <tr>
-              <td colspan="5" class="text-center text-muted py-4">
-                No results found for this student.
-              </td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
+            <td>
+              {% if result.remark %}
+                {{ result.remark }}
+              {% elif result.remarks %}
+                {{ result.remarks }}
+              {% else %}
+                <span class="text-muted">-</span>
+              {% endif %}
+            </td>
+
+            <td>
+              {% if result.teacher %}
+                {{ result.teacher.full_name }}
+              {% else %}
+                <span class="text-muted">-</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="5" class="text-center text-muted py-4">
+              No results found for this exam.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
 </div>
 

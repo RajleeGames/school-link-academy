@@ -10,7 +10,12 @@ from accounts.decorators import permission_required
 from academics.models import ClassLevel
 from audit.utils import log_audit, model_to_dict_safe
 from students.models import Student
-
+from .utils import (
+    build_invoice_fee_breakdown,
+    get_fee_item_balance,
+    sync_invoice_items_from_fee_structure,
+    recalculate_invoice_total,
+)
 from .forms import (
     FeeCategoryForm,
     FeePaymentForm,
@@ -53,11 +58,7 @@ def refresh_invoice(invoice):
         invoice.save()
 
 
-def recalculate_invoice_total(invoice):
-    total = invoice.items.aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
-    invoice.total_amount = total
-    invoice.save(update_fields=["total_amount"])
-    refresh_invoice(invoice)
+
 
 
 def safe_delete_object(request, obj, success_message, redirect_url, audit_message=None):
@@ -437,7 +438,6 @@ def debtor_list(request):
         "classes": ClassLevel.objects.filter(is_active=True),
     })
 
-
 @permission_required("invoices.manage")
 def invoice_create(request):
     if request.method == "POST":
@@ -446,19 +446,28 @@ def invoice_create(request):
         if form.is_valid():
             invoice = form.save(commit=False)
             invoice.status = "unpaid"
+            invoice.total_amount = Decimal("0.00")
             invoice.save()
+
+            sync_invoice_items_from_fee_structure(invoice)
             refresh_invoice(invoice)
 
             log_audit(
                 request,
                 action="create",
                 obj=invoice,
-                message=f"Created invoice {invoice.invoice_number} for {invoice.student.full_name}",
+                message=(
+                    f"Created invoice {invoice.invoice_number} for "
+                    f"{invoice.student.full_name} and generated fee items from fee structure"
+                ),
                 old_values={},
                 new_values=model_to_dict_safe(invoice),
             )
 
-            messages.success(request, "Invoice created successfully.")
+            messages.success(
+                request,
+                "Invoice created successfully. Fee items were picked automatically from Fee Structure."
+            )
             return redirect("invoice_detail", pk=invoice.pk)
 
         messages.error(request, "Please correct the invoice form.")
@@ -475,11 +484,9 @@ def invoice_create(request):
     return render(request, "fees/invoice_form.html", {
         "form": form,
         "title": "Create Invoice",
-        "button_text": "Save Invoice",
+        "button_text": "Create Invoice",
         "is_update": False,
     })
-
-
 @permission_required("invoices.manage")
 def invoice_update(request, pk):
     invoice = get_object_or_404(StudentInvoice, pk=pk)
@@ -493,7 +500,10 @@ def invoice_update(request, pk):
         form = StudentInvoiceForm(request.POST, instance=invoice)
 
         if form.is_valid():
-            updated_invoice = form.save()
+            updated_invoice = form.save(commit=False)
+            updated_invoice.save()
+
+            sync_invoice_items_from_fee_structure(updated_invoice)
             refresh_invoice(updated_invoice)
 
             log_audit(
@@ -505,7 +515,10 @@ def invoice_update(request, pk):
                 new_values=model_to_dict_safe(updated_invoice),
             )
 
-            messages.success(request, "Invoice updated successfully.")
+            messages.success(
+                request,
+                "Invoice updated successfully. Missing fee structure items were synced."
+            )
             return redirect("invoice_detail", pk=updated_invoice.pk)
 
         messages.error(request, "Please correct the invoice form.")
@@ -519,7 +532,6 @@ def invoice_update(request, pk):
         "button_text": "Update Invoice",
         "is_update": True,
     })
-
 
 @permission_required("invoices.manage")
 def invoice_delete(request, pk):
@@ -543,7 +555,6 @@ def invoice_delete(request, pk):
 
     return redirect("invoice_list")
 
-
 @permission_required("invoices.view")
 def invoice_detail(request, pk):
     invoice = get_object_or_404(
@@ -557,17 +568,21 @@ def invoice_detail(request, pk):
         pk=pk,
     )
 
+    if not invoice.items.exists() and invoice.status != "cancelled":
+        sync_invoice_items_from_fee_structure(invoice)
+
     items = invoice.items.select_related("category").all()
-    payments = invoice.payments.all()
+    payments = invoice.payments.select_related("fee_item", "fee_item__category").all()
     categories = FeeCategory.objects.filter(is_active=True)
+    fee_breakdown = build_invoice_fee_breakdown(invoice)
 
     return render(request, "fees/invoice_detail.html", {
         "invoice": invoice,
         "items": items,
         "payments": payments,
         "categories": categories,
+        "fee_breakdown": fee_breakdown,
     })
-
 
 @permission_required("invoices.manage")
 def invoice_add_item(request, pk):
@@ -794,10 +809,20 @@ def student_payment_history(request, student_id):
         "outstanding_balance": outstanding_balance,
     })
 
-
 @permission_required("payments.manage")
 def payment_create(request):
-    invoice_id = request.GET.get("invoice")
+    invoice_id = request.GET.get("invoice") or request.POST.get("invoice")
+
+    selected_invoice = None
+
+    if invoice_id:
+        selected_invoice = get_object_or_404(
+            StudentInvoice.objects.select_related("student"),
+            pk=invoice_id
+        )
+
+        if not selected_invoice.items.exists():
+            sync_invoice_items_from_fee_structure(selected_invoice)
 
     initial = {
         "receipt_number": generate_receipt_number(),
@@ -805,19 +830,17 @@ def payment_create(request):
         "status": "confirmed",
     }
 
-    selected_invoice = None
-
-    if invoice_id:
-        selected_invoice = get_object_or_404(StudentInvoice, pk=invoice_id)
+    if selected_invoice:
         initial["invoice"] = selected_invoice
         initial["amount"] = selected_invoice.balance
 
     if request.method == "POST":
-        form = FeePaymentForm(request.POST)
+        form = FeePaymentForm(request.POST, invoice=selected_invoice)
 
         if form.is_valid():
             payment = form.save(commit=False)
             amount = form.cleaned_data["amount"]
+            fee_item = form.cleaned_data.get("fee_item")
 
             if payment.invoice.status == "cancelled":
                 messages.error(request, "You cannot record payment for a cancelled invoice.")
@@ -827,18 +850,38 @@ def payment_create(request):
                     "button_text": "Save Payment",
                     "selected_invoice": payment.invoice,
                     "remaining_balance": payment.invoice.balance,
+                    "fee_breakdown": build_invoice_fee_breakdown(payment.invoice),
                     "is_update": False,
                 })
 
-            if not validate_payment_amount(request, payment.invoice, amount):
-                return render(request, "fees/payment_form.html", {
-                    "form": form,
-                    "title": "Record Payment",
-                    "button_text": "Save Payment",
-                    "selected_invoice": payment.invoice,
-                    "remaining_balance": payment.invoice.balance,
-                    "is_update": False,
-                })
+            if fee_item:
+                allowed_amount = get_fee_item_balance(fee_item)
+
+                if amount > allowed_amount:
+                    messages.error(
+                        request,
+                        f"Payment cannot exceed selected fee item balance. Maximum allowed is TZS {allowed_amount:,.0f}."
+                    )
+                    return render(request, "fees/payment_form.html", {
+                        "form": form,
+                        "title": "Record Payment",
+                        "button_text": "Save Payment",
+                        "selected_invoice": payment.invoice,
+                        "remaining_balance": payment.invoice.balance,
+                        "fee_breakdown": build_invoice_fee_breakdown(payment.invoice),
+                        "is_update": False,
+                    })
+            else:
+                if not validate_payment_amount(request, payment.invoice, amount):
+                    return render(request, "fees/payment_form.html", {
+                        "form": form,
+                        "title": "Record Payment",
+                        "button_text": "Save Payment",
+                        "selected_invoice": payment.invoice,
+                        "remaining_balance": payment.invoice.balance,
+                        "fee_breakdown": build_invoice_fee_breakdown(payment.invoice),
+                        "is_update": False,
+                    })
 
             payment.save()
             refresh_invoice(payment.invoice)
@@ -860,7 +903,7 @@ def payment_create(request):
 
         messages.error(request, "Please correct the payment form.")
     else:
-        form = FeePaymentForm(initial=initial)
+        form = FeePaymentForm(initial=initial, invoice=selected_invoice)
 
     return render(request, "fees/payment_form.html", {
         "form": form,
@@ -868,9 +911,9 @@ def payment_create(request):
         "button_text": "Save Payment",
         "selected_invoice": selected_invoice,
         "remaining_balance": selected_invoice.balance if selected_invoice else None,
+        "fee_breakdown": build_invoice_fee_breakdown(selected_invoice) if selected_invoice else [],
         "is_update": False,
     })
-
 
 @permission_required("payments.manage")
 def payment_update(request, pk):
@@ -1002,3 +1045,6 @@ def receipt_detail(request, pk):
     return render(request, "fees/receipt_detail.html", {
         "payment": payment,
     })
+
+
+

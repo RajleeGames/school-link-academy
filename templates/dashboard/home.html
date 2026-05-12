@@ -1,4 +1,5 @@
 {% extends "base/dashboard_base.html" %}
+{% load static %}
 {% load i18n %}
 {% load school_filters %}
 
@@ -31,26 +32,13 @@
 {% endblock %}
 
 {% block page_subtitle %}
-  {% if role == "teacher" %}
-    {% trans "View your teaching areas, students, attendance, results, timetable, and homework." %}
-  {% elif role == "cashier" %}
-    {% trans "Manage payments, receipts, invoices, and fee balances." %}
-  {% elif role == "accountant" %}
-    {% trans "Manage school finance, fees, expenses, payroll, and reports." %}
-  {% elif role == "librarian" %}
-    {% trans "Manage books, borrowing records, returns, and library operations." %}
-  {% elif role == "head_teacher" %}
-    {% trans "Overview of academics, students, staff, attendance, and exams." %}
-  {% elif role == "academic_master" %}
-    {% trans "Manage academics, classes, subjects, exams, and learning reports." %}
-  {% elif role == "secretary" %}
-    {% trans "Manage students, parents, admissions, and attendance records." %}
-  {% else %}
-    {% trans "Overview of students, staff, finance, academics, and school operations." %}
-  {% endif %}
+  {% trans "Premium overview of students, finance, expenses, and school operations." %}
 {% endblock %}
 
 {% block content %}
+
+{{ dashboard_chart_data|json_script:"dashboard-chart-data" }}
+{{ finance_summary_chart_data|json_script:"finance-summary-chart-data" }}
 
 {% if role == "teacher" and teacher_profile %}
   <div class="sl-card mb-4">
@@ -72,10 +60,7 @@
 
       <div class="row g-3 mt-3">
         <div class="col-md-6">
-          <div class="small fw-bold text-muted text-uppercase mb-2">
-            {% trans "Assigned Classes" %}
-          </div>
-
+          <div class="small fw-bold text-muted text-uppercase mb-2">{% trans "Assigned Classes" %}</div>
           {% for class_level in teacher_classes %}
             <span class="badge bg-primary-subtle text-primary border border-primary-subtle me-1 mb-1">
               {{ class_level.name }}
@@ -86,10 +71,7 @@
         </div>
 
         <div class="col-md-6">
-          <div class="small fw-bold text-muted text-uppercase mb-2">
-            {% trans "Assigned Subjects" %}
-          </div>
-
+          <div class="small fw-bold text-muted text-uppercase mb-2">{% trans "Assigned Subjects" %}</div>
           {% for subject in teacher_subjects %}
             <span class="badge bg-success-subtle text-success border border-success-subtle me-1 mb-1">
               {{ subject.name }}
@@ -103,141 +85,143 @@
   </div>
 {% endif %}
 
-<div class="row g-3 mb-4">
+<div class="sl-grid-4 sl-section-gap">
 
   {% if can_view_students %}
-    <div class="col-6 col-lg-3">
-      <div class="sl-stat-card">
-        <div class="sl-stat-label">{% trans "Total Students" %}</div>
-        <div class="sl-stat-value">{{ total_students|numcomma }}</div>
-        <div class="sl-stat-note">
-          {% blocktrans with count=active_students|numcomma %}{{ count }} active students{% endblocktrans %}
-        </div>
-      </div>
-    </div>
-  {% endif %}
-
-  {% if can_view_parents %}
-    <div class="col-6 col-lg-3">
-      <div class="sl-stat-card">
-        <div class="sl-stat-label">{% trans "Parents / Guardians" %}</div>
-        <div class="sl-stat-value">{{ total_parents|numcomma }}</div>
-        <div class="sl-stat-note">{% trans "Linked guardian records" %}</div>
-      </div>
-    </div>
-  {% endif %}
-
-  {% if can_view_staff %}
-    <div class="col-6 col-lg-3">
-      <div class="sl-stat-card">
-        <div class="sl-stat-label">{% trans "Teachers" %}</div>
-        <div class="sl-stat-value">{{ total_teachers|numcomma }}</div>
-        <div class="sl-stat-note">{% trans "Teaching staff members" %}</div>
-      </div>
-    </div>
-
-    <div class="col-6 col-lg-3">
-      <div class="sl-stat-card">
-        <div class="sl-stat-label">{% trans "All Staff" %}</div>
-        <div class="sl-stat-value">{{ total_staff|numcomma }}</div>
-        <div class="sl-stat-note">
-          {% blocktrans with count=active_staff|numcomma %}{{ count }} active staff{% endblocktrans %}
-        </div>
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">{% trans "Total Students" %}</div>
+      <div class="sl-stat-value">{{ total_students|numcomma }}</div>
+      <div class="sl-stat-note">
+        {% blocktrans with count=active_students|numcomma %}{{ count }} active students{% endblocktrans %}
       </div>
     </div>
   {% endif %}
 
   {% if can_view_payments %}
-    <div class="col-6 col-lg-3">
-      <div class="sl-stat-card">
-        <div class="sl-stat-label">{% trans "Fees Paid" %}</div>
-        <div class="sl-stat-value">{{ total_fees_paid|tzs }}</div>
-        <div class="sl-stat-note">{% trans "Confirmed fee payments" %}</div>
-      </div>
+    <div class="sl-stat-card success">
+      <div class="sl-stat-label">{% trans "This Month Income" %}</div>
+      <div class="sl-stat-value">{{ month_fees_paid|tzs }}</div>
+      <div class="sl-stat-note">{% trans "Confirmed fee collections this month" %}</div>
+    </div>
+
+    <div class="sl-stat-card success">
+      <div class="sl-stat-label">{% trans "This Year Income" %}</div>
+      <div class="sl-stat-value">{{ year_fees_paid|tzs }}</div>
+      <div class="sl-stat-note">{% trans "Confirmed collections this year" %}</div>
     </div>
   {% endif %}
 
   {% if can_view_expenses %}
-    <div class="col-6 col-lg-3">
-      <div class="sl-stat-card">
-        <div class="sl-stat-label">{% trans "Expenses" %}</div>
-        <div class="sl-stat-value">{{ total_expenses|tzs }}</div>
-        <div class="sl-stat-note">{% trans "Paid school expenses" %}</div>
-      </div>
+    <div class="sl-stat-card warning">
+      <div class="sl-stat-label">{% trans "This Month Expenses" %}</div>
+      <div class="sl-stat-value">{{ month_expenses|tzs }}</div>
+      <div class="sl-stat-note">{% trans "Paid expenses this month" %}</div>
     </div>
   {% endif %}
 
   {% if can_view_payments or can_view_expenses %}
-    <div class="col-6 col-lg-3">
-      <div class="sl-stat-card">
-        <div class="sl-stat-label">{% trans "Net Cash" %}</div>
-        <div class="sl-stat-value">{{ net_cash|tzs }}</div>
-        <div class="sl-stat-note">{% trans "Income minus expenses" %}</div>
-      </div>
+    <div class="sl-stat-card info">
+      <div class="sl-stat-label">{% trans "Month Net Cash" %}</div>
+      <div class="sl-stat-value">{{ month_net_cash|tzs }}</div>
+      <div class="sl-stat-note">{% trans "Income minus expenses this month" %}</div>
     </div>
   {% endif %}
 
   {% if can_view_fees %}
-    <div class="col-6 col-lg-3">
-      <div class="sl-stat-card">
-        <div class="sl-stat-label">{% trans "Outstanding Fees" %}</div>
-        <div class="sl-stat-value">{{ outstanding_fees|tzs }}</div>
-        <div class="sl-stat-note">
-          {% blocktrans with count=total_debtors|numcomma %}{{ count }} students with debt{% endblocktrans %}
-        </div>
+    <div class="sl-stat-card danger">
+      <div class="sl-stat-label">{% trans "Outstanding Fees" %}</div>
+      <div class="sl-stat-value">{{ outstanding_fees|tzs }}</div>
+      <div class="sl-stat-note">
+        {% blocktrans with count=total_debtors|numcomma %}{{ count }} students with debt{% endblocktrans %}
+      </div>
+    </div>
+  {% endif %}
+
+  {% if can_view_staff %}
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">{% trans "All Staff" %}</div>
+      <div class="sl-stat-value">{{ total_staff|numcomma }}</div>
+      <div class="sl-stat-note">
+        {% blocktrans with count=active_staff|numcomma %}{{ count }} active staff{% endblocktrans %}
       </div>
     </div>
   {% endif %}
 
   {% if can_view_academics %}
-    <div class="col-6 col-lg-3">
-      <div class="sl-stat-card">
-        <div class="sl-stat-label">{% trans "Classes" %}</div>
-        <div class="sl-stat-value">{{ total_classes|numcomma }}</div>
-        <div class="sl-stat-note">{% trans "Configured class levels" %}</div>
-      </div>
-    </div>
-
-    <div class="col-6 col-lg-3">
-      <div class="sl-stat-card">
-        <div class="sl-stat-label">{% trans "Streams" %}</div>
-        <div class="sl-stat-value">{{ total_streams|numcomma }}</div>
-        <div class="sl-stat-note">{% trans "Configured streams" %}</div>
-      </div>
-    </div>
-  {% endif %}
-
-  {% if can_view_subjects %}
-    <div class="col-6 col-lg-3">
-      <div class="sl-stat-card">
-        <div class="sl-stat-label">{% trans "Subjects" %}</div>
-        <div class="sl-stat-value">{{ total_subjects|numcomma }}</div>
-        <div class="sl-stat-note">{% trans "Academic subjects" %}</div>
-      </div>
+    <div class="sl-stat-card">
+      <div class="sl-stat-label">{% trans "Classes & Streams" %}</div>
+      <div class="sl-stat-value">{{ total_classes|numcomma }} / {{ total_streams|numcomma }}</div>
+      <div class="sl-stat-note">{% trans "Configured academic structure" %}</div>
     </div>
   {% endif %}
 
 </div>
 
+{% if can_view_payments or can_view_expenses %}
+  <div class="row g-3 mb-3">
+    <div class="col-lg-8">
+      <div class="sl-panel">
+        <div class="sl-panel-head">
+          <div>
+            <h5 class="sl-panel-title">{% trans "Income vs Expenses" %}</h5>
+            <div class="sl-panel-subtitle">
+              {% blocktrans with year=current_year %}Monthly financial trend for {{ year }}{% endblocktrans %}
+            </div>
+          </div>
+          <span class="sl-pill">{% trans "Offline Chart" %}</span>
+        </div>
+
+        <div class="sl-chart-body">
+          <canvas id="financeTrendChart"></canvas>
+        </div>
+
+        <div class="sl-empty-note" id="financeTrendFallback">
+          {% trans "Chart library not found. Put chart.umd.min.js inside static/vendor/chartjs/ to enable offline charts." %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="sl-panel">
+        <div class="sl-panel-head">
+          <div>
+            <h5 class="sl-panel-title">{% trans "Finance Summary" %}</h5>
+            <div class="sl-panel-subtitle">{% trans "Month income, expenses, net and debt" %}</div>
+          </div>
+          <span class="sl-pill">{% trans "Summary" %}</span>
+        </div>
+
+        <div class="sl-chart-body-sm">
+          <canvas id="financeSummaryChart"></canvas>
+        </div>
+
+        <div class="sl-empty-note" id="financeSummaryFallback">
+          {% trans "Offline chart file missing." %}
+        </div>
+      </div>
+    </div>
+  </div>
+{% endif %}
+
 <div class="row g-3">
   <div class="col-lg-8">
 
     {% if can_view_students %}
-      <div class="sl-card mb-3">
-        <div class="sl-card-body">
-          <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-            <div>
-              <h5 class="fw-bold mb-1">{% trans "Recent Students" %}</h5>
-              <div class="small text-muted">{% trans "Latest admitted student records." %}</div>
-            </div>
-
-            {% if "students.manage" in current_user_permissions %}
-              <a href="{% url 'student_create' %}" class="btn btn-sl-primary btn-sm">
-                + {% trans "Admit Student" %}
-              </a>
-            {% endif %}
+      <div class="sl-panel mb-3">
+        <div class="sl-panel-head">
+          <div>
+            <h5 class="sl-panel-title">{% trans "Recent Students" %}</h5>
+            <div class="sl-panel-subtitle">{% trans "Latest admitted student records" %}</div>
           </div>
 
+          {% if "students.manage" in current_user_permissions %}
+            <a href="{% url 'student_create' %}" class="btn btn-sl-primary btn-sm">
+              + {% trans "Admit Student" %}
+            </a>
+          {% endif %}
+        </div>
+
+        <div class="sl-panel-body">
           <div class="table-responsive">
             <table class="table align-middle">
               <thead>
@@ -296,45 +280,44 @@
               </tbody>
             </table>
           </div>
-
         </div>
       </div>
     {% endif %}
 
     {% if can_view_payments or can_view_expenses %}
-      <div class="sl-card">
-        <div class="sl-card-body">
-          <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-            <div>
-              <h5 class="fw-bold mb-1">{% trans "Recent Financial Activity" %}</h5>
-              <div class="small text-muted">{% trans "Latest income and expense records." %}</div>
-            </div>
-
-            <div class="d-flex flex-wrap gap-2">
-              {% if "payments.manage" in current_user_permissions %}
-                <a href="{% url 'payment_create' %}" class="btn btn-light border btn-sm">
-                  {% trans "Record Payment" %}
-                </a>
-              {% endif %}
-
-              {% if "expenses.manage" in current_user_permissions %}
-                <a href="{% url 'expense_create' %}" class="btn btn-sl-primary btn-sm">
-                  {% trans "Record Expense" %}
-                </a>
-              {% endif %}
-            </div>
+      <div class="sl-panel">
+        <div class="sl-panel-head">
+          <div>
+            <h5 class="sl-panel-title">{% trans "Recent Financial Activity" %}</h5>
+            <div class="sl-panel-subtitle">{% trans "Latest income and expense records" %}</div>
           </div>
 
+          <div class="d-flex flex-wrap gap-2">
+            {% if "payments.manage" in current_user_permissions %}
+              <a href="{% url 'payment_create' %}" class="btn btn-light border btn-sm">
+                {% trans "Record Payment" %}
+              </a>
+            {% endif %}
+
+            {% if "expenses.manage" in current_user_permissions %}
+              <a href="{% url 'expense_create' %}" class="btn btn-sl-primary btn-sm">
+                {% trans "Record Expense" %}
+              </a>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="sl-panel-body">
           <div class="row g-3">
             {% if can_view_payments %}
               <div class="col-md-6">
                 <h6 class="fw-bold small text-muted text-uppercase">{% trans "Recent Payments" %}</h6>
 
                 {% for payment in recent_payments %}
-                  <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                  <div class="sl-list-item">
                     <div>
-                      <div class="fw-bold small">{{ payment.receipt_number }}</div>
-                      <div class="small text-muted">{{ payment.invoice.student.full_name }}</div>
+                      <div class="sl-list-title">{{ payment.receipt_number }}</div>
+                      <div class="sl-list-subtitle">{{ payment.invoice.student.full_name }}</div>
                     </div>
                     <div class="fw-bold small">{{ payment.amount|tzs }}</div>
                   </div>
@@ -349,10 +332,10 @@
                 <h6 class="fw-bold small text-muted text-uppercase">{% trans "Recent Expenses" %}</h6>
 
                 {% for expense in recent_expenses %}
-                  <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                  <div class="sl-list-item">
                     <div>
-                      <div class="fw-bold small">{{ expense.title }}</div>
-                      <div class="small text-muted">{{ expense.category.name }}</div>
+                      <div class="sl-list-title">{{ expense.title }}</div>
+                      <div class="sl-list-subtitle">{{ expense.category.name }}</div>
                     </div>
                     <div class="fw-bold small">{{ expense.amount|tzs }}</div>
                   </div>
@@ -362,16 +345,20 @@
               </div>
             {% endif %}
           </div>
-
         </div>
       </div>
     {% endif %}
 
     {% if role == "teacher" %}
-      <div class="sl-card">
-        <div class="sl-card-body">
-          <h5 class="fw-bold mb-3">{% trans "Teacher Shortcuts" %}</h5>
+      <div class="sl-panel mt-3">
+        <div class="sl-panel-head">
+          <div>
+            <h5 class="sl-panel-title">{% trans "Teacher Shortcuts" %}</h5>
+            <div class="sl-panel-subtitle">{% trans "Quick access to teacher modules" %}</div>
+          </div>
+        </div>
 
+        <div class="sl-panel-body">
           <div class="row g-2">
             {% if "attendance.manage_students" in current_user_permissions %}
               <div class="col-md-6">
@@ -413,93 +400,98 @@
 
   <div class="col-lg-4">
 
-    <div class="sl-card mb-3">
-      <div class="sl-card-body">
-        <h5 class="fw-bold mb-3">{% trans "Quick Actions" %}</h5>
+    <div class="sl-panel mb-3">
+      <div class="sl-panel-head">
+        <div>
+          <h5 class="sl-panel-title">{% trans "Quick Actions" %}</h5>
+          <div class="sl-panel-subtitle">{% trans "Common system shortcuts" %}</div>
+        </div>
+      </div>
 
-        <div class="d-grid gap-2">
+      <div class="sl-panel-body">
+        <div class="sl-action-grid">
 
           {% if "school.profile.view" in current_user_permissions %}
-            <a href="{% url 'school_profile' %}" class="btn btn-light border text-start small">
-              {% trans "Setup School Profile" %}
+            <a href="{% url 'school_profile' %}" class="sl-action-link">
+              {% trans "Setup School Profile" %} <span>›</span>
             </a>
           {% endif %}
 
           {% if "academics.view" in current_user_permissions %}
-            <a href="{% url 'academics_home' %}" class="btn btn-light border text-start small">
-              {% trans "Manage Classes & Subjects" %}
+            <a href="{% url 'academics_home' %}" class="sl-action-link">
+              {% trans "Manage Classes & Subjects" %} <span>›</span>
             </a>
           {% endif %}
 
           {% if "parents.manage" in current_user_permissions %}
-            <a href="{% url 'parent_create' %}" class="btn btn-light border text-start small">
-              {% trans "Add Parent / Guardian" %}
+            <a href="{% url 'parent_create' %}" class="sl-action-link">
+              {% trans "Add Parent / Guardian" %} <span>›</span>
             </a>
           {% endif %}
 
           {% if "students.manage" in current_user_permissions %}
-            <a href="{% url 'student_create' %}" class="btn btn-light border text-start small">
-              {% trans "Admit Student" %}
+            <a href="{% url 'student_create' %}" class="sl-action-link">
+              {% trans "Admit Student" %} <span>›</span>
             </a>
           {% endif %}
 
           {% if "staff.manage" in current_user_permissions %}
-            <a href="{% url 'staff_create' %}" class="btn btn-light border text-start small">
-              {% trans "Add Staff / Teacher" %}
+            <a href="{% url 'staff_create' %}" class="sl-action-link">
+              {% trans "Add Staff / Teacher" %} <span>›</span>
             </a>
           {% endif %}
 
           {% if "attendance.manage_students" in current_user_permissions %}
-            <a href="{% url 'bulk_student_attendance' %}" class="btn btn-light border text-start small">
-              {% trans "Bulk Student Attendance" %}
+            <a href="{% url 'bulk_student_attendance' %}" class="sl-action-link">
+              {% trans "Bulk Student Attendance" %} <span>›</span>
             </a>
           {% endif %}
 
           {% if "invoices.manage" in current_user_permissions %}
-            <a href="{% url 'invoice_create' %}" class="btn btn-light border text-start small">
-              {% trans "Create Student Invoice" %}
+            <a href="{% url 'invoice_create' %}" class="sl-action-link">
+              {% trans "Create Student Invoice" %} <span>›</span>
             </a>
           {% endif %}
 
           {% if "payments.manage" in current_user_permissions %}
-            <a href="{% url 'payment_create' %}" class="btn btn-light border text-start small">
-              {% trans "Record Fee Payment" %}
+            <a href="{% url 'payment_create' %}" class="sl-action-link">
+              {% trans "Record Fee Payment" %} <span>›</span>
             </a>
           {% endif %}
 
           {% if "expenses.manage" in current_user_permissions %}
-            <a href="{% url 'expense_create' %}" class="btn btn-light border text-start small">
-              {% trans "Record Expense" %}
+            <a href="{% url 'expense_create' %}" class="sl-action-link">
+              {% trans "Record Expense" %} <span>›</span>
             </a>
           {% endif %}
 
           {% if "library.manage" in current_user_permissions %}
-            <a href="{% url 'library_home' %}" class="btn btn-light border text-start small">
-              {% trans "Manage Library" %}
+            <a href="{% url 'library_home' %}" class="sl-action-link">
+              {% trans "Manage Library" %} <span>›</span>
             </a>
           {% endif %}
 
           {% if "hostel.manage" in current_user_permissions %}
-            <a href="{% url 'hostel_home' %}" class="btn btn-light border text-start small">
-              {% trans "Manage Hostel / Boarding" %}
+            <a href="{% url 'hostel_home' %}" class="sl-action-link">
+              {% trans "Manage Hostel / Boarding" %} <span>›</span>
             </a>
           {% endif %}
 
           {% if "transport.manage" in current_user_permissions %}
-            <a href="{% url 'transport_home' %}" class="btn btn-light border text-start small">
-              {% trans "Manage Transport" %}
+            <a href="{% url 'transport_home' %}" class="sl-action-link">
+              {% trans "Manage Transport" %} <span>›</span>
             </a>
           {% endif %}
 
           {% if "inventory.manage" in current_user_permissions %}
-            <a href="{% url 'inventory_home' %}" class="btn btn-light border text-start small">
-              {% trans "Manage Inventory" %}
+            <a href="{% url 'inventory_home' %}" class="sl-action-link">
+              {% trans "Manage Inventory" %} <span>›</span>
             </a>
           {% endif %}
 
           {% if "payroll.manage" in current_user_permissions %}
-            <a href="{% url 'payroll_home' %}" class="btn btn-light border text-start small">
-              {% trans "Manage Payroll" %}
+            <a href="{% url 'payroll_home' %}" class="sl-action-link">
+              {% trans "Manage Payroll" %} <span>›</span>
             </a>
           {% endif %}
 
@@ -514,15 +506,20 @@
     </div>
 
     {% if can_view_staff %}
-      <div class="sl-card">
-        <div class="sl-card-body">
-          <h5 class="fw-bold mb-3">{% trans "Recent Staff" %}</h5>
+      <div class="sl-panel">
+        <div class="sl-panel-head">
+          <div>
+            <h5 class="sl-panel-title">{% trans "Recent Staff" %}</h5>
+            <div class="sl-panel-subtitle">{% trans "Latest staff records" %}</div>
+          </div>
+        </div>
 
+        <div class="sl-panel-body">
           {% for staff in recent_staff %}
-            <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+            <div class="sl-list-item">
               <div>
-                <div class="fw-bold small">{{ staff.full_name }}</div>
-                <div class="small text-muted">{{ staff.get_role_display }}</div>
+                <div class="sl-list-title">{{ staff.full_name }}</div>
+                <div class="sl-list-subtitle">{{ staff.get_role_display }}</div>
               </div>
 
               <a href="{% url 'staff_detail' staff.pk %}" class="btn btn-sm btn-light border">
@@ -539,8 +536,8 @@
     {% endif %}
 
     {% if not can_view_staff and role != "teacher" %}
-      <div class="sl-card">
-        <div class="sl-card-body">
+      <div class="sl-panel">
+        <div class="sl-panel-body">
           <h5 class="fw-bold mb-2">{% trans "Your Access" %}</h5>
           <div class="small text-muted">
             {% trans "Your dashboard shows only the sections allowed for your account role." %}
@@ -552,4 +549,190 @@
   </div>
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'vendor/chartjs/chart.umd.min.js' %}"></script>
+
+<script>
+(function () {
+  const trendFallback = document.getElementById("financeTrendFallback");
+  const summaryFallback = document.getElementById("financeSummaryFallback");
+
+  if (typeof Chart === "undefined") {
+    if (trendFallback) trendFallback.style.display = "block";
+    if (summaryFallback) summaryFallback.style.display = "block";
+    return;
+  }
+
+  const trendDataEl = document.getElementById("dashboard-chart-data");
+  const summaryDataEl = document.getElementById("finance-summary-chart-data");
+
+  if (!trendDataEl || !summaryDataEl) return;
+
+  const trendData = JSON.parse(trendDataEl.textContent);
+  const summaryData = JSON.parse(summaryDataEl.textContent);
+
+  const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+
+  const gridColor = isDark ? "rgba(226, 232, 240, 0.12)" : "rgba(100, 116, 139, 0.18)";
+  const textColor = isDark ? "#dbeafe" : "#334155";
+
+  const financeTrendCanvas = document.getElementById("financeTrendChart");
+
+  if (financeTrendCanvas) {
+    new Chart(financeTrendCanvas, {
+      type: "line",
+      data: {
+        labels: trendData.labels,
+        datasets: [
+          {
+            label: "Fees Collections",
+            data: trendData.payments,
+            borderWidth: 3,
+            tension: 0.38,
+            fill: true,
+            borderColor: "rgba(22, 163, 74, 0.95)",
+            backgroundColor: "rgba(22, 163, 74, 0.12)",
+            pointRadius: 3,
+            pointHoverRadius: 5
+          },
+          {
+            label: "Expenses",
+            data: trendData.expenses,
+            borderWidth: 3,
+            tension: 0.38,
+            fill: true,
+            borderColor: "rgba(217, 119, 6, 0.95)",
+            backgroundColor: "rgba(217, 119, 6, 0.10)",
+            pointRadius: 3,
+            pointHoverRadius: 5
+          },
+          {
+            label: "Net Cash",
+            data: trendData.net,
+            borderWidth: 2,
+            tension: 0.38,
+            fill: false,
+            borderColor: "rgba(2, 132, 199, 0.95)",
+            pointRadius: 2,
+            pointHoverRadius: 5
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+          mode: "index",
+          intersect: false
+        },
+        plugins: {
+          legend: {
+            position: "top",
+            labels: {
+              color: textColor,
+              boxWidth: 12,
+              usePointStyle: true,
+              font: {
+                size: 11,
+                weight: "700"
+              }
+            }
+          },
+          tooltip: {
+            callbacks: {
+              label: function (context) {
+                const value = Number(context.raw || 0).toLocaleString();
+                return context.dataset.label + ": TSh " + value;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            ticks: {
+              color: textColor,
+              font: {
+                size: 10,
+                weight: "700"
+              }
+            },
+            grid: {
+              color: gridColor
+            }
+          },
+          y: {
+            beginAtZero: true,
+            ticks: {
+              color: textColor,
+              font: {
+                size: 10,
+                weight: "700"
+              },
+              callback: function (value) {
+                return "TSh " + Number(value).toLocaleString();
+              }
+            },
+            grid: {
+              color: gridColor
+            }
+          }
+        }
+      }
+    });
+  }
+
+  const financeSummaryCanvas = document.getElementById("financeSummaryChart");
+
+  if (financeSummaryCanvas) {
+    new Chart(financeSummaryCanvas, {
+      type: "doughnut",
+      data: {
+        labels: summaryData.labels,
+        datasets: [
+          {
+            data: summaryData.values,
+            borderWidth: 2,
+            borderColor: isDark ? "#26343d" : "#ffffff",
+            backgroundColor: [
+              "rgba(22, 163, 74, 0.90)",
+              "rgba(217, 119, 6, 0.90)",
+              "rgba(2, 132, 199, 0.90)",
+              "rgba(220, 38, 38, 0.82)"
+            ]
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: "62%",
+        plugins: {
+          legend: {
+            position: "bottom",
+            labels: {
+              color: textColor,
+              boxWidth: 10,
+              usePointStyle: true,
+              font: {
+                size: 10,
+                weight: "700"
+              }
+            }
+          },
+          tooltip: {
+            callbacks: {
+              label: function (context) {
+                const value = Number(context.raw || 0).toLocaleString();
+                return context.label + ": TSh " + value;
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+})();
+</script>
 {% endblock %}

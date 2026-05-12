@@ -169,6 +169,17 @@ class FeePayment(models.Model):
         on_delete=models.PROTECT,
         related_name="payments"
     )
+
+    # NEW: this tells system what the payment is for.
+    fee_item = models.ForeignKey(
+        StudentInvoiceItem,
+        on_delete=models.PROTECT,
+        related_name="payments",
+        null=True,
+        blank=True,
+        help_text="Optional. Select the fee item this payment is paying for."
+    )
+
     receipt_number = models.CharField(max_length=50, unique=True)
     payment_date = models.DateField(default=timezone.now)
     amount = models.DecimalField(max_digits=12, decimal_places=2)

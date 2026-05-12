@@ -6,19 +6,41 @@ from django.utils import timezone
 
 from accounts.decorators import permission_required
 
+from audit.utils import log_audit, model_to_dict_safe
+
 from .forms import BookCategoryForm, BookForm, BorrowRecordForm, BorrowReturnForm
 from .models import Book, BookCategory, BorrowRecord
 
 
 def safe_delete_object(request, obj, success_message, redirect_url):
+    old_values = model_to_dict_safe(obj)
+    app_label = obj._meta.app_label
+    model_name = obj._meta.model_name
+    object_id = str(obj.pk)
+    object_repr = str(obj)
+
     try:
         obj.delete()
+
+        log_audit(
+            request,
+            "delete",
+            app_label=app_label,
+            model_name=model_name,
+            object_id=object_id,
+            object_repr=object_repr,
+            message=f"Deleted {model_name}: {object_repr}",
+            old_values=old_values,
+        )
+
         messages.success(request, success_message)
+
     except ProtectedError:
         messages.error(
             request,
             "This record cannot be deleted because it is already used somewhere. You can edit it instead."
         )
+
     except Exception:
         messages.error(
             request,
@@ -121,11 +143,21 @@ def book_create(request):
         form = BookForm(request.POST, request.FILES)
 
         if form.is_valid():
-            form.save()
+            book = form.save()
+
+            log_audit(
+                request,
+                "create",
+                obj=book,
+                message=f"Created library book: {book}",
+                new_values=model_to_dict_safe(book),
+            )
+
             messages.success(request, "Book added successfully.")
             return redirect("book_list")
 
         messages.error(request, "Please correct the book form.")
+
     else:
         form = BookForm()
 
@@ -141,16 +173,28 @@ def book_create(request):
 @permission_required("library.manage")
 def book_update(request, pk):
     book = get_object_or_404(Book, pk=pk)
+    old_values = model_to_dict_safe(book)
 
     if request.method == "POST":
         form = BookForm(request.POST, request.FILES, instance=book)
 
         if form.is_valid():
-            form.save()
+            updated_book = form.save()
+
+            log_audit(
+                request,
+                "update",
+                obj=updated_book,
+                message=f"Updated library book: {updated_book}",
+                old_values=old_values,
+                new_values=model_to_dict_safe(updated_book),
+            )
+
             messages.success(request, "Book updated successfully.")
             return redirect("book_list")
 
         messages.error(request, "Please correct the book form.")
+
     else:
         form = BookForm(instance=book)
 
@@ -203,11 +247,21 @@ def category_create(request):
         form = BookCategoryForm(request.POST)
 
         if form.is_valid():
-            form.save()
+            category = form.save()
+
+            log_audit(
+                request,
+                "create",
+                obj=category,
+                message=f"Created book category: {category}",
+                new_values=model_to_dict_safe(category),
+            )
+
             messages.success(request, "Book category added successfully.")
             return redirect("book_category_list")
 
         messages.error(request, "Please correct the category form.")
+
     else:
         form = BookCategoryForm()
 
@@ -223,16 +277,28 @@ def category_create(request):
 @permission_required("library.manage")
 def category_update(request, pk):
     category = get_object_or_404(BookCategory, pk=pk)
+    old_values = model_to_dict_safe(category)
 
     if request.method == "POST":
         form = BookCategoryForm(request.POST, instance=category)
 
         if form.is_valid():
-            form.save()
+            updated_category = form.save()
+
+            log_audit(
+                request,
+                "update",
+                obj=updated_category,
+                message=f"Updated book category: {updated_category}",
+                old_values=old_values,
+                new_values=model_to_dict_safe(updated_category),
+            )
+
             messages.success(request, "Book category updated successfully.")
             return redirect("book_category_list")
 
         messages.error(request, "Please correct the category form.")
+
     else:
         form = BookCategoryForm(instance=category)
 
@@ -321,6 +387,8 @@ def borrow_create(request):
             borrow.save()
 
             book = borrow.book
+            old_book_values = model_to_dict_safe(book)
+
             book.available_copies -= 1
 
             if book.available_copies == 0:
@@ -328,10 +396,28 @@ def borrow_create(request):
 
             book.save()
 
+            log_audit(
+                request,
+                "create",
+                obj=borrow,
+                message=f"Created borrow record: {borrow}",
+                new_values=model_to_dict_safe(borrow),
+            )
+
+            log_audit(
+                request,
+                "update",
+                obj=book,
+                message=f"Book copy borrowed. Available copies reduced for: {book}",
+                old_values=old_book_values,
+                new_values=model_to_dict_safe(book),
+            )
+
             messages.success(request, "Book borrowed successfully.")
             return redirect("borrow_detail", pk=borrow.pk)
 
         messages.error(request, "Please correct the borrow form.")
+
     else:
         form = BorrowRecordForm()
 
@@ -366,6 +452,7 @@ def borrow_return(request, pk):
     )
 
     old_status = record.status
+    old_record_values = model_to_dict_safe(record)
 
     if request.method == "POST":
         form = BorrowReturnForm(request.POST, instance=record)
@@ -378,8 +465,18 @@ def borrow_return(request, pk):
 
             returned_record.save()
 
+            log_audit(
+                request,
+                "update",
+                obj=returned_record,
+                message=f"Updated borrow record status from {old_status} to {returned_record.status}: {returned_record}",
+                old_values=old_record_values,
+                new_values=model_to_dict_safe(returned_record),
+            )
+
             if old_status != "returned" and returned_record.status == "returned":
                 book = returned_record.book
+                old_book_values = model_to_dict_safe(book)
 
                 if book.available_copies < book.total_copies:
                     book.available_copies += 1
@@ -389,8 +486,18 @@ def borrow_return(request, pk):
 
                 book.save()
 
+                log_audit(
+                    request,
+                    "update",
+                    obj=book,
+                    message=f"Book returned. Available copies increased for: {book}",
+                    old_values=old_book_values,
+                    new_values=model_to_dict_safe(book),
+                )
+
             if returned_record.status in ["lost", "damaged"]:
                 book = returned_record.book
+                old_book_values = model_to_dict_safe(book)
 
                 if book.available_copies > 0:
                     book.status = "available"
@@ -399,10 +506,20 @@ def borrow_return(request, pk):
 
                 book.save()
 
+                log_audit(
+                    request,
+                    "update",
+                    obj=book,
+                    message=f"Book status adjusted after borrow record marked {returned_record.status}: {book}",
+                    old_values=old_book_values,
+                    new_values=model_to_dict_safe(book),
+                )
+
             messages.success(request, "Book return updated successfully.")
             return redirect("borrow_detail", pk=record.pk)
 
         messages.error(request, "Please correct the return form.")
+
     else:
         form = BorrowReturnForm(instance=record)
 
@@ -422,9 +539,44 @@ def borrow_delete(request, pk):
         pk=pk
     )
 
+    old_record_values = model_to_dict_safe(record)
+    app_label = record._meta.app_label
+    model_name = record._meta.model_name
+    object_id = str(record.pk)
+    object_repr = str(record)
+
     if request.method == "POST":
+        book = record.book
+        old_book_values = model_to_dict_safe(book)
+        old_status = record.status
+
         restore_book_copy_if_needed(record)
+
+        if old_status in ["borrowed", "overdue"]:
+            book.refresh_from_db()
+
+            log_audit(
+                request,
+                "update",
+                obj=book,
+                message=f"Book copy restored after deleting borrow record: {object_repr}",
+                old_values=old_book_values,
+                new_values=model_to_dict_safe(book),
+            )
+
         record.delete()
+
+        log_audit(
+            request,
+            "delete",
+            app_label=app_label,
+            model_name=model_name,
+            object_id=object_id,
+            object_repr=object_repr,
+            message=f"Deleted borrow record: {object_repr}",
+            old_values=old_record_values,
+        )
+
         messages.success(request, "Borrow record deleted successfully.")
         return redirect("borrow_list")
 

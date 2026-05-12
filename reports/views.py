@@ -16,6 +16,8 @@ from expenses.models import Expense
 from fees.models import FeePayment, StudentInvoice
 from students.models import Student
 
+from audit.utils import log_audit
+
 
 # =====================================================
 # EXCEL HELPERS
@@ -77,6 +79,26 @@ def money(value):
     if value is None:
         return 0
     return float(value)
+
+
+def audit_report_export(request, report_name, filename, filters=None, total_records=0, extra=None):
+    log_audit(
+        request,
+        action="export",
+        obj=None,
+        app_label="reports",
+        model_name="report",
+        object_repr=report_name,
+        message=f"Exported {report_name} to Excel file: {filename}",
+        old_values={},
+        new_values={
+            "report_name": report_name,
+            "filename": filename,
+            "filters": filters or {},
+            "total_records": total_records,
+            "extra": extra or {},
+        },
+    )
 
 
 # =====================================================
@@ -347,7 +369,11 @@ def export_student_report_excel(request):
     ws.append([])
     ws.append(headers)
 
+    total_records = 0
+
     for index, student in enumerate(students, start=1):
+        total_records += 1
+
         ws.append([
             index,
             student.admission_number,
@@ -361,6 +387,18 @@ def export_student_report_excel(request):
         ])
 
     style_excel_sheet(ws, "Student Report")
+
+    audit_report_export(
+        request,
+        report_name="Student Report",
+        filename="student_report.xlsx",
+        filters={
+            "query": query,
+            "class_filter": class_filter,
+            "status_filter": status_filter,
+        },
+        total_records=total_records,
+    )
 
     return excel_response(wb, "student_report.xlsx")
 
@@ -396,8 +434,11 @@ def export_fees_report_excel(request):
     total_payable = Decimal("0.00")
     total_paid = Decimal("0.00")
     total_balance = Decimal("0.00")
+    total_records = 0
 
     for index, invoice in enumerate(invoices, start=1):
+        total_records += 1
+
         total_payable += invoice.payable_amount
         total_paid += invoice.paid_amount
         total_balance += invoice.balance
@@ -435,6 +476,23 @@ def export_fees_report_excel(request):
 
     style_excel_sheet(ws, "Fees Report")
 
+    audit_report_export(
+        request,
+        report_name="Fees Report",
+        filename="fees_report.xlsx",
+        filters={
+            "query": query,
+            "status_filter": status_filter,
+            "class_filter": class_filter,
+        },
+        total_records=total_records,
+        extra={
+            "total_payable": str(total_payable),
+            "total_paid": str(total_paid),
+            "total_balance": str(total_balance),
+        },
+    )
+
     return excel_response(wb, "fees_report.xlsx")
 
 
@@ -466,8 +524,11 @@ def export_expenses_report_excel(request):
 
     total_paid = Decimal("0.00")
     total_pending = Decimal("0.00")
+    total_records = 0
 
     for index, expense in enumerate(expenses, start=1):
+        total_records += 1
+
         if expense.status == "paid":
             total_paid += expense.amount
 
@@ -492,6 +553,23 @@ def export_expenses_report_excel(request):
     ws.append(["", "", "", "", "", "", "", "TOTAL PENDING", "", money(total_pending)])
 
     style_excel_sheet(ws, "Expenses Report")
+
+    audit_report_export(
+        request,
+        report_name="Expenses Report",
+        filename="expenses_report.xlsx",
+        filters={
+            "query": query,
+            "status_filter": status_filter,
+            "date_from": date_from,
+            "date_to": date_to,
+        },
+        total_records=total_records,
+        extra={
+            "total_paid": str(total_paid),
+            "total_pending": str(total_pending),
+        },
+    )
 
     return excel_response(wb, "expenses_report.xlsx")
 
@@ -532,7 +610,11 @@ def export_attendance_report_excel(request):
         ws.append([])
         ws.append(headers)
 
+        total_records = 0
+
         for index, record in enumerate(staff_records, start=1):
+            total_records += 1
+
             ws.append([
                 index,
                 record.date,
@@ -545,6 +627,18 @@ def export_attendance_report_excel(request):
             ])
 
         style_excel_sheet(ws, "Staff Attendance Report")
+
+        audit_report_export(
+            request,
+            report_name="Staff Attendance Report",
+            filename="staff_attendance_report.xlsx",
+            filters={
+                "report_type": report_type,
+                "date_filter": date_filter,
+                "status_filter": status_filter,
+            },
+            total_records=total_records,
+        )
 
         return excel_response(wb, "staff_attendance_report.xlsx")
 
@@ -579,7 +673,11 @@ def export_attendance_report_excel(request):
     ws.append([])
     ws.append(headers)
 
+    total_records = 0
+
     for index, record in enumerate(student_records, start=1):
+        total_records += 1
+
         ws.append([
             index,
             record.date,
@@ -593,5 +691,17 @@ def export_attendance_report_excel(request):
         ])
 
     style_excel_sheet(ws, "Student Attendance Report")
+
+    audit_report_export(
+        request,
+        report_name="Student Attendance Report",
+        filename="student_attendance_report.xlsx",
+        filters={
+            "report_type": report_type,
+            "date_filter": date_filter,
+            "status_filter": status_filter,
+        },
+        total_records=total_records,
+    )
 
     return excel_response(wb, "student_attendance_report.xlsx")

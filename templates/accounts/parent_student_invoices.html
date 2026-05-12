@@ -8,108 +8,161 @@
 
 {% block content %}
 
-<div class="sl-card mb-3">
-  <div class="sl-card-body d-flex flex-wrap justify-content-between align-items-center gap-2">
+<div class="sl-parent-result-head mb-3">
+  <div class="sl-parent-result-student">
+    <div class="sl-parent-result-avatar">
+      {% if student.photo %}
+        <img src="{{ student.photo.url }}" alt="{{ student.full_name }}">
+      {% else %}
+        <span>{{ student.first_name|slice:":1"|upper }}{{ student.last_name|slice:":1"|upper }}</span>
+      {% endif %}
+    </div>
+
     <div>
-      <h5 class="fw-bold mb-1">{{ student.full_name }}</h5>
-      <div class="small text-muted">
+      <h5 class="sl-parent-result-name">{{ student.full_name }}</h5>
+      <div class="sl-parent-result-meta">
         {{ student.admission_number }} · {{ student.class_level.name }}
         {% if student.stream %} {{ student.stream.name }}{% endif %}
       </div>
     </div>
-
-    <a href="{% url 'parent_portal_home' %}" class="btn btn-light border btn-sm">
-      Back to Children
-    </a>
   </div>
+
+  <a href="{% url 'parent_portal_home' %}" class="btn btn-light border btn-sm">
+    Back to Children
+  </a>
 </div>
 
-<div class="sl-card">
-  <div class="sl-card-body">
-    <div class="table-responsive">
-      <table class="table align-middle">
-        <thead>
-          <tr>
-            <th>Invoice</th>
-            <th>Date</th>
-            <th>Status</th>
-            <th>Total</th>
-            <th>Paid</th>
-            <th>Balance</th>
-          </tr>
-        </thead>
+{% for invoice in invoices %}
+  <div class="sl-parent-invoice-card mb-3">
 
-        <tbody>
-          {% for invoice in invoices %}
+    <div class="sl-parent-invoice-head">
+      <div>
+        <h5>
+          {% if invoice.invoice_number %}
+            {{ invoice.invoice_number }}
+          {% else %}
+            INV-{{ invoice.id }}
+          {% endif %}
+        </h5>
+
+        <p>
+          {% if invoice.invoice_date %}
+            {{ invoice.invoice_date|date:"d M Y" }}
+          {% elif invoice.created_at %}
+            {{ invoice.created_at|date:"d M Y" }}
+          {% else %}
+            -
+          {% endif %}
+
+          {% if invoice.academic_year %}
+            · {{ invoice.academic_year }}
+          {% endif %}
+
+          {% if invoice.term %}
+            · {{ invoice.term }}
+          {% endif %}
+        </p>
+      </div>
+
+      <div>
+        {% if invoice.parent_status == "paid" %}
+          <span class="sl-parent-fee-status sl-parent-fee-paid">Paid</span>
+        {% elif invoice.parent_status == "partial" %}
+          <span class="sl-parent-fee-status sl-parent-fee-partial">Partial</span>
+        {% else %}
+          <span class="sl-parent-fee-status sl-parent-fee-unpaid">Unpaid</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="sl-parent-invoice-summary">
+      <div class="sl-parent-invoice-stat">
+        <span>Total Required</span>
+        <strong>TZS {{ invoice.parent_total|floatformat:0|intcomma }}</strong>
+      </div>
+
+      <div class="sl-parent-invoice-stat">
+        <span>Amount Paid</span>
+        <strong class="sl-parent-money-good">TZS {{ invoice.parent_paid_total|floatformat:0|intcomma }}</strong>
+      </div>
+
+      <div class="sl-parent-invoice-stat">
+        <span>Remaining Balance</span>
+        <strong class="sl-parent-money-danger">TZS {{ invoice.parent_balance|floatformat:0|intcomma }}</strong>
+      </div>
+    </div>
+
+    <div class="sl-parent-fee-breakdown">
+      <div class="sl-parent-fee-breakdown-title">
+        Fee Breakdown
+      </div>
+
+      <div class="table-responsive">
+        <table class="table align-middle sl-parent-fee-table">
+          <thead>
             <tr>
-              <td class="fw-semibold">
-                {% if invoice.invoice_number %}
-                  {{ invoice.invoice_number }}
-                {% else %}
-                  INV-{{ invoice.id }}
-                {% endif %}
-              </td>
-
-              <td>
-                {% if invoice.created_at %}
-                  {{ invoice.created_at|date:"d M Y" }}
-                {% elif invoice.invoice_date %}
-                  {{ invoice.invoice_date|date:"d M Y" }}
-                {% else %}
-                  -
-                {% endif %}
-              </td>
-
-              <td>
-                {% if invoice.status %}
-                  {{ invoice.status|title }}
-                {% else %}
-                  -
-                {% endif %}
-              </td>
-
-              <td>
-                TZS
-                {% if invoice.total_amount %}
-                  {{ invoice.total_amount|floatformat:0|intcomma }}
-                {% elif invoice.amount %}
-                  {{ invoice.amount|floatformat:0|intcomma }}
-                {% else %}
-                  0
-                {% endif %}
-              </td>
-
-              <td>
-                TZS
-                {% if invoice.amount_paid %}
-                  {{ invoice.amount_paid|floatformat:0|intcomma }}
-                {% elif invoice.paid_amount %}
-                  {{ invoice.paid_amount|floatformat:0|intcomma }}
-                {% else %}
-                  0
-                {% endif %}
-              </td>
-
-              <td>
-                TZS
-                {% if invoice.balance %}
-                  {{ invoice.balance|floatformat:0|intcomma }}
-                {% else %}
-                  0
-                {% endif %}
-              </td>
+              <th>Fee Item</th>
+              <th class="text-end">Required</th>
+              <th class="text-end">Paid</th>
+              <th class="text-end">Balance</th>
+              <th>Status</th>
             </tr>
-          {% empty %}
-            <tr>
-              <td colspan="6" class="text-center text-muted py-4">
-                No invoices found for this student.
-              </td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+          </thead>
+
+          <tbody>
+            {% for item in invoice.parent_fee_breakdown %}
+              <tr>
+                <td>
+                  <div class="sl-parent-fee-name">{{ item.category }}</div>
+                  {% if item.description %}
+                    <div class="sl-parent-fee-desc">{{ item.description }}</div>
+                  {% endif %}
+                </td>
+
+                <td class="text-end">
+                  TZS {{ item.amount|floatformat:0|intcomma }}
+                </td>
+
+                <td class="text-end">
+                  TZS {{ item.paid|floatformat:0|intcomma }}
+                </td>
+
+                <td class="text-end">
+                  TZS {{ item.balance|floatformat:0|intcomma }}
+                </td>
+
+                <td>
+                  {% if item.status == "paid" %}
+                    <span class="sl-parent-fee-status sl-parent-fee-paid">Paid</span>
+                  {% elif item.status == "partial" %}
+                    <span class="sl-parent-fee-status sl-parent-fee-partial">Partial</span>
+                  {% else %}
+                    <span class="sl-parent-fee-status sl-parent-fee-unpaid">Unpaid</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="5" class="text-center text-muted py-4">
+                  No fee items found for this invoice.
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+{% empty %}
+  <div class="sl-parent-results-card">
+    <div class="sl-parent-results-card-head">
+      <div>
+        <h5>No Invoices</h5>
+        <p>No invoices found for this student.</p>
+      </div>
     </div>
   </div>
-</div>
+{% endfor %}
 
 {% endblock %}

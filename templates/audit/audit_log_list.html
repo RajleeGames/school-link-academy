@@ -1,0 +1,196 @@
+{% extends "base/dashboard_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Audit Logs" %}{% endblock %}
+
+{% block page_title %}{% trans "Audit Logs" %}{% endblock %}
+
+{% block page_subtitle %}
+  {% trans "Track user actions, changes, logins, exports, payments and system activity." %}
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid px-0">
+
+  <div class="sl-card mb-3">
+    <div class="sl-card-body">
+
+      <form method="get" class="row g-2 align-items-end">
+
+        <div class="col-12 col-md-4">
+          <label class="form-label">{% trans "Search" %}</label>
+          <input
+            type="text"
+            name="q"
+            value="{{ query }}"
+            class="form-control form-control-sm"
+            placeholder="{% trans 'User, object, message, IP...' %}"
+          >
+        </div>
+
+        <div class="col-6 col-md-2">
+          <label class="form-label">{% trans "Action" %}</label>
+          <select name="action" class="form-select form-select-sm">
+            <option value="">{% trans "All Actions" %}</option>
+            {% for value, label in action_choices %}
+              <option value="{{ value }}" {% if action == value %}selected{% endif %}>
+                {{ label }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="col-6 col-md-2">
+          <label class="form-label">{% trans "App" %}</label>
+          <select name="app" class="form-select form-select-sm">
+            <option value="">{% trans "All Apps" %}</option>
+            {% for app in app_labels %}
+              <option value="{{ app }}" {% if app_label == app %}selected{% endif %}>
+                {{ app }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="col-6 col-md-2">
+          <label class="form-label">{% trans "Model" %}</label>
+          <select name="model" class="form-select form-select-sm">
+            <option value="">{% trans "All Models" %}</option>
+            {% for model in model_names %}
+              <option value="{{ model }}" {% if model_name == model %}selected{% endif %}>
+                {{ model }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="col-6 col-md-2 d-grid">
+          <button type="submit" class="btn btn-sl-primary btn-sm">
+            {% trans "Filter Logs" %}
+          </button>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+
+  <div class="sl-panel">
+    <div class="sl-panel-head">
+      <div>
+        <h5 class="sl-panel-title">{% trans "Recent Audit Activity" %}</h5>
+        <div class="sl-panel-subtitle">
+          {% trans "Showing latest 500 matching records." %}
+        </div>
+      </div>
+
+      <span class="sl-pill">
+        {% trans "System Logs" %}
+      </span>
+    </div>
+
+    <div class="sl-panel-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead>
+            <tr>
+              <th style="width: 150px;">{% trans "Date" %}</th>
+              <th>{% trans "User" %}</th>
+              <th>{% trans "Action" %}</th>
+              <th>{% trans "App" %}</th>
+              <th>{% trans "Object" %}</th>
+              <th>{% trans "Message" %}</th>
+              <th>{% trans "IP" %}</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for log in logs %}
+              <tr>
+                <td class="text-muted">
+                  {{ log.created_at|date:"d M Y H:i" }}
+                </td>
+
+                <td>
+                  {% if log.user %}
+                    <span class="fw-semibold">{{ log.user.username }}</span>
+                  {% else %}
+                    <span class="text-muted">{% trans "System" %}</span>
+                  {% endif %}
+                </td>
+
+                <td>
+                  {% if log.action == "create" %}
+                    <span class="badge badge-soft-success">{% trans "Create" %}</span>
+                  {% elif log.action == "update" %}
+                    <span class="badge badge-soft-primary">{% trans "Update" %}</span>
+                  {% elif log.action == "delete" %}
+                    <span class="badge badge-soft-danger">{% trans "Delete" %}</span>
+                  {% elif log.action == "login" %}
+                    <span class="badge badge-soft-info">{% trans "Login" %}</span>
+                  {% elif log.action == "logout" %}
+                    <span class="badge bg-light text-dark border">{% trans "Logout" %}</span>
+                  {% elif log.action == "export" %}
+                    <span class="badge badge-soft-warning">{% trans "Export" %}</span>
+                  {% elif log.action == "generate" %}
+                    <span class="badge bg-light text-dark border">{% trans "Generate" %}</span>
+                  {% elif log.action == "pay" %}
+                    <span class="badge badge-soft-success">{% trans "Pay" %}</span>
+                  {% elif log.action == "cancel" %}
+                    <span class="badge badge-soft-danger">{% trans "Cancel" %}</span>
+                  {% elif log.action == "approve" %}
+                    <span class="badge badge-soft-success">{% trans "Approve" %}</span>
+                  {% elif log.action == "view" %}
+                    <span class="badge badge-soft-info">{% trans "View" %}</span>
+                  {% else %}
+                    <span class="badge bg-light text-dark border">
+                      {{ log.get_action_display }}
+                    </span>
+                  {% endif %}
+                </td>
+
+                <td>
+                  <div>{{ log.app_label|default:"-" }}</div>
+                  {% if log.model_name %}
+                    <div class="text-muted small">{{ log.model_name }}</div>
+                  {% endif %}
+                </td>
+
+                <td>
+                  <div class="fw-semibold">
+                    {{ log.object_repr|default:"-" }}
+                  </div>
+
+                  {% if log.object_id %}
+                    <div class="text-muted small">
+                      {% trans "ID" %}: {{ log.object_id }}
+                    </div>
+                  {% endif %}
+                </td>
+
+                <td>
+                  {{ log.message|default:"-"|truncatechars:90 }}
+                </td>
+
+                <td class="text-muted">
+                  {{ log.ip_address|default:"-" }}
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="7" class="text-center text-muted py-4">
+                  {% trans "No audit logs found." %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}

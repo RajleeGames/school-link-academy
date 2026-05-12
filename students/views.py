@@ -4,6 +4,8 @@ from django.shortcuts import redirect, render, get_object_or_404
 
 from accounts.decorators import permission_required
 
+from audit.utils import log_audit, model_to_dict_safe
+
 from .forms import ParentGuardianForm, StudentForm
 from .models import ParentGuardian, Student
 
@@ -55,11 +57,22 @@ def student_create(request):
         form = StudentForm(request.POST, request.FILES)
 
         if form.is_valid():
-            form.save()
+            student = form.save()
+
+            log_audit(
+                request,
+                "create",
+                obj=student,
+                message=f"Admitted new student: {student}",
+                old_values={},
+                new_values=model_to_dict_safe(student),
+            )
+
             messages.success(request, "Student admitted successfully.")
             return redirect("student_list")
 
         messages.error(request, "Please correct the student form.")
+
     else:
         form = StudentForm()
 
@@ -88,16 +101,28 @@ def student_detail(request, pk):
 @permission_required("students.manage")
 def student_update(request, pk):
     student = get_object_or_404(Student, pk=pk)
+    old_values = model_to_dict_safe(student)
 
     if request.method == "POST":
         form = StudentForm(request.POST, request.FILES, instance=student)
 
         if form.is_valid():
-            form.save()
+            updated_student = form.save()
+
+            log_audit(
+                request,
+                "update",
+                obj=updated_student,
+                message=f"Updated student: {updated_student}",
+                old_values=old_values,
+                new_values=model_to_dict_safe(updated_student),
+            )
+
             messages.success(request, "Student updated successfully.")
-            return redirect("student_detail", pk=student.pk)
+            return redirect("student_detail", pk=updated_student.pk)
 
         messages.error(request, "Please correct the student form.")
+
     else:
         form = StudentForm(instance=student)
 
@@ -133,11 +158,22 @@ def parent_create(request):
         form = ParentGuardianForm(request.POST)
 
         if form.is_valid():
-            form.save()
+            parent = form.save()
+
+            log_audit(
+                request,
+                "create",
+                obj=parent,
+                message=f"Created parent / guardian: {parent}",
+                old_values={},
+                new_values=model_to_dict_safe(parent),
+            )
+
             messages.success(request, "Parent / guardian added successfully.")
             return redirect("parent_list")
 
         messages.error(request, "Please correct the parent form.")
+
     else:
         form = ParentGuardianForm()
 
@@ -145,20 +181,33 @@ def parent_create(request):
         "form": form,
         "title": "Add Parent / Guardian",
     })
-    
+
+
 @permission_required("parents.manage")
 def parent_update(request, pk):
     parent = get_object_or_404(ParentGuardian, pk=pk)
+    old_values = model_to_dict_safe(parent)
 
     if request.method == "POST":
         form = ParentGuardianForm(request.POST, instance=parent)
 
         if form.is_valid():
-            form.save()
+            updated_parent = form.save()
+
+            log_audit(
+                request,
+                "update",
+                obj=updated_parent,
+                message=f"Updated parent / guardian: {updated_parent}",
+                old_values=old_values,
+                new_values=model_to_dict_safe(updated_parent),
+            )
+
             messages.success(request, "Parent / guardian updated successfully.")
             return redirect("parent_list")
 
         messages.error(request, "Please correct the parent form.")
+
     else:
         form = ParentGuardianForm(instance=parent)
 

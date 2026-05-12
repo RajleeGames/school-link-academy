@@ -8,52 +8,94 @@
 
 {% block content %}
 
-<div class="sl-card mb-3">
-  <div class="sl-card-body">
-    <h5 class="fw-bold mb-1">Welcome{% if parent %}, {{ parent.full_name }}{% endif %}</h5>
-    <div class="small text-muted">
-      Select a child below to view school information.
+<div class="sl-parent-hero mb-3">
+  <div class="sl-parent-hero-content">
+    <div class="sl-parent-hero-icon">
+      {{ request.user.username|slice:":1"|upper }}
     </div>
+
+    <div>
+      <h5 class="sl-parent-hero-title">
+        Welcome{% if parent %}, {{ parent.full_name }}{% endif %}
+      </h5>
+      <div class="sl-parent-hero-subtitle">
+        Select a child below to view invoices, payments, results, attendance, and school records.
+      </div>
+    </div>
+  </div>
+
+  <div class="sl-parent-hero-badge">
+    Parent Portal
   </div>
 </div>
 
-<div class="row g-3">
+<div class="sl-parent-grid">
   {% for student in students %}
-    <div class="col-md-6 col-lg-4">
-      <div class="sl-card h-100">
-        <div class="sl-card-body">
-          <div class="fw-bold mb-1">{{ student.full_name }}</div>
+    <div class="sl-parent-student-card">
 
-          <div class="small text-muted mb-3">
-            {{ student.admission_number }} · {{ student.class_level.name }}
-            {% if student.stream %} {{ student.stream.name }}{% endif %}
+      <div class="sl-parent-student-photo-wrap">
+        {% if student.photo %}
+          <img
+            src="{{ student.photo.url }}"
+            alt="{{ student.full_name }}"
+            class="sl-parent-student-photo"
+          >
+        {% else %}
+          <div class="sl-parent-student-photo-placeholder">
+            {{ student.first_name|slice:":1"|upper }}{{ student.last_name|slice:":1"|upper }}
           </div>
+        {% endif %}
+      </div>
 
-          <div class="d-grid gap-2">
-            <a href="{% url 'parent_student_invoices' student.pk %}" class="btn btn-light border btn-sm text-start">
-              Invoices
-            </a>
+      <div class="sl-parent-student-body">
+        <div class="sl-parent-student-name">
+          {{ student.full_name }}
+        </div>
 
-            <a href="{% url 'parent_student_payments' student.pk %}" class="btn btn-light border btn-sm text-start">
-              Payments
-            </a>
+        <div class="sl-parent-student-meta">
+          <span>{{ student.admission_number }}</span>
+          <span>•</span>
+          <span>{{ student.class_level.name }}</span>
+          {% if student.stream %}
+            <span>{{ student.stream.name }}</span>
+          {% endif %}
+        </div>
 
-            <a href="{% url 'parent_student_results' student.pk %}" class="btn btn-light border btn-sm text-start">
-              Results
-            </a>
+        <div class="sl-parent-actions">
+          <a href="{% url 'parent_student_invoices' student.pk %}" class="sl-parent-action-link">
+            <span class="sl-parent-action-icon">₦</span>
+            <span>Invoices</span>
+            <strong>›</strong>
+          </a>
 
-            <a href="{% url 'parent_student_attendance' student.pk %}" class="btn btn-light border btn-sm text-start">
-              Attendance
-            </a>
-          </div>
+          <a href="{% url 'parent_student_payments' student.pk %}" class="sl-parent-action-link">
+            <span class="sl-parent-action-icon">✓</span>
+            <span>Payments</span>
+            <strong>›</strong>
+          </a>
+
+          <a href="{% url 'parent_student_results' student.pk %}" class="sl-parent-action-link">
+            <span class="sl-parent-action-icon">A</span>
+            <span>Results</span>
+            <strong>›</strong>
+          </a>
+
+          <a href="{% url 'parent_student_attendance' student.pk %}" class="sl-parent-action-link">
+            <span class="sl-parent-action-icon">📅</span>
+            <span>Attendance</span>
+            <strong>›</strong>
+          </a>
         </div>
       </div>
+
     </div>
   {% empty %}
-    <div class="col-12">
-      <div class="sl-card">
-        <div class="sl-card-body text-center text-muted py-4">
-          No students are linked to this parent account yet.
+    <div class="sl-parent-empty">
+      <div class="sl-parent-empty-icon">!</div>
+      <div>
+        <div class="sl-parent-empty-title">No linked students</div>
+        <div class="sl-parent-empty-text">
+          No students are linked to this parent account yet. Please contact the school office.
         </div>
       </div>
     </div>

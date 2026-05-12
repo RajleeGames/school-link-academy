@@ -10,6 +10,7 @@ urlpatterns = [
 
     path("roles/", views.user_role_list, name="user_role_list"),
     path("roles/<int:pk>/edit/", views.user_role_update, name="user_role_update"),
+    path("roles/<int:pk>/reset-password/", views.user_reset_password, name="user_reset_password"),
 
     path("parent-portal/", views.parent_portal_home, name="parent_portal_home"),
     path("parent-portal/student/<int:student_id>/invoices/", views.parent_student_invoices, name="parent_student_invoices"),

@@ -6,6 +6,8 @@ from django.utils import timezone
 
 from accounts.decorators import permission_required
 
+from audit.utils import log_audit, model_to_dict_safe
+
 from .forms import (
     BoardingAllocationForm,
     BoardingCheckoutForm,
@@ -17,14 +19,34 @@ from .models import BoardingAllocation, Hostel, HostelBed, HostelRoom
 
 
 def safe_delete_object(request, obj, success_message, redirect_url):
+    old_values = model_to_dict_safe(obj)
+    app_label = obj._meta.app_label
+    model_name = obj._meta.model_name
+    object_id = str(obj.pk)
+    object_repr = str(obj)
+
     try:
         obj.delete()
+
+        log_audit(
+            request,
+            "delete",
+            app_label=app_label,
+            model_name=model_name,
+            object_id=object_id,
+            object_repr=object_repr,
+            message=f"Deleted {model_name}: {object_repr}",
+            old_values=old_values,
+        )
+
         messages.success(request, success_message)
+
     except ProtectedError:
         messages.error(
             request,
             "This record cannot be deleted because it is already used somewhere. You can edit it or mark it inactive instead."
         )
+
     except Exception:
         messages.error(
             request,
@@ -104,11 +126,21 @@ def hostel_create(request):
         form = HostelForm(request.POST)
 
         if form.is_valid():
-            form.save()
+            hostel = form.save()
+
+            log_audit(
+                request,
+                "create",
+                obj=hostel,
+                message=f"Created hostel: {hostel}",
+                new_values=model_to_dict_safe(hostel),
+            )
+
             messages.success(request, "Hostel added successfully.")
             return redirect("hostel_list")
 
         messages.error(request, "Please correct the hostel form.")
+
     else:
         form = HostelForm()
 
@@ -123,16 +155,28 @@ def hostel_create(request):
 @permission_required("hostel.manage")
 def hostel_update(request, pk):
     hostel = get_object_or_404(Hostel, pk=pk)
+    old_values = model_to_dict_safe(hostel)
 
     if request.method == "POST":
         form = HostelForm(request.POST, instance=hostel)
 
         if form.is_valid():
-            form.save()
+            updated_hostel = form.save()
+
+            log_audit(
+                request,
+                "update",
+                obj=updated_hostel,
+                message=f"Updated hostel: {updated_hostel}",
+                old_values=old_values,
+                new_values=model_to_dict_safe(updated_hostel),
+            )
+
             messages.success(request, "Hostel updated successfully.")
             return redirect("hostel_list")
 
         messages.error(request, "Please correct the hostel form.")
+
     else:
         form = HostelForm(instance=hostel)
 
@@ -198,11 +242,21 @@ def room_create(request):
         form = HostelRoomForm(request.POST)
 
         if form.is_valid():
-            form.save()
+            room = form.save()
+
+            log_audit(
+                request,
+                "create",
+                obj=room,
+                message=f"Created hostel room: {room}",
+                new_values=model_to_dict_safe(room),
+            )
+
             messages.success(request, "Room added successfully.")
             return redirect("hostel_room_list")
 
         messages.error(request, "Please correct the room form.")
+
     else:
         form = HostelRoomForm()
 
@@ -217,16 +271,28 @@ def room_create(request):
 @permission_required("hostel.manage")
 def room_update(request, pk):
     room = get_object_or_404(HostelRoom, pk=pk)
+    old_values = model_to_dict_safe(room)
 
     if request.method == "POST":
         form = HostelRoomForm(request.POST, instance=room)
 
         if form.is_valid():
-            form.save()
+            updated_room = form.save()
+
+            log_audit(
+                request,
+                "update",
+                obj=updated_room,
+                message=f"Updated hostel room: {updated_room}",
+                old_values=old_values,
+                new_values=model_to_dict_safe(updated_room),
+            )
+
             messages.success(request, "Room updated successfully.")
             return redirect("hostel_room_list")
 
         messages.error(request, "Please correct the room form.")
+
     else:
         form = HostelRoomForm(instance=room)
 
@@ -290,11 +356,21 @@ def bed_create(request):
         form = HostelBedForm(request.POST)
 
         if form.is_valid():
-            form.save()
+            bed = form.save()
+
+            log_audit(
+                request,
+                "create",
+                obj=bed,
+                message=f"Created hostel bed: {bed}",
+                new_values=model_to_dict_safe(bed),
+            )
+
             messages.success(request, "Bed added successfully.")
             return redirect("hostel_bed_list")
 
         messages.error(request, "Please correct the bed form.")
+
     else:
         form = HostelBedForm()
 
@@ -309,16 +385,28 @@ def bed_create(request):
 @permission_required("hostel.manage")
 def bed_update(request, pk):
     bed = get_object_or_404(HostelBed, pk=pk)
+    old_values = model_to_dict_safe(bed)
 
     if request.method == "POST":
         form = HostelBedForm(request.POST, instance=bed)
 
         if form.is_valid():
-            form.save()
+            updated_bed = form.save()
+
+            log_audit(
+                request,
+                "update",
+                obj=updated_bed,
+                message=f"Updated hostel bed: {updated_bed}",
+                old_values=old_values,
+                new_values=model_to_dict_safe(updated_bed),
+            )
+
             messages.success(request, "Bed updated successfully.")
             return redirect("hostel_bed_list")
 
         messages.error(request, "Please correct the bed form.")
+
     else:
         form = HostelBedForm(instance=bed)
 
@@ -406,13 +494,33 @@ def allocation_create(request):
             allocation.save()
 
             bed = allocation.bed
+            old_bed_values = model_to_dict_safe(bed)
+
             bed.status = "occupied"
             bed.save()
+
+            log_audit(
+                request,
+                "create",
+                obj=allocation,
+                message=f"Created boarding allocation and occupied bed: {bed}",
+                new_values=model_to_dict_safe(allocation),
+            )
+
+            log_audit(
+                request,
+                "update",
+                obj=bed,
+                message=f"Bed marked as occupied after allocation: {bed}",
+                old_values=old_bed_values,
+                new_values=model_to_dict_safe(bed),
+            )
 
             messages.success(request, "Student allocated to hostel successfully.")
             return redirect("boarding_allocation_detail", pk=allocation.pk)
 
         messages.error(request, "Please correct the allocation form.")
+
     else:
         form = BoardingAllocationForm()
 
@@ -449,6 +557,7 @@ def allocation_checkout(request, pk):
     )
 
     old_status = allocation.status
+    old_allocation_values = model_to_dict_safe(allocation)
 
     if request.method == "POST":
         form = BoardingCheckoutForm(request.POST, instance=allocation)
@@ -461,10 +570,30 @@ def allocation_checkout(request, pk):
 
             updated.save()
 
+            log_audit(
+                request,
+                "update",
+                obj=updated,
+                message=f"Updated boarding allocation status from {old_status} to {updated.status}: {updated}",
+                old_values=old_allocation_values,
+                new_values=model_to_dict_safe(updated),
+            )
+
             if old_status == "active" and updated.status in ["checked_out", "cancelled"]:
                 bed = updated.bed
+                old_bed_values = model_to_dict_safe(bed)
+
                 bed.status = "available"
                 bed.save()
+
+                log_audit(
+                    request,
+                    "update",
+                    obj=bed,
+                    message=f"Bed released after allocation status changed to {updated.status}: {bed}",
+                    old_values=old_bed_values,
+                    new_values=model_to_dict_safe(bed),
+                )
 
             if old_status in ["checked_out", "cancelled"] and updated.status == "active":
                 bed = updated.bed
@@ -478,13 +607,25 @@ def allocation_checkout(request, pk):
                         "back_url": "boarding_allocation_list",
                     })
 
+                old_bed_values = model_to_dict_safe(bed)
+
                 bed.status = "occupied"
                 bed.save()
+
+                log_audit(
+                    request,
+                    "update",
+                    obj=bed,
+                    message=f"Bed marked as occupied after allocation re-activated: {bed}",
+                    old_values=old_bed_values,
+                    new_values=model_to_dict_safe(bed),
+                )
 
             messages.success(request, "Boarding allocation updated successfully.")
             return redirect("boarding_allocation_detail", pk=allocation.pk)
 
         messages.error(request, "Please correct the checkout form.")
+
     else:
         form = BoardingCheckoutForm(instance=allocation)
 
@@ -503,9 +644,43 @@ def allocation_delete(request, pk):
         pk=pk
     )
 
+    old_allocation_values = model_to_dict_safe(allocation)
+    app_label = allocation._meta.app_label
+    model_name = allocation._meta.model_name
+    object_id = str(allocation.pk)
+    object_repr = str(allocation)
+
     if request.method == "POST":
+        bed = allocation.bed
+        old_bed_values = model_to_dict_safe(bed)
+
         release_allocation_bed(allocation)
+
+        if allocation.status == "active":
+            bed.refresh_from_db()
+
+            log_audit(
+                request,
+                "update",
+                obj=bed,
+                message=f"Bed released after deleting active allocation: {bed}",
+                old_values=old_bed_values,
+                new_values=model_to_dict_safe(bed),
+            )
+
         allocation.delete()
+
+        log_audit(
+            request,
+            "delete",
+            app_label=app_label,
+            model_name=model_name,
+            object_id=object_id,
+            object_repr=object_repr,
+            message=f"Deleted boarding allocation: {object_repr}",
+            old_values=old_allocation_values,
+        )
+
         messages.success(request, "Boarding allocation deleted successfully.")
         return redirect("boarding_allocation_list")
 

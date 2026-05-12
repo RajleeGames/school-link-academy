@@ -5,11 +5,7 @@
 
 {% block page_title %}{{ title }}{% endblock %}
 {% block page_subtitle %}
-  {% if is_update %}
-    Correct a payment record. Amount cannot exceed the invoice balance.
-  {% else %}
-    Record fee payment and generate receipt. Amount cannot exceed the invoice balance.
-  {% endif %}
+  Select what this payment is for: tuition, books, transport, uniform, or general invoice balance.
 {% endblock %}
 
 {% block content %}
@@ -39,11 +35,61 @@
         </div>
 
         <div class="col-md-2">
-          <div class="text-muted">
-            {% if is_update %}Max Allowed{% else %}Balance{% endif %}
-          </div>
+          <div class="text-muted">Balance</div>
           <div class="fw-bold text-danger">TZS {{ remaining_balance|floatformat:0|intcomma }}</div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sl-card mb-3">
+    <div class="sl-card-body">
+      <h5 class="fw-bold mb-2">Fee Breakdown</h5>
+      <div class="small text-muted mb-3">
+        Choose a fee item below when recording payment. Example: Books paid, Tuition unpaid.
+      </div>
+
+      <div class="table-responsive">
+        <table class="table align-middle">
+          <thead>
+            <tr>
+              <th>Fee Item</th>
+              <th class="text-end">Required</th>
+              <th class="text-end">Paid</th>
+              <th class="text-end">Balance</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for item in fee_breakdown %}
+              <tr>
+                <td>
+                  <div class="fw-bold">{{ item.category }}</div>
+                  <div class="small text-muted">{{ item.description|default:"-" }}</div>
+                </td>
+                <td class="text-end">TZS {{ item.required|floatformat:0|intcomma }}</td>
+                <td class="text-end">TZS {{ item.paid|floatformat:0|intcomma }}</td>
+                <td class="text-end">TZS {{ item.balance|floatformat:0|intcomma }}</td>
+                <td>
+                  {% if item.status == "paid" %}
+                    <span class="badge badge-soft-success">Paid</span>
+                  {% elif item.status == "partial" %}
+                    <span class="badge badge-soft-warning">Partial</span>
+                  {% else %}
+                    <span class="badge badge-soft-danger">Unpaid</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="5" class="text-center text-muted py-4">
+                  No fee items found. Check Fee Structure for this class/year/term.
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
@@ -66,6 +112,14 @@
         </div>
 
         <div class="col-md-4">
+          <label class="form-label small fw-bold">Payment For</label>
+          {{ form.fee_item }}
+          <div class="form-text small">
+            Choose Books, Tuition, Transport etc. Leave general only when not specific.
+          </div>
+        </div>
+
+        <div class="col-md-4">
           <label class="form-label small fw-bold">Payment Date</label>
           {{ form.payment_date }}
         </div>
@@ -75,7 +129,7 @@
           {{ form.amount }}
           {% if remaining_balance %}
             <div class="form-text small">
-              Maximum allowed: TZS {{ remaining_balance|floatformat:0|intcomma }}
+              Invoice balance: TZS {{ remaining_balance|floatformat:0|intcomma }}
             </div>
           {% endif %}
         </div>
@@ -90,12 +144,12 @@
           {{ form.status }}
         </div>
 
-        <div class="col-md-6">
+        <div class="col-md-4">
           <label class="form-label small fw-bold">Reference</label>
           {{ form.reference }}
         </div>
 
-        <div class="col-md-6">
+        <div class="col-md-4">
           <label class="form-label small fw-bold">Received By</label>
           {{ form.received_by }}
         </div>

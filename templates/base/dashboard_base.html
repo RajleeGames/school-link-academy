@@ -3,6 +3,8 @@
 <!doctype html>
 <html lang="{{ LANGUAGE_CODE|default:'en' }}">
 <head>
+
+  <link rel="stylesheet" href="{% static 'vendor/tomselect/tom-select.bootstrap5.min.css' %}">
   <script>
     (function () {
       const savedTheme = localStorage.getItem("schoolLinkTheme");
@@ -16,7 +18,7 @@
 
   <link rel="stylesheet" href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}">
   <link rel="stylesheet" href="{% static 'schoollink/css/app.css' %}">
-
+   
   <style>
     .sl-brand-logo {
       width: 42px !important;
@@ -233,6 +235,84 @@
         max-width: 82px;
       }
     }
+
+    /* =========================================================
+   MAIN CONTENT FOOTER COPYRIGHT
+========================================================= */
+
+.sl-main-footer {
+  margin: 18px 0 0;
+  padding: 12px 14px;
+  border-top: 1px solid var(--sl-border);
+  color: var(--sl-muted);
+  font-size: 0.74rem;
+}
+
+.sl-main-footer-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--sl-border);
+  border-radius: 12px;
+  background: var(--sl-card);
+  box-shadow: 0 7px 20px rgba(15, 23, 42, 0.035);
+}
+
+.sl-main-footer-brand {
+  color: var(--sl-text);
+  font-weight: 650;
+}
+
+.sl-main-footer-dev {
+  color: var(--sl-header-dark);
+  font-weight: 650;
+}
+
+.sl-main-footer-dot {
+  color: var(--sl-muted);
+  margin: 0 6px;
+}
+
+html[data-theme="dark"] .sl-main-footer {
+  border-top-color: var(--sl-border);
+  color: var(--sl-muted);
+}
+
+html[data-theme="dark"] .sl-main-footer-inner {
+  background: #121f27 !important;
+  border-color: var(--sl-border) !important;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+}
+
+html[data-theme="dark"] .sl-main-footer-brand {
+  color: #ffffff !important;
+}
+
+html[data-theme="dark"] .sl-main-footer-dev {
+  color: #93c5fd !important;
+}
+
+@media (max-width: 575.98px) {
+  .sl-main-footer {
+    margin-top: 14px;
+    padding: 10px 0 0;
+    font-size: 0.68rem;
+  }
+
+  .sl-main-footer-inner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+    padding: 10px;
+    border-radius: 10px;
+  }
+
+  .sl-main-footer-dot {
+    display: none;
+  }
+}
   </style>
 
   {% block extra_css %}{% endblock %}
@@ -778,6 +858,16 @@
         </div>
       {% endif %}
 
+            {% if request.user.is_superuser or "audit.view" in current_user_permissions or "audit.logs.view" in current_user_permissions %}
+        <div class="sl-menu-section-title">{% trans "System" %}</div>
+
+        <a href="{% url 'audit_log_list' %}"
+           class="sl-menu-link {% if request.resolver_match.url_name == 'audit_log_list' %}active{% endif %}">
+          <span class="sl-menu-icon sl-icon-reports"></span>
+          <span class="sl-menu-text">{% trans "Audit Logs" %}</span>
+        </a>
+      {% endif %}
+
       <div class="sl-menu-section-title">{% trans "Account" %}</div>
 
       <form method="post" action="{% url 'logout' %}" class="sl-logout-form">
@@ -860,7 +950,7 @@
       </div>
     </header>
 
-    <section class="sl-page">
+       <section class="sl-page">
       {% if messages %}
         {% for message in messages %}
           <div class="alert alert-{{ message.tags }} alert-dismissible fade show small" role="alert">
@@ -871,6 +961,27 @@
       {% endif %}
 
       {% block content %}{% endblock %}
+
+      <footer class="sl-main-footer">
+  <div class="sl-main-footer-inner">
+    <div>
+      <span class="sl-main-footer-brand">
+        {% if school_profile_global %}
+          {{ school_profile_global.short_name|default:school_profile_global.name }}
+        {% else %}
+          School Link
+        {% endif %}
+      </span>
+      <span class="sl-main-footer-dot">•</span>
+      <span>© 2026 {% trans "All rights reserved." %}</span>
+    </div>
+
+    <div>
+      {% trans "Developed by" %}
+      <span class="sl-main-footer-dev">WorldLink Security Systems Team</span>
+    </div>
+  </div>
+</footer>
     </section>
   </main>
 
@@ -878,6 +989,41 @@
 
 <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
 <script src="{% static 'schoollink/js/app.js' %}"></script>
+<script src="{% static 'vendor/tomselect/tom-select.complete.min.js' %}"></script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    if (typeof TomSelect === "undefined") {
+      return;
+    }
+
+    document.querySelectorAll("select.sl-search-select").forEach(function (selectEl) {
+      if (selectEl.tomselect) {
+        return;
+      }
+
+      new TomSelect(selectEl, {
+        create: false,
+        allowEmptyOption: true,
+        maxOptions: 500,
+        sortField: {
+          field: "text",
+          direction: "asc"
+        },
+        plugins: {
+          clear_button: {
+            title: "Clear"
+          }
+        },
+        render: {
+          no_results: function (data, escape) {
+            return '<div class="no-results">No result found for "' + escape(data.input) + '"</div>';
+          }
+        }
+      });
+    });
+  });
+</script>
 
 {% block extra_js %}{% endblock %}
 </body>

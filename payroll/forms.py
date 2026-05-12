@@ -22,59 +22,67 @@ class SalaryStructureForm(forms.ModelForm):
         ]
 
         widgets = {
+            # Searchable because staff can be many
             "staff": forms.Select(attrs={
-                "class": "form-select"
+                "class": "form-select sl-search-select",
+                "data-placeholder": "Search staff by name or staff ID...",
             }),
             "basic_salary": forms.NumberInput(attrs={
                 "class": "form-control",
                 "step": "0.01",
                 "min": 0,
-                "placeholder": "Basic salary"
+                "placeholder": "Basic salary",
             }),
             "transport_allowance": forms.NumberInput(attrs={
                 "class": "form-control",
                 "step": "0.01",
-                "min": 0
+                "min": 0,
             }),
             "housing_allowance": forms.NumberInput(attrs={
                 "class": "form-control",
                 "step": "0.01",
-                "min": 0
+                "min": 0,
             }),
             "medical_allowance": forms.NumberInput(attrs={
                 "class": "form-control",
                 "step": "0.01",
-                "min": 0
+                "min": 0,
             }),
             "other_allowance": forms.NumberInput(attrs={
                 "class": "form-control",
                 "step": "0.01",
-                "min": 0
+                "min": 0,
             }),
             "tax_deduction": forms.NumberInput(attrs={
                 "class": "form-control",
                 "step": "0.01",
-                "min": 0
+                "min": 0,
             }),
             "loan_deduction": forms.NumberInput(attrs={
                 "class": "form-control",
                 "step": "0.01",
-                "min": 0
+                "min": 0,
             }),
             "other_deduction": forms.NumberInput(attrs={
                 "class": "form-control",
                 "step": "0.01",
-                "min": 0
+                "min": 0,
             }),
             "is_active": forms.CheckboxInput(attrs={
-                "class": "form-check-input"
+                "class": "form-check-input",
             }),
             "notes": forms.Textarea(attrs={
                 "class": "form-control",
                 "rows": 3,
-                "placeholder": "Optional notes"
+                "placeholder": "Optional notes",
             }),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if "staff" in self.fields:
+            self.fields["staff"].empty_label = "Search / select staff"
 
 
 class PayrollRecordForm(forms.ModelForm):
@@ -96,60 +104,65 @@ class PayrollRecordForm(forms.ModelForm):
         ]
 
         widgets = {
+            # Searchable because staff can be many
             "staff": forms.Select(attrs={
-                "class": "form-select"
+                "class": "form-select sl-search-select",
+                "data-placeholder": "Search staff by name or staff ID...",
             }),
             "month": forms.Select(attrs={
-                "class": "form-select"
+                "class": "form-select",
             }),
             "year": forms.NumberInput(attrs={
                 "class": "form-control",
-                "min": 2000
+                "min": 2000,
             }),
             "basic_salary": forms.NumberInput(attrs={
                 "class": "form-control",
                 "step": "0.01",
-                "min": 0
+                "min": 0,
             }),
             "total_allowances": forms.NumberInput(attrs={
                 "class": "form-control",
                 "step": "0.01",
-                "min": 0
+                "min": 0,
             }),
             "total_deductions": forms.NumberInput(attrs={
                 "class": "form-control",
                 "step": "0.01",
-                "min": 0
+                "min": 0,
             }),
             "net_salary": forms.NumberInput(attrs={
                 "class": "form-control",
                 "step": "0.01",
-                "min": 0
+                "min": 0,
             }),
             "payment_date": forms.DateInput(attrs={
                 "class": "form-control",
-                "type": "date"
+                "type": "date",
             }),
             "payment_method": forms.TextInput(attrs={
                 "class": "form-control",
-                "placeholder": "Cash / Bank / Mobile Money"
+                "placeholder": "Cash / Bank / Mobile Money",
             }),
             "reference": forms.TextInput(attrs={
                 "class": "form-control",
-                "placeholder": "Payment reference"
+                "placeholder": "Payment reference",
             }),
             "status": forms.Select(attrs={
-                "class": "form-select"
+                "class": "form-select",
             }),
             "notes": forms.Textarea(attrs={
                 "class": "form-control",
                 "rows": 3,
-                "placeholder": "Optional notes"
+                "placeholder": "Optional notes",
             }),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        if "staff" in self.fields:
+            self.fields["staff"].empty_label = "Search / select staff"
 
         if not self.initial.get("year"):
             self.initial["year"] = timezone.localdate().year
@@ -159,7 +172,7 @@ class PayrollGenerateForm(forms.Form):
     month = forms.ChoiceField(
         choices=PayrollRecord.MONTH_CHOICES,
         widget=forms.Select(attrs={
-            "class": "form-select"
+            "class": "form-select",
         })
     )
 
@@ -167,6 +180,6 @@ class PayrollGenerateForm(forms.Form):
         initial=timezone.localdate().year,
         widget=forms.NumberInput(attrs={
             "class": "form-control",
-            "min": 2000
+            "min": 2000,
         })
     )

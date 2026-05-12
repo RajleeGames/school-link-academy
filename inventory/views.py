@@ -6,6 +6,8 @@ from django.utils import timezone
 
 from accounts.decorators import permission_required
 
+from audit.utils import log_audit, model_to_dict_safe
+
 from .forms import (
     InventoryCategoryForm,
     InventoryItemForm,
@@ -17,14 +19,34 @@ from .models import InventoryCategory, InventoryItem, StockIn, StockOut, Supplie
 
 
 def safe_delete_object(request, obj, success_message, redirect_url):
+    old_values = model_to_dict_safe(obj)
+    app_label = obj._meta.app_label
+    model_name = obj._meta.model_name
+    object_id = str(obj.pk)
+    object_repr = str(obj)
+
     try:
         obj.delete()
+
+        log_audit(
+            request,
+            "delete",
+            app_label=app_label,
+            model_name=model_name,
+            object_id=object_id,
+            object_repr=object_repr,
+            message=f"Deleted {model_name}: {object_repr}",
+            old_values=old_values,
+        )
+
         messages.success(request, success_message)
+
     except ProtectedError:
         messages.error(
             request,
             "This record cannot be deleted because it is already used somewhere. You can edit it or mark it inactive instead."
         )
+
     except Exception:
         messages.error(
             request,
@@ -148,11 +170,21 @@ def item_create(request):
         form = InventoryItemForm(request.POST)
 
         if form.is_valid():
-            form.save()
+            item = form.save()
+
+            log_audit(
+                request,
+                "create",
+                obj=item,
+                message=f"Created inventory item: {item}",
+                new_values=model_to_dict_safe(item),
+            )
+
             messages.success(request, "Inventory item added successfully.")
             return redirect("inventory_item_list")
 
         messages.error(request, "Please correct the item form.")
+
     else:
         form = InventoryItemForm()
 
@@ -167,16 +199,28 @@ def item_create(request):
 @permission_required("inventory.manage")
 def item_update(request, pk):
     item = get_object_or_404(InventoryItem, pk=pk)
+    old_values = model_to_dict_safe(item)
 
     if request.method == "POST":
         form = InventoryItemForm(request.POST, instance=item)
 
         if form.is_valid():
-            form.save()
+            updated_item = form.save()
+
+            log_audit(
+                request,
+                "update",
+                obj=updated_item,
+                message=f"Updated inventory item: {updated_item}",
+                old_values=old_values,
+                new_values=model_to_dict_safe(updated_item),
+            )
+
             messages.success(request, "Inventory item updated successfully.")
             return redirect("inventory_item_list")
 
         messages.error(request, "Please correct the item form.")
+
     else:
         form = InventoryItemForm(instance=item)
 
@@ -231,11 +275,21 @@ def category_create(request):
         form = InventoryCategoryForm(request.POST)
 
         if form.is_valid():
-            form.save()
+            category = form.save()
+
+            log_audit(
+                request,
+                "create",
+                obj=category,
+                message=f"Created inventory category: {category}",
+                new_values=model_to_dict_safe(category),
+            )
+
             messages.success(request, "Inventory category added successfully.")
             return redirect("inventory_category_list")
 
         messages.error(request, "Please correct the category form.")
+
     else:
         form = InventoryCategoryForm()
 
@@ -250,16 +304,28 @@ def category_create(request):
 @permission_required("inventory.manage")
 def category_update(request, pk):
     category = get_object_or_404(InventoryCategory, pk=pk)
+    old_values = model_to_dict_safe(category)
 
     if request.method == "POST":
         form = InventoryCategoryForm(request.POST, instance=category)
 
         if form.is_valid():
-            form.save()
+            updated_category = form.save()
+
+            log_audit(
+                request,
+                "update",
+                obj=updated_category,
+                message=f"Updated inventory category: {updated_category}",
+                old_values=old_values,
+                new_values=model_to_dict_safe(updated_category),
+            )
+
             messages.success(request, "Inventory category updated successfully.")
             return redirect("inventory_category_list")
 
         messages.error(request, "Please correct the category form.")
+
     else:
         form = InventoryCategoryForm(instance=category)
 
@@ -319,11 +385,21 @@ def supplier_create(request):
         form = SupplierForm(request.POST)
 
         if form.is_valid():
-            form.save()
+            supplier = form.save()
+
+            log_audit(
+                request,
+                "create",
+                obj=supplier,
+                message=f"Created supplier: {supplier}",
+                new_values=model_to_dict_safe(supplier),
+            )
+
             messages.success(request, "Supplier added successfully.")
             return redirect("supplier_list")
 
         messages.error(request, "Please correct the supplier form.")
+
     else:
         form = SupplierForm()
 
@@ -338,16 +414,28 @@ def supplier_create(request):
 @permission_required("inventory.manage")
 def supplier_update(request, pk):
     supplier = get_object_or_404(Supplier, pk=pk)
+    old_values = model_to_dict_safe(supplier)
 
     if request.method == "POST":
         form = SupplierForm(request.POST, instance=supplier)
 
         if form.is_valid():
-            form.save()
+            updated_supplier = form.save()
+
+            log_audit(
+                request,
+                "update",
+                obj=updated_supplier,
+                message=f"Updated supplier: {updated_supplier}",
+                old_values=old_values,
+                new_values=model_to_dict_safe(updated_supplier),
+            )
+
             messages.success(request, "Supplier updated successfully.")
             return redirect("supplier_list")
 
         messages.error(request, "Please correct the supplier form.")
+
     else:
         form = SupplierForm(instance=supplier)
 
@@ -408,12 +496,35 @@ def stock_in_create(request):
 
         if form.is_valid():
             stock_in = form.save()
+            item = stock_in.item
+            old_item_values = model_to_dict_safe(item)
+
             apply_stock_in(stock_in)
+
+            item.refresh_from_db()
+
+            log_audit(
+                request,
+                "create",
+                obj=stock_in,
+                message=f"Created stock-in record: {stock_in}",
+                new_values=model_to_dict_safe(stock_in),
+            )
+
+            log_audit(
+                request,
+                "update",
+                obj=item,
+                message=f"Item quantity increased by stock-in: {stock_in.quantity}.",
+                old_values=old_item_values,
+                new_values=model_to_dict_safe(item),
+            )
 
             messages.success(request, "Stock in record saved successfully.")
             return redirect("stock_in_list")
 
         messages.error(request, "Please correct the stock in form.")
+
     else:
         form = StockInForm(initial={
             "received_date": timezone.localdate()
@@ -429,10 +540,14 @@ def stock_in_create(request):
 
 @permission_required("inventory.manage")
 def stock_in_update(request, pk):
-    stock_in = get_object_or_404(StockIn, pk=pk)
+    stock_in = get_object_or_404(StockIn.objects.select_related("item"), pk=pk)
+
+    old_stock_in_values = model_to_dict_safe(stock_in)
+    old_item = stock_in.item
+    old_item_values_before_reverse = model_to_dict_safe(old_item)
 
     if request.method == "POST":
-        old_stock_in = StockIn.objects.get(pk=pk)
+        old_stock_in = StockIn.objects.select_related("item").get(pk=pk)
 
         if not reverse_stock_in(old_stock_in):
             messages.error(
@@ -441,17 +556,53 @@ def stock_in_update(request, pk):
             )
             return redirect("stock_in_list")
 
+        old_item.refresh_from_db()
+        item_values_after_reverse = model_to_dict_safe(old_item)
+
         form = StockInForm(request.POST, instance=stock_in)
 
         if form.is_valid():
             updated_stock_in = form.save()
+            new_item = updated_stock_in.item
+            item_values_before_apply = model_to_dict_safe(new_item)
+
             apply_stock_in(updated_stock_in)
+
+            new_item.refresh_from_db()
+
+            log_audit(
+                request,
+                "update",
+                obj=updated_stock_in,
+                message=f"Updated stock-in record: {updated_stock_in}",
+                old_values=old_stock_in_values,
+                new_values=model_to_dict_safe(updated_stock_in),
+            )
+
+            log_audit(
+                request,
+                "update",
+                obj=old_item,
+                message=f"Reversed old stock-in quantity before update: {old_stock_in.quantity}.",
+                old_values=old_item_values_before_reverse,
+                new_values=item_values_after_reverse,
+            )
+
+            log_audit(
+                request,
+                "update",
+                obj=new_item,
+                message=f"Applied updated stock-in quantity: {updated_stock_in.quantity}.",
+                old_values=item_values_before_apply,
+                new_values=model_to_dict_safe(new_item),
+            )
 
             messages.success(request, "Stock in record updated successfully.")
             return redirect("stock_in_list")
 
         apply_stock_in(old_stock_in)
         messages.error(request, "Please correct the stock in form.")
+
     else:
         form = StockInForm(instance=stock_in)
 
@@ -465,7 +616,16 @@ def stock_in_update(request, pk):
 
 @permission_required("inventory.manage")
 def stock_in_delete(request, pk):
-    stock_in = get_object_or_404(StockIn, pk=pk)
+    stock_in = get_object_or_404(StockIn.objects.select_related("item"), pk=pk)
+
+    old_stock_in_values = model_to_dict_safe(stock_in)
+    app_label = stock_in._meta.app_label
+    model_name = stock_in._meta.model_name
+    object_id = str(stock_in.pk)
+    object_repr = str(stock_in)
+
+    item = stock_in.item
+    old_item_values = model_to_dict_safe(item)
 
     if request.method == "POST":
         if not reverse_stock_in(stock_in):
@@ -475,7 +635,31 @@ def stock_in_delete(request, pk):
             )
             return redirect("stock_in_list")
 
+        item.refresh_from_db()
+        new_item_values = model_to_dict_safe(item)
+
         stock_in.delete()
+
+        log_audit(
+            request,
+            "delete",
+            app_label=app_label,
+            model_name=model_name,
+            object_id=object_id,
+            object_repr=object_repr,
+            message=f"Deleted stock-in record: {object_repr}",
+            old_values=old_stock_in_values,
+        )
+
+        log_audit(
+            request,
+            "update",
+            obj=item,
+            message=f"Item quantity reduced after deleting stock-in: {object_repr}.",
+            old_values=old_item_values,
+            new_values=new_item_values,
+        )
+
         messages.success(request, "Stock in record deleted successfully.")
 
     return redirect("stock_in_list")
@@ -508,17 +692,38 @@ def stock_out_create(request):
 
         if form.is_valid():
             stock_out = form.save(commit=False)
+            item = stock_out.item
+            old_item_values = model_to_dict_safe(item)
 
             if not apply_stock_out(stock_out):
                 messages.error(request, "Insufficient stock.")
                 return redirect("stock_out_create")
 
             stock_out.save()
+            item.refresh_from_db()
+
+            log_audit(
+                request,
+                "create",
+                obj=stock_out,
+                message=f"Created stock-out record: {stock_out}",
+                new_values=model_to_dict_safe(stock_out),
+            )
+
+            log_audit(
+                request,
+                "update",
+                obj=item,
+                message=f"Item quantity reduced by stock-out: {stock_out.quantity}.",
+                old_values=old_item_values,
+                new_values=model_to_dict_safe(item),
+            )
 
             messages.success(request, "Stock out record saved successfully.")
             return redirect("stock_out_list")
 
         messages.error(request, "Please correct the stock out form.")
+
     else:
         form = StockOutForm(initial={
             "issued_date": timezone.localdate()
@@ -534,28 +739,69 @@ def stock_out_create(request):
 
 @permission_required("inventory.manage")
 def stock_out_update(request, pk):
-    stock_out = get_object_or_404(StockOut, pk=pk)
+    stock_out = get_object_or_404(StockOut.objects.select_related("item"), pk=pk)
+
+    old_stock_out_values = model_to_dict_safe(stock_out)
+    old_item = stock_out.item
+    old_item_values_before_reverse = model_to_dict_safe(old_item)
 
     if request.method == "POST":
-        old_stock_out = StockOut.objects.get(pk=pk)
+        old_stock_out = StockOut.objects.select_related("item").get(pk=pk)
+
         reverse_stock_out(old_stock_out)
+
+        old_item.refresh_from_db()
+        item_values_after_reverse = model_to_dict_safe(old_item)
 
         form = StockOutForm(request.POST, instance=stock_out)
 
         if form.is_valid():
             updated_stock_out = form.save(commit=False)
+            new_item = updated_stock_out.item
+            item_values_before_apply = model_to_dict_safe(new_item)
 
             if not apply_stock_out(updated_stock_out):
                 apply_stock_out(old_stock_out)
+
                 messages.error(request, "Insufficient stock for the updated stock-out quantity.")
                 return redirect("stock_out_update", pk=pk)
 
             updated_stock_out.save()
+            new_item.refresh_from_db()
+
+            log_audit(
+                request,
+                "update",
+                obj=updated_stock_out,
+                message=f"Updated stock-out record: {updated_stock_out}",
+                old_values=old_stock_out_values,
+                new_values=model_to_dict_safe(updated_stock_out),
+            )
+
+            log_audit(
+                request,
+                "update",
+                obj=old_item,
+                message=f"Reversed old stock-out quantity before update: {old_stock_out.quantity}.",
+                old_values=old_item_values_before_reverse,
+                new_values=item_values_after_reverse,
+            )
+
+            log_audit(
+                request,
+                "update",
+                obj=new_item,
+                message=f"Applied updated stock-out quantity: {updated_stock_out.quantity}.",
+                old_values=item_values_before_apply,
+                new_values=model_to_dict_safe(new_item),
+            )
+
             messages.success(request, "Stock out record updated successfully.")
             return redirect("stock_out_list")
 
         apply_stock_out(old_stock_out)
         messages.error(request, "Please correct the stock out form.")
+
     else:
         form = StockOutForm(instance=stock_out)
 
@@ -569,11 +815,45 @@ def stock_out_update(request, pk):
 
 @permission_required("inventory.manage")
 def stock_out_delete(request, pk):
-    stock_out = get_object_or_404(StockOut, pk=pk)
+    stock_out = get_object_or_404(StockOut.objects.select_related("item"), pk=pk)
+
+    old_stock_out_values = model_to_dict_safe(stock_out)
+    app_label = stock_out._meta.app_label
+    model_name = stock_out._meta.model_name
+    object_id = str(stock_out.pk)
+    object_repr = str(stock_out)
+
+    item = stock_out.item
+    old_item_values = model_to_dict_safe(item)
 
     if request.method == "POST":
         reverse_stock_out(stock_out)
+
+        item.refresh_from_db()
+        new_item_values = model_to_dict_safe(item)
+
         stock_out.delete()
+
+        log_audit(
+            request,
+            "delete",
+            app_label=app_label,
+            model_name=model_name,
+            object_id=object_id,
+            object_repr=object_repr,
+            message=f"Deleted stock-out record: {object_repr}",
+            old_values=old_stock_out_values,
+        )
+
+        log_audit(
+            request,
+            "update",
+            obj=item,
+            message=f"Item quantity increased after deleting stock-out: {object_repr}.",
+            old_values=old_item_values,
+            new_values=new_item_values,
+        )
+
         messages.success(request, "Stock out record deleted successfully.")
 
     return redirect("stock_out_list")

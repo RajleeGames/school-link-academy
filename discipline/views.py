@@ -8,19 +8,42 @@ from accounts.decorators import permission_required
 
 from academics.models import ClassLevel, Stream
 
+from audit.utils import log_audit, model_to_dict_safe
+
 from .forms import DisciplineCategoryForm, DisciplineRecordForm, DisciplineFollowUpForm
 from .models import DisciplineCategory, DisciplineRecord, DisciplineFollowUp
 
 
 def safe_delete_object(request, obj, success_message, redirect_url):
+    old_values = model_to_dict_safe(obj)
+    app_label = obj._meta.app_label
+    model_name = obj._meta.model_name
+    object_id = str(obj.pk)
+    object_repr = str(obj)
+
     try:
         obj.delete()
+
+        log_audit(
+            request,
+            "delete",
+            app_label=app_label,
+            model_name=model_name,
+            object_id=object_id,
+            object_repr=object_repr,
+            message=f"Deleted {model_name}: {object_repr}",
+            old_values=old_values,
+            new_values={},
+        )
+
         messages.success(request, success_message)
+
     except ProtectedError:
         messages.error(
             request,
             "This record cannot be deleted because it is already used somewhere. You can edit it or mark it inactive instead."
         )
+
     except Exception:
         messages.error(
             request,
@@ -71,11 +94,22 @@ def discipline_category_list(request):
         form = DisciplineCategoryForm(request.POST)
 
         if form.is_valid():
-            form.save()
+            category = form.save()
+
+            log_audit(
+                request,
+                "create",
+                obj=category,
+                message=f"Created discipline category: {category}",
+                old_values={},
+                new_values=model_to_dict_safe(category),
+            )
+
             messages.success(request, "Discipline category saved successfully.")
             return redirect("discipline_category_list")
 
         messages.error(request, "Please correct the category form.")
+
     else:
         form = DisciplineCategoryForm()
 
@@ -88,16 +122,28 @@ def discipline_category_list(request):
 @permission_required("discipline.manage")
 def discipline_category_update(request, pk):
     category = get_object_or_404(DisciplineCategory, pk=pk)
+    old_values = model_to_dict_safe(category)
 
     if request.method == "POST":
         form = DisciplineCategoryForm(request.POST, instance=category)
 
         if form.is_valid():
-            form.save()
+            updated_category = form.save()
+
+            log_audit(
+                request,
+                "update",
+                obj=updated_category,
+                message=f"Updated discipline category: {updated_category}",
+                old_values=old_values,
+                new_values=model_to_dict_safe(updated_category),
+            )
+
             messages.success(request, "Discipline category updated successfully.")
             return redirect("discipline_category_list")
 
         messages.error(request, "Please correct the category form.")
+
     else:
         form = DisciplineCategoryForm(instance=category)
 
@@ -192,10 +238,21 @@ def discipline_record_create(request):
 
         if form.is_valid():
             record = form.save()
+
+            log_audit(
+                request,
+                "create",
+                obj=record,
+                message=f"Created discipline record: {record}",
+                old_values={},
+                new_values=model_to_dict_safe(record),
+            )
+
             messages.success(request, "Discipline record saved successfully.")
             return redirect("discipline_record_detail", pk=record.pk)
 
         messages.error(request, "Please correct the discipline form.")
+
     else:
         form = DisciplineRecordForm(initial={
             "incident_date": timezone.now().date(),
@@ -213,16 +270,28 @@ def discipline_record_create(request):
 @permission_required("discipline.manage")
 def discipline_record_update(request, pk):
     record = get_object_or_404(DisciplineRecord, pk=pk)
+    old_values = model_to_dict_safe(record)
 
     if request.method == "POST":
         form = DisciplineRecordForm(request.POST, request.FILES, instance=record)
 
         if form.is_valid():
             updated_record = form.save()
+
+            log_audit(
+                request,
+                "update",
+                obj=updated_record,
+                message=f"Updated discipline record: {updated_record}",
+                old_values=old_values,
+                new_values=model_to_dict_safe(updated_record),
+            )
+
             messages.success(request, "Discipline record updated successfully.")
             return redirect("discipline_record_detail", pk=updated_record.pk)
 
         messages.error(request, "Please correct the discipline form.")
+
     else:
         form = DisciplineRecordForm(instance=record)
 
@@ -316,10 +385,21 @@ def followup_create(request):
 
         if form.is_valid():
             followup = form.save()
+
+            log_audit(
+                request,
+                "create",
+                obj=followup,
+                message=f"Created discipline follow-up: {followup}",
+                old_values={},
+                new_values=model_to_dict_safe(followup),
+            )
+
             messages.success(request, "Follow-up saved successfully.")
             return redirect("discipline_record_detail", pk=followup.record.pk)
 
         messages.error(request, "Please correct the follow-up form.")
+
     else:
         form = DisciplineFollowUpForm(initial=initial)
 
@@ -337,16 +417,28 @@ def followup_update(request, pk):
         DisciplineFollowUp.objects.select_related("record"),
         pk=pk
     )
+    old_values = model_to_dict_safe(followup)
 
     if request.method == "POST":
         form = DisciplineFollowUpForm(request.POST, instance=followup)
 
         if form.is_valid():
             updated_followup = form.save()
+
+            log_audit(
+                request,
+                "update",
+                obj=updated_followup,
+                message=f"Updated discipline follow-up: {updated_followup}",
+                old_values=old_values,
+                new_values=model_to_dict_safe(updated_followup),
+            )
+
             messages.success(request, "Follow-up updated successfully.")
             return redirect("discipline_record_detail", pk=updated_followup.record.pk)
 
         messages.error(request, "Please correct the follow-up form.")
+
     else:
         form = DisciplineFollowUpForm(instance=followup)
 
@@ -364,8 +456,27 @@ def followup_delete(request, pk):
     followup = get_object_or_404(DisciplineFollowUp, pk=pk)
     record_id = followup.record_id
 
+    old_values = model_to_dict_safe(followup)
+    app_label = followup._meta.app_label
+    model_name = followup._meta.model_name
+    object_id = str(followup.pk)
+    object_repr = str(followup)
+
     if request.method == "POST":
         followup.delete()
+
+        log_audit(
+            request,
+            "delete",
+            app_label=app_label,
+            model_name=model_name,
+            object_id=object_id,
+            object_repr=object_repr,
+            message=f"Deleted discipline follow-up: {object_repr}",
+            old_values=old_values,
+            new_values={},
+        )
+
         messages.success(request, "Follow-up deleted successfully.")
         return redirect("discipline_record_detail", pk=record_id)
 

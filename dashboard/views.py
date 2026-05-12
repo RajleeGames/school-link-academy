@@ -1,7 +1,9 @@
 from decimal import Decimal
 
 from django.db.models import Sum
+from django.db.models.functions import TruncMonth
 from django.shortcuts import render
+from django.utils import timezone
 
 from accounts.decorators import permission_required
 from accounts.permissions import get_user_role, user_has_permission
@@ -17,9 +19,30 @@ def _zero_money():
     return Decimal("0.00")
 
 
+def _money_float(value):
+    if value is None:
+        return 0
+    return float(value)
+
+
+def _month_labels_for_year(year):
+    return [
+        f"{year}-01", f"{year}-02", f"{year}-03", f"{year}-04",
+        f"{year}-05", f"{year}-06", f"{year}-07", f"{year}-08",
+        f"{year}-09", f"{year}-10", f"{year}-11", f"{year}-12",
+    ]
+
+
+def _month_names():
+    return ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+
+
 @permission_required("dashboard.view")
 def dashboard_home(request):
     role = get_user_role(request.user)
+    today = timezone.localdate()
+    current_year = today.year
+    current_month = today.month
 
     can_view_students = user_has_permission(request.user, "students.view")
     can_view_parents = user_has_permission(request.user, "parents.view")
@@ -50,14 +73,29 @@ def dashboard_home(request):
     total_fees_paid = _zero_money()
     total_expenses = _zero_money()
     net_cash = _zero_money()
+
+    month_fees_paid = _zero_money()
+    month_expenses = _zero_money()
+    month_net_cash = _zero_money()
+
+    year_fees_paid = _zero_money()
+    year_expenses = _zero_money()
+    year_net_cash = _zero_money()
+
     total_debtors = 0
     outstanding_fees = _zero_money()
+
     recent_payments = []
     recent_expenses = []
 
     teacher_profile = None
     teacher_classes = []
     teacher_subjects = []
+
+    chart_labels = _month_names()
+    payments_chart = [0] * 12
+    expenses_chart = [0] * 12
+    net_chart = [0] * 12
 
     if can_view_students:
         total_students = Student.objects.count()
@@ -86,26 +124,81 @@ def dashboard_home(request):
         total_subjects = Subject.objects.count()
 
     if can_view_payments:
-        total_fees_paid = FeePayment.objects.filter(status="confirmed").aggregate(
+        confirmed_payments = FeePayment.objects.filter(status="confirmed")
+
+        total_fees_paid = confirmed_payments.aggregate(
             total=Sum("amount")
         )["total"] or _zero_money()
 
-        recent_payments = FeePayment.objects.select_related(
+        month_fees_paid = confirmed_payments.filter(
+            payment_date__year=current_year,
+            payment_date__month=current_month,
+        ).aggregate(total=Sum("amount"))["total"] or _zero_money()
+
+        year_fees_paid = confirmed_payments.filter(
+            payment_date__year=current_year,
+        ).aggregate(total=Sum("amount"))["total"] or _zero_money()
+
+        recent_payments = confirmed_payments.select_related(
             "invoice",
             "invoice__student"
         ).order_by("-created_at")[:5]
 
+        monthly_payment_rows = (
+            confirmed_payments
+            .filter(payment_date__year=current_year)
+            .annotate(month=TruncMonth("payment_date"))
+            .values("month")
+            .annotate(total=Sum("amount"))
+            .order_by("month")
+        )
+
+        for row in monthly_payment_rows:
+            if row["month"]:
+                month_index = row["month"].month - 1
+                payments_chart[month_index] = _money_float(row["total"])
+
     if can_view_expenses:
-        total_expenses = Expense.objects.filter(status="paid").aggregate(
+        paid_expenses = Expense.objects.filter(status="paid")
+
+        total_expenses = paid_expenses.aggregate(
             total=Sum("amount")
         )["total"] or _zero_money()
 
-        recent_expenses = Expense.objects.select_related(
+        month_expenses = paid_expenses.filter(
+            expense_date__year=current_year,
+            expense_date__month=current_month,
+        ).aggregate(total=Sum("amount"))["total"] or _zero_money()
+
+        year_expenses = paid_expenses.filter(
+            expense_date__year=current_year,
+        ).aggregate(total=Sum("amount"))["total"] or _zero_money()
+
+        recent_expenses = paid_expenses.select_related(
             "category"
         ).order_by("-created_at")[:5]
 
+        monthly_expense_rows = (
+            paid_expenses
+            .filter(expense_date__year=current_year)
+            .annotate(month=TruncMonth("expense_date"))
+            .values("month")
+            .annotate(total=Sum("amount"))
+            .order_by("month")
+        )
+
+        for row in monthly_expense_rows:
+            if row["month"]:
+                month_index = row["month"].month - 1
+                expenses_chart[month_index] = _money_float(row["total"])
+
     if can_view_payments or can_view_expenses:
         net_cash = total_fees_paid - total_expenses
+        month_net_cash = month_fees_paid - month_expenses
+        year_net_cash = year_fees_paid - year_expenses
+
+        for index in range(12):
+            net_chart[index] = payments_chart[index] - expenses_chart[index]
 
     if can_view_fees:
         total_debtors = StudentInvoice.objects.exclude(
@@ -128,6 +221,24 @@ def dashboard_home(request):
         if teacher_profile:
             teacher_classes = teacher_profile.assigned_classes.all()
             teacher_subjects = teacher_profile.subjects.all()
+
+    dashboard_chart_data = {
+        "labels": chart_labels,
+        "payments": payments_chart,
+        "expenses": expenses_chart,
+        "net": net_chart,
+        "year": current_year,
+    }
+
+    finance_summary_chart_data = {
+        "labels": ["Month Income", "Month Expenses", "Month Net", "Outstanding"],
+        "values": [
+            _money_float(month_fees_paid),
+            _money_float(month_expenses),
+            _money_float(month_net_cash),
+            _money_float(outstanding_fees),
+        ],
+    }
 
     context = {
         "role": role,
@@ -157,6 +268,15 @@ def dashboard_home(request):
         "total_fees_paid": total_fees_paid,
         "total_expenses": total_expenses,
         "net_cash": net_cash,
+
+        "month_fees_paid": month_fees_paid,
+        "month_expenses": month_expenses,
+        "month_net_cash": month_net_cash,
+
+        "year_fees_paid": year_fees_paid,
+        "year_expenses": year_expenses,
+        "year_net_cash": year_net_cash,
+
         "total_debtors": total_debtors,
         "outstanding_fees": outstanding_fees,
 
@@ -168,6 +288,10 @@ def dashboard_home(request):
         "teacher_profile": teacher_profile,
         "teacher_classes": teacher_classes,
         "teacher_subjects": teacher_subjects,
+
+        "dashboard_chart_data": dashboard_chart_data,
+        "finance_summary_chart_data": finance_summary_chart_data,
+        "current_year": current_year,
     }
 
     return render(request, "dashboard/home.html", context)

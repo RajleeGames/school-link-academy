@@ -4,6 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
   <title>
     Login |
     {% if school_profile_global %}
@@ -17,67 +18,16 @@
   <link rel="stylesheet" href="{% static 'schoollink/css/app.css' %}">
 
   <script>
-  (function () {
-    const savedTheme = localStorage.getItem("schoolLinkTheme");
-    document.documentElement.setAttribute("data-theme", savedTheme === "dark" ? "dark" : "light");
-  })();
-</script>
-
-  <style>
-    .sl-auth-card {
-      text-align: center;
-    }
-
-    .sl-auth-logo {
-      width: 76px;
-      height: 76px;
-      margin: 0 auto 16px;
-      border-radius: 18px;
-      display: grid;
-      place-items: center;
-      overflow: hidden;
-      background: var(--sl-header);
-      color: var(--sl-gold);
-      font-size: 1.2rem;
-      font-weight: 900;
-      box-shadow: 0 14px 30px rgba(15, 23, 42, 0.12);
-    }
-
-    .sl-auth-logo img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-
-    .sl-auth-title {
-      text-align: center;
-      font-weight: 700;
-      color: var(--sl-header-dark);
-      margin-bottom: 4px;
-    }
-
-    .sl-auth-subtitle {
-      max-width: 320px;
-      margin-left: auto;
-      margin-right: auto;
-      text-align: center;
-      line-height: 1.45;
-    }
-
-    .sl-auth-card form {
-      text-align: left;
-      margin-top: 18px;
-    }
-
-    .sl-auth-footer {
-      text-align: center;
-      margin-top: 22px;
-      color: var(--sl-muted);
-      font-size: 0.78rem;
-    }
-  </style>
+    (function () {
+      const savedTheme = localStorage.getItem("schoolLinkTheme");
+      document.documentElement.setAttribute(
+        "data-theme",
+        savedTheme === "dark" ? "dark" : "light"
+      );
+    })();
+  </script>
 </head>
+
 <body>
 
 <div class="sl-auth-wrapper">
@@ -97,7 +47,9 @@
       {% endif %}
     </div>
 
-    <div class="sl-auth-title">Welcome Back</div>
+    <div class="sl-auth-title">
+      Welcome Back
+    </div>
 
     <div class="sl-auth-subtitle">
       Login to manage
@@ -109,28 +61,71 @@
     </div>
 
     {% if form.errors %}
-      <div class="alert alert-danger small text-start mt-3">
+      <div class="alert alert-danger small text-start mt-3 mb-0">
         Invalid username or password. Please try again.
       </div>
     {% endif %}
 
-    <form method="post">
+    <form method="post" novalidate>
       {% csrf_token %}
 
+      {% if next %}
+        <input type="hidden" name="next" value="{{ next }}">
+      {% endif %}
+
       <div class="mb-3">
-        <label class="form-label small fw-bold">Username</label>
-        <input type="text" name="username" class="form-control" placeholder="Enter username" required autofocus>
+        <label for="id_username" class="form-label">Username</label>
+        <input
+          type="text"
+          id="id_username"
+          name="username"
+          class="form-control"
+          placeholder="Enter username"
+          autocomplete="username"
+          required
+          autofocus
+        >
       </div>
 
       <div class="mb-3">
-        <label class="form-label small fw-bold">Password</label>
-        <input type="password" name="password" class="form-control" placeholder="Enter password" required>
+        <label for="id_password" class="form-label">Password</label>
+
+        <div class="input-group sl-password-group">
+          <input
+            type="password"
+            id="id_password"
+            name="password"
+            class="form-control"
+            placeholder="Enter password"
+            autocomplete="current-password"
+            required
+          >
+
+          <button
+            type="button"
+            class="btn btn-outline-secondary sl-password-eye"
+            id="passwordToggleBtn"
+            aria-label="Show password"
+            title="Show password"
+          >
+            <span id="passwordToggleIcon">👁</span>
+          </button>
+        </div>
       </div>
 
       <button type="submit" class="btn btn-sl-primary w-100">
         Login
       </button>
     </form>
+
+    <div class="sl-login-help sl-login-help-danger mt-3">
+      <div class="small sl-forgot-title">
+        Forgot your password?
+      </div>
+      <div class="small">
+        Contact the school administrator or ICT office to reset your account.
+      </div>
+    </div>
 
     <div class="sl-auth-footer">
       {% if school_profile_global %}
@@ -145,5 +140,34 @@
 </div>
 
 <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const passwordInput = document.getElementById("id_password");
+    const toggleBtn = document.getElementById("passwordToggleBtn");
+    const toggleIcon = document.getElementById("passwordToggleIcon");
+
+    if (!passwordInput || !toggleBtn || !toggleIcon) {
+      return;
+    }
+
+    toggleBtn.addEventListener("click", function () {
+      const passwordIsHidden = passwordInput.type === "password";
+
+      if (passwordIsHidden) {
+        passwordInput.type = "text";
+        toggleIcon.textContent = "🙈";
+        toggleBtn.setAttribute("aria-label", "Hide password");
+        toggleBtn.setAttribute("title", "Hide password");
+      } else {
+        passwordInput.type = "password";
+        toggleIcon.textContent = "👁";
+        toggleBtn.setAttribute("aria-label", "Show password");
+        toggleBtn.setAttribute("title", "Show password");
+      }
+    });
+  });
+</script>
+
 </body>
 </html>

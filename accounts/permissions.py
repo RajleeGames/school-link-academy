@@ -28,8 +28,11 @@ ALL_PERMISSIONS = {
     "school.branches.manage": "Manage School Branches",
     "school.settings.view": "View System Settings",
     "school.settings.manage": "Manage System Settings",
+
+    # User access / accounts
     "users.roles.view": "View User Roles",
     "users.roles.manage": "Manage User Roles",
+    "users.password.reset": "Reset User Passwords",
 
     # Students / parents / staff
     "students.view": "View Students",
@@ -197,6 +200,10 @@ ROLE_PERMISSIONS = {
 
         "reports.view",
         "reports.students",
+
+        # Allows secretary / receptionist to reset normal user passwords.
+        # Remove this line if you want ONLY admin/superuser to reset passwords.
+        "users.password.reset",
     ],
 
     "cashier": [
@@ -243,8 +250,6 @@ ROLE_PERMISSIONS = {
     ],
 
     "teacher": [
-        # Teacher should NOT see full admin setup.
-        # Teacher can see teaching-related pages only.
         "dashboard.view",
 
         "students.view",
@@ -265,7 +270,6 @@ ROLE_PERMISSIONS = {
         "homework.manage",
         "discipline.view",
 
-        
         "reports.exams",
     ],
 
@@ -274,7 +278,6 @@ ROLE_PERMISSIONS = {
         "students.view",
         "library.view",
         "library.manage",
-        
     ],
 
     "hostel_manager": [

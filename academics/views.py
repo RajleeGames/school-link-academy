@@ -4,8 +4,49 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from accounts.decorators import permission_required
 
+from audit.utils import log_audit, model_to_dict_safe
+
 from .forms import AcademicYearForm, TermForm, ClassLevelForm, StreamForm, SubjectForm
 from .models import AcademicYear, Term, ClassLevel, Stream, Subject
+
+
+def safe_delete_object(request, obj, success_message, redirect_url):
+    old_values = model_to_dict_safe(obj)
+    app_label = obj._meta.app_label
+    model_name = obj._meta.model_name
+    object_id = str(obj.pk)
+    object_repr = str(obj)
+
+    try:
+        obj.delete()
+
+        log_audit(
+            request,
+            "delete",
+            app_label=app_label,
+            model_name=model_name,
+            object_id=object_id,
+            object_repr=object_repr,
+            message=f"Deleted {model_name}: {object_repr}",
+            old_values=old_values,
+            new_values={},
+        )
+
+        messages.success(request, success_message)
+
+    except ProtectedError:
+        messages.error(
+            request,
+            "This record cannot be deleted because it is already used somewhere. You can edit it or mark it inactive instead."
+        )
+
+    except Exception:
+        messages.error(
+            request,
+            "This record could not be deleted. Please check if it is connected to other records."
+        )
+
+    return redirect(redirect_url)
 
 
 @permission_required("academics.view")
@@ -74,9 +115,34 @@ def academic_year_create(request):
 
         if form.is_valid():
             if form.cleaned_data.get("is_current"):
+                old_current_years = list(AcademicYear.objects.filter(is_current=True))
+
                 AcademicYear.objects.update(is_current=False)
 
-            form.save()
+                for old_year in old_current_years:
+                    old_values = model_to_dict_safe(old_year)
+                    old_year.refresh_from_db()
+
+                    log_audit(
+                        request,
+                        "update",
+                        obj=old_year,
+                        message=f"Unset previous current academic year: {old_year}",
+                        old_values=old_values,
+                        new_values=model_to_dict_safe(old_year),
+                    )
+
+            academic_year = form.save()
+
+            log_audit(
+                request,
+                "create",
+                obj=academic_year,
+                message=f"Created academic year: {academic_year}",
+                old_values={},
+                new_values=model_to_dict_safe(academic_year),
+            )
+
             messages.success(request, "Academic year added successfully.")
         else:
             messages.error(request, "Please correct the academic year form.")
@@ -91,9 +157,34 @@ def term_create(request):
 
         if form.is_valid():
             if form.cleaned_data.get("is_current"):
+                old_current_terms = list(Term.objects.filter(is_current=True))
+
                 Term.objects.update(is_current=False)
 
-            form.save()
+                for old_term in old_current_terms:
+                    old_values = model_to_dict_safe(old_term)
+                    old_term.refresh_from_db()
+
+                    log_audit(
+                        request,
+                        "update",
+                        obj=old_term,
+                        message=f"Unset previous current term: {old_term}",
+                        old_values=old_values,
+                        new_values=model_to_dict_safe(old_term),
+                    )
+
+            term = form.save()
+
+            log_audit(
+                request,
+                "create",
+                obj=term,
+                message=f"Created academic term: {term}",
+                old_values={},
+                new_values=model_to_dict_safe(term),
+            )
+
             messages.success(request, "Term added successfully.")
         else:
             messages.error(request, "Please correct the term form.")
@@ -107,7 +198,17 @@ def class_level_create(request):
         form = ClassLevelForm(request.POST)
 
         if form.is_valid():
-            form.save()
+            class_level = form.save()
+
+            log_audit(
+                request,
+                "create",
+                obj=class_level,
+                message=f"Created class level: {class_level}",
+                old_values={},
+                new_values=model_to_dict_safe(class_level),
+            )
+
             messages.success(request, "Class level added successfully.")
         else:
             messages.error(request, "Please correct the class form.")
@@ -121,7 +222,17 @@ def stream_create(request):
         form = StreamForm(request.POST)
 
         if form.is_valid():
-            form.save()
+            stream = form.save()
+
+            log_audit(
+                request,
+                "create",
+                obj=stream,
+                message=f"Created stream: {stream}",
+                old_values={},
+                new_values=model_to_dict_safe(stream),
+            )
+
             messages.success(request, "Stream added successfully.")
         else:
             messages.error(request, "Please correct the stream form.")
@@ -135,7 +246,17 @@ def subject_create(request):
         form = SubjectForm(request.POST)
 
         if form.is_valid():
-            form.save()
+            subject = form.save()
+
+            log_audit(
+                request,
+                "create",
+                obj=subject,
+                message=f"Created subject: {subject}",
+                old_values={},
+                new_values=model_to_dict_safe(subject),
+            )
+
             messages.success(request, "Subject added successfully.")
         else:
             messages.error(request, "Please correct the subject form.")
@@ -148,13 +269,41 @@ def academic_year_update(request, pk):
     academic_year = get_object_or_404(AcademicYear, pk=pk)
 
     if request.method == "POST":
+        old_values = model_to_dict_safe(academic_year)
         form = AcademicYearForm(request.POST, instance=academic_year)
 
         if form.is_valid():
             if form.cleaned_data.get("is_current"):
+                old_current_years = list(
+                    AcademicYear.objects.filter(is_current=True).exclude(pk=academic_year.pk)
+                )
+
                 AcademicYear.objects.exclude(pk=academic_year.pk).update(is_current=False)
 
-            form.save()
+                for old_year in old_current_years:
+                    old_year_values = model_to_dict_safe(old_year)
+                    old_year.refresh_from_db()
+
+                    log_audit(
+                        request,
+                        "update",
+                        obj=old_year,
+                        message=f"Unset previous current academic year: {old_year}",
+                        old_values=old_year_values,
+                        new_values=model_to_dict_safe(old_year),
+                    )
+
+            updated_year = form.save()
+
+            log_audit(
+                request,
+                "update",
+                obj=updated_year,
+                message=f"Updated academic year: {updated_year}",
+                old_values=old_values,
+                new_values=model_to_dict_safe(updated_year),
+            )
+
             messages.success(request, "Academic year updated successfully.")
             return redirect("academic_year_list")
 
@@ -175,13 +324,41 @@ def term_update(request, pk):
     term = get_object_or_404(Term, pk=pk)
 
     if request.method == "POST":
+        old_values = model_to_dict_safe(term)
         form = TermForm(request.POST, instance=term)
 
         if form.is_valid():
             if form.cleaned_data.get("is_current"):
+                old_current_terms = list(
+                    Term.objects.filter(is_current=True).exclude(pk=term.pk)
+                )
+
                 Term.objects.exclude(pk=term.pk).update(is_current=False)
 
-            form.save()
+                for old_term in old_current_terms:
+                    old_term_values = model_to_dict_safe(old_term)
+                    old_term.refresh_from_db()
+
+                    log_audit(
+                        request,
+                        "update",
+                        obj=old_term,
+                        message=f"Unset previous current term: {old_term}",
+                        old_values=old_term_values,
+                        new_values=model_to_dict_safe(old_term),
+                    )
+
+            updated_term = form.save()
+
+            log_audit(
+                request,
+                "update",
+                obj=updated_term,
+                message=f"Updated academic term: {updated_term}",
+                old_values=old_values,
+                new_values=model_to_dict_safe(updated_term),
+            )
+
             messages.success(request, "Term updated successfully.")
             return redirect("term_list")
 
@@ -202,10 +379,21 @@ def class_level_update(request, pk):
     class_level = get_object_or_404(ClassLevel, pk=pk)
 
     if request.method == "POST":
+        old_values = model_to_dict_safe(class_level)
         form = ClassLevelForm(request.POST, instance=class_level)
 
         if form.is_valid():
-            form.save()
+            updated_class_level = form.save()
+
+            log_audit(
+                request,
+                "update",
+                obj=updated_class_level,
+                message=f"Updated class level: {updated_class_level}",
+                old_values=old_values,
+                new_values=model_to_dict_safe(updated_class_level),
+            )
+
             messages.success(request, "Class level updated successfully.")
             return redirect("class_level_list")
 
@@ -226,10 +414,21 @@ def stream_update(request, pk):
     stream = get_object_or_404(Stream, pk=pk)
 
     if request.method == "POST":
+        old_values = model_to_dict_safe(stream)
         form = StreamForm(request.POST, instance=stream)
 
         if form.is_valid():
-            form.save()
+            updated_stream = form.save()
+
+            log_audit(
+                request,
+                "update",
+                obj=updated_stream,
+                message=f"Updated stream: {updated_stream}",
+                old_values=old_values,
+                new_values=model_to_dict_safe(updated_stream),
+            )
+
             messages.success(request, "Stream updated successfully.")
             return redirect("stream_list")
 
@@ -250,10 +449,21 @@ def subject_update(request, pk):
     subject = get_object_or_404(Subject, pk=pk)
 
     if request.method == "POST":
+        old_values = model_to_dict_safe(subject)
         form = SubjectForm(request.POST, instance=subject)
 
         if form.is_valid():
-            form.save()
+            updated_subject = form.save()
+
+            log_audit(
+                request,
+                "update",
+                obj=updated_subject,
+                message=f"Updated subject: {updated_subject}",
+                old_values=old_values,
+                new_values=model_to_dict_safe(updated_subject),
+            )
+
             messages.success(request, "Subject updated successfully.")
             return redirect("subject_list")
 
@@ -267,24 +477,6 @@ def subject_update(request, pk):
         "back_url": "subject_list",
         "button_text": "Update Subject",
     })
-
-
-def safe_delete_object(request, obj, success_message, redirect_url):
-    try:
-        obj.delete()
-        messages.success(request, success_message)
-    except ProtectedError:
-        messages.error(
-            request,
-            "This record cannot be deleted because it is already used somewhere. You can edit it or mark it inactive instead."
-        )
-    except Exception:
-        messages.error(
-            request,
-            "This record could not be deleted. Please check if it is connected to other records."
-        )
-
-    return redirect(redirect_url)
 
 
 @permission_required("academics.manage")

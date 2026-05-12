@@ -4,6 +4,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from accounts.decorators import permission_required
 
+from audit.utils import log_audit, model_to_dict_safe
+
 from .forms import StaffProfileForm
 from .models import StaffProfile
 
@@ -54,10 +56,21 @@ def staff_create(request):
 
         if form.is_valid():
             staff = form.save()
+
+            log_audit(
+                request,
+                "create",
+                obj=staff,
+                message=f"Created staff member: {staff}",
+                old_values={},
+                new_values=model_to_dict_safe(staff),
+            )
+
             messages.success(request, "Staff member added successfully.")
             return redirect("staff_detail", pk=staff.pk)
 
         messages.error(request, "Please correct the staff form.")
+
     else:
         form = StaffProfileForm()
 
@@ -82,16 +95,28 @@ def staff_detail(request, pk):
 @permission_required("staff.manage")
 def staff_update(request, pk):
     staff = get_object_or_404(StaffProfile, pk=pk)
+    old_values = model_to_dict_safe(staff)
 
     if request.method == "POST":
         form = StaffProfileForm(request.POST, request.FILES, instance=staff)
 
         if form.is_valid():
-            form.save()
+            updated_staff = form.save()
+
+            log_audit(
+                request,
+                "update",
+                obj=updated_staff,
+                message=f"Updated staff member: {updated_staff}",
+                old_values=old_values,
+                new_values=model_to_dict_safe(updated_staff),
+            )
+
             messages.success(request, "Staff member updated successfully.")
-            return redirect("staff_detail", pk=staff.pk)
+            return redirect("staff_detail", pk=updated_staff.pk)
 
         messages.error(request, "Please correct the staff form.")
+
     else:
         form = StaffProfileForm(instance=staff)
 

@@ -1,21 +1,57 @@
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.auth.views import LoginView, LogoutView
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
-
+from django.contrib.auth.decorators import login_required
 from attendance.models import StudentAttendance
 from exams.models import ExamResult
 from fees.models import FeePayment, StudentInvoice
 from students.models import ParentGuardian
-
+from django.db.models import Count, Q, Sum
 from accounts.decorators import permission_required
 from accounts.permissions import user_has_permission
-
-from .forms import CreateParentLoginForm, SchoolLoginForm, UserProfileRoleForm
+from decimal import Decimal
+from audit.utils import log_audit, model_to_dict_safe
+from fees.utils import build_invoice_fee_breakdown, sync_invoice_items_from_fee_structure
+from .forms import (
+    AdminUserPasswordResetForm,
+    CreateParentLoginForm,
+    SchoolLoginForm,
+    UserProfileRoleForm,
+)
 from .models import UserProfile
+
+
+def user_safe_values(user_obj):
+    if not user_obj:
+        return {}
+
+    profile = getattr(user_obj, "account_profile", None)
+
+    data = {
+        "id": str(user_obj.pk),
+        "username": user_obj.username,
+        "email": user_obj.email,
+        "first_name": user_obj.first_name,
+        "last_name": user_obj.last_name,
+        "is_active": str(user_obj.is_active),
+        "is_staff": str(user_obj.is_staff),
+        "is_superuser": str(user_obj.is_superuser),
+        "last_login": str(user_obj.last_login) if user_obj.last_login else "",
+        "date_joined": str(user_obj.date_joined) if user_obj.date_joined else "",
+    }
+
+    if profile:
+        data.update({
+            "profile_id": str(profile.pk),
+            "role": profile.role,
+            "phone": profile.phone,
+            "is_active_profile": str(profile.is_active_profile),
+        })
+
+    return data
 
 
 def get_role_redirect(user):
@@ -45,13 +81,39 @@ class SchoolLoginView(LoginView):
         profile = getattr(user, "account_profile", None)
 
         if profile and not profile.is_active_profile:
+            log_audit(
+                self.request,
+                "login",
+                app_label="auth",
+                model_name="user",
+                object_id=str(user.pk),
+                object_repr=user.username,
+                message=f"Blocked login attempt for inactive account: {user.username}",
+                old_values={},
+                new_values=user_safe_values(user),
+            )
+
             messages.error(
                 self.request,
                 "Your account is inactive. Contact administrator."
             )
             return redirect("login")
 
-        return super().form_valid(form)
+        response = super().form_valid(form)
+
+        log_audit(
+            self.request,
+            "login",
+            app_label="auth",
+            model_name="user",
+            object_id=str(user.pk),
+            object_repr=user.username,
+            message=f"User logged in: {user.username}",
+            old_values={},
+            new_values=user_safe_values(user),
+        )
+
+        return response
 
     def get_success_url(self):
         return_url = get_role_redirect(self.request.user)
@@ -60,6 +122,24 @@ class SchoolLoginView(LoginView):
 
 class SchoolLogoutView(LogoutView):
     next_page = "login"
+
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            user = request.user
+
+            log_audit(
+                request,
+                "logout",
+                app_label="auth",
+                model_name="user",
+                object_id=str(user.pk),
+                object_repr=user.username,
+                message=f"User logged out: {user.username}",
+                old_values=user_safe_values(user),
+                new_values={},
+            )
+
+        return super().dispatch(request, *args, **kwargs)
 
 
 @login_required
@@ -106,12 +186,23 @@ def user_role_update(request, pk):
         UserProfile.objects.create(user=user_obj)
 
     profile = user_obj.account_profile
+    old_values = model_to_dict_safe(profile)
 
     if request.method == "POST":
         form = UserProfileRoleForm(request.POST, instance=profile)
 
         if form.is_valid():
-            form.save()
+            updated_profile = form.save()
+
+            log_audit(
+                request,
+                "update",
+                obj=updated_profile,
+                message=f"Updated user role/profile for: {user_obj.username}",
+                old_values=old_values,
+                new_values=model_to_dict_safe(updated_profile),
+            )
+
             messages.success(request, "User role updated successfully.")
             return redirect("user_role_list")
 
@@ -124,6 +215,67 @@ def user_role_update(request, pk):
         "user_obj": user_obj,
     })
 
+
+
+@permission_required("users.password.reset")
+def user_reset_password(request, pk):
+    user_obj = get_object_or_404(
+        User.objects.select_related("account_profile"),
+        pk=pk
+    )
+
+    if user_obj.is_superuser and not request.user.is_superuser:
+        messages.error(request, "Only a superuser can reset another superuser password.")
+        return redirect("user_role_list")
+
+    if request.method == "POST":
+        form = AdminUserPasswordResetForm(request.POST)
+
+        if form.is_valid():
+            old_values = user_safe_values(user_obj)
+
+            new_password = form.cleaned_data["new_password"]
+            must_change_password = form.cleaned_data.get("must_change_password", True)
+
+            user_obj.set_password(new_password)
+            user_obj.save(update_fields=["password"])
+
+            profile = getattr(user_obj, "account_profile", None)
+
+            if profile:
+                profile.must_change_password = must_change_password
+                profile.save(update_fields=["must_change_password"])
+
+            new_values = user_safe_values(user_obj)
+            new_values["password"] = "Password was reset by admin"
+            new_values["must_change_password"] = str(must_change_password)
+
+            log_audit(
+                request,
+                "update",
+                app_label="auth",
+                model_name="user",
+                object_id=str(user_obj.pk),
+                object_repr=user_obj.username,
+                message=f"Admin reset password for user: {user_obj.username}",
+                old_values=old_values,
+                new_values=new_values,
+            )
+
+            messages.success(
+                request,
+                f"Password for {user_obj.username} was reset successfully."
+            )
+            return redirect("user_role_list")
+
+        messages.error(request, "Please correct the password form.")
+    else:
+        form = AdminUserPasswordResetForm()
+
+    return render(request, "accounts/user_reset_password.html", {
+        "form": form,
+        "user_obj": user_obj,
+    })
 
 @permission_required("parent.portal.view")
 def parent_portal_home(request):
@@ -161,7 +313,6 @@ def get_parent_student_or_404(request, student_id):
 
     return parent, student
 
-
 @permission_required("parent.invoices.view")
 def parent_student_invoices(request, student_id):
     parent, student = get_parent_student_or_404(request, student_id)
@@ -176,8 +327,21 @@ def parent_student_invoices(request, student_id):
         "term",
     ).prefetch_related(
         "items",
+        "items__category",
         "payments",
+        "payments__fee_item",
     ).order_by("-invoice_date", "-id")
+
+    for invoice in invoices:
+        if not invoice.items.exists() and invoice.status != "cancelled":
+            sync_invoice_items_from_fee_structure(invoice)
+
+        invoice.parent_total = invoice.total_amount
+        invoice.parent_discount = invoice.discount_amount
+        invoice.parent_paid_total = invoice.paid_amount
+        invoice.parent_balance = invoice.balance
+        invoice.parent_status = invoice.status
+        invoice.parent_fee_breakdown = build_invoice_fee_breakdown(invoice)
 
     return render(request, "accounts/parent_student_invoices.html", {
         "parent": parent,
@@ -215,24 +379,113 @@ def parent_student_results(request, student_id):
     if not student:
         return redirect("parent_portal_home")
 
-    results = ExamResult.objects.filter(
-        student=student
+    student_exam_results = ExamResult.objects.filter(
+        student=student,
+        exam__isnull=False
     ).select_related(
         "exam",
         "exam__exam_type",
         "exam__academic_year",
         "exam__term",
-        "subject",
-        "teacher",
     ).order_by(
         "-exam__start_date",
-        "subject__name",
+        "-exam_id",
     )
+
+    exam_options = []
+    used_exam_ids = set()
+
+    for result in student_exam_results:
+        if result.exam_id and result.exam_id not in used_exam_ids:
+            used_exam_ids.add(result.exam_id)
+            exam_options.append(result.exam)
+
+    selected_exam_id = request.GET.get("exam", "").strip()
+
+    if not selected_exam_id and exam_options:
+        selected_exam_id = str(exam_options[0].id)
+
+    selected_exam = None
+    results = ExamResult.objects.none()
+
+    total_marks = 0
+    subject_count = 0
+    average_marks = 0
+    class_position = None
+    total_students = 0
+    highest_total = 0
+
+    if selected_exam_id:
+        results = ExamResult.objects.filter(
+            student=student,
+            exam_id=selected_exam_id
+        ).select_related(
+            "exam",
+            "exam__exam_type",
+            "exam__academic_year",
+            "exam__term",
+            "subject",
+            "teacher",
+        ).order_by(
+            "subject__name",
+        )
+
+        selected_exam = results.first().exam if results.exists() else None
+
+        summary = results.aggregate(
+            total=Sum("marks"),
+            subjects=Count("id"),
+        )
+
+        total_marks = summary["total"] or 0
+        subject_count = summary["subjects"] or 0
+
+        if subject_count:
+            average_marks = total_marks / subject_count
+
+        class_results = ExamResult.objects.filter(
+            exam_id=selected_exam_id,
+            student__class_level=student.class_level,
+        )
+
+        if student.stream:
+            class_results = class_results.filter(student__stream=student.stream)
+
+        rankings = list(
+            class_results.values(
+                "student_id"
+            ).annotate(
+                total=Sum("marks"),
+                subjects=Count("id"),
+            ).order_by(
+                "-total",
+                "student_id",
+            )
+        )
+
+        total_students = len(rankings)
+
+        if rankings:
+            highest_total = rankings[0]["total"] or 0
+
+        for index, item in enumerate(rankings, start=1):
+            if item["student_id"] == student.id:
+                class_position = index
+                break
 
     return render(request, "accounts/parent_student_results.html", {
         "parent": parent,
         "student": student,
         "results": results,
+        "exam_options": exam_options,
+        "selected_exam_id": selected_exam_id,
+        "selected_exam": selected_exam,
+        "total_marks": total_marks,
+        "subject_count": subject_count,
+        "average_marks": average_marks,
+        "class_position": class_position,
+        "total_students": total_students,
+        "highest_total": highest_total,
     })
 
 
@@ -265,6 +518,8 @@ def create_parent_login(request, pk):
         messages.warning(request, "This parent already has a login account.")
         return redirect("parent_list")
 
+    old_parent_values = model_to_dict_safe(parent)
+
     if request.method == "POST":
         form = CreateParentLoginForm(request.POST)
 
@@ -277,12 +532,44 @@ def create_parent_login(request, pk):
             )
 
             profile = user.account_profile
+            old_profile_values = model_to_dict_safe(profile)
+
             profile.role = "parent"
             profile.phone = parent.phone
             profile.save()
 
             parent.user = user
             parent.save()
+
+            log_audit(
+                request,
+                "create",
+                app_label="auth",
+                model_name="user",
+                object_id=str(user.pk),
+                object_repr=user.username,
+                message=f"Created parent login user account for: {parent.full_name}",
+                old_values={},
+                new_values=user_safe_values(user),
+            )
+
+            log_audit(
+                request,
+                "update",
+                obj=profile,
+                message=f"Updated new parent user profile for: {user.username}",
+                old_values=old_profile_values,
+                new_values=model_to_dict_safe(profile),
+            )
+
+            log_audit(
+                request,
+                "update",
+                obj=parent,
+                message=f"Linked parent / guardian to login user: {user.username}",
+                old_values=old_parent_values,
+                new_values=model_to_dict_safe(parent),
+            )
 
             messages.success(request, "Parent login account created successfully.")
             return redirect("parent_list")

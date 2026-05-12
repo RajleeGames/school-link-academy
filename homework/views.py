@@ -9,19 +9,41 @@ from accounts.decorators import permission_required
 from academics.models import ClassLevel, Stream, Subject
 from students.models import Student
 
+from audit.utils import log_audit, model_to_dict_safe
+
 from .forms import HomeworkForm, HomeworkSubmissionForm
 from .models import Homework, HomeworkSubmission
 
 
 def safe_delete_object(request, obj, success_message, redirect_url):
+    old_values = model_to_dict_safe(obj)
+    app_label = obj._meta.app_label
+    model_name = obj._meta.model_name
+    object_id = str(obj.pk)
+    object_repr = str(obj)
+
     try:
         obj.delete()
+
+        log_audit(
+            request,
+            "delete",
+            app_label=app_label,
+            model_name=model_name,
+            object_id=object_id,
+            object_repr=object_repr,
+            message=f"Deleted {model_name}: {object_repr}",
+            old_values=old_values,
+        )
+
         messages.success(request, success_message)
+
     except ProtectedError:
         messages.error(
             request,
             "This record cannot be deleted because it is already used somewhere. You can edit it or mark it inactive instead."
         )
+
     except Exception:
         messages.error(
             request,
@@ -123,10 +145,20 @@ def homework_create(request):
 
         if form.is_valid():
             homework = form.save()
+
+            log_audit(
+                request,
+                "create",
+                obj=homework,
+                message=f"Created homework: {homework}",
+                new_values=model_to_dict_safe(homework),
+            )
+
             messages.success(request, "Homework created successfully.")
             return redirect("homework_detail", pk=homework.pk)
 
         messages.error(request, "Please correct the homework form.")
+
     else:
         form = HomeworkForm(initial={
             "assigned_date": timezone.now().date(),
@@ -145,16 +177,28 @@ def homework_create(request):
 @permission_required("homework.manage")
 def homework_update(request, pk):
     homework = get_object_or_404(Homework, pk=pk)
+    old_values = model_to_dict_safe(homework)
 
     if request.method == "POST":
         form = HomeworkForm(request.POST, request.FILES, instance=homework)
 
         if form.is_valid():
             updated_homework = form.save()
+
+            log_audit(
+                request,
+                "update",
+                obj=updated_homework,
+                message=f"Updated homework: {updated_homework}",
+                old_values=old_values,
+                new_values=model_to_dict_safe(updated_homework),
+            )
+
             messages.success(request, "Homework updated successfully.")
             return redirect("homework_detail", pk=updated_homework.pk)
 
         messages.error(request, "Please correct the homework form.")
+
     else:
         form = HomeworkForm(instance=homework)
 
@@ -272,10 +316,20 @@ def submission_create(request):
 
         if form.is_valid():
             submission = form.save()
+
+            log_audit(
+                request,
+                "create",
+                obj=submission,
+                message=f"Created homework submission: {submission}",
+                new_values=model_to_dict_safe(submission),
+            )
+
             messages.success(request, "Homework submission saved successfully.")
             return redirect("homework_detail", pk=submission.homework.pk)
 
         messages.error(request, "Please correct the submission form.")
+
     else:
         form = HomeworkSubmissionForm(initial={
             "submitted_date": timezone.now().date(),
@@ -296,16 +350,28 @@ def submission_update(request, pk):
         HomeworkSubmission.objects.select_related("homework", "student"),
         pk=pk
     )
+    old_values = model_to_dict_safe(submission)
 
     if request.method == "POST":
         form = HomeworkSubmissionForm(request.POST, request.FILES, instance=submission)
 
         if form.is_valid():
             updated_submission = form.save()
+
+            log_audit(
+                request,
+                "update",
+                obj=updated_submission,
+                message=f"Updated homework submission: {updated_submission}",
+                old_values=old_values,
+                new_values=model_to_dict_safe(updated_submission),
+            )
+
             messages.success(request, "Homework submission updated successfully.")
             return redirect("homework_detail", pk=updated_submission.homework.pk)
 
         messages.error(request, "Please correct the submission form.")
+
     else:
         form = HomeworkSubmissionForm(instance=submission)
 
@@ -323,8 +389,26 @@ def submission_delete(request, pk):
     submission = get_object_or_404(HomeworkSubmission, pk=pk)
     homework_id = submission.homework_id
 
+    old_values = model_to_dict_safe(submission)
+    app_label = submission._meta.app_label
+    model_name = submission._meta.model_name
+    object_id = str(submission.pk)
+    object_repr = str(submission)
+
     if request.method == "POST":
         submission.delete()
+
+        log_audit(
+            request,
+            "delete",
+            app_label=app_label,
+            model_name=model_name,
+            object_id=object_id,
+            object_repr=object_repr,
+            message=f"Deleted homework submission: {object_repr}",
+            old_values=old_values,
+        )
+
         messages.success(request, "Homework submission deleted successfully.")
         return redirect("homework_detail", pk=homework_id)
 
@@ -344,9 +428,10 @@ def auto_create_homework_submissions(request, pk):
         students = students.filter(stream=homework.stream)
 
     created_count = 0
+    created_submission_ids = []
 
     for student in students:
-        _, created = HomeworkSubmission.objects.get_or_create(
+        submission, created = HomeworkSubmission.objects.get_or_create(
             homework=homework,
             student=student,
             defaults={
@@ -356,6 +441,20 @@ def auto_create_homework_submissions(request, pk):
 
         if created:
             created_count += 1
+            created_submission_ids.append(submission.pk)
+
+    log_audit(
+        request,
+        "generate",
+        obj=homework,
+        message=f"Auto-created homework submission records for homework: {homework}. Created {created_count} records.",
+        new_values={
+            "homework_id": homework.pk,
+            "homework": str(homework),
+            "created_count": created_count,
+            "created_submission_ids": created_submission_ids,
+        },
+    )
 
     messages.success(
         request,

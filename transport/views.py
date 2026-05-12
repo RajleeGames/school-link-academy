@@ -5,6 +5,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from accounts.decorators import permission_required
 
+from audit.utils import log_audit, model_to_dict_safe
+
 from .forms import (
     DriverForm,
     StudentTransportAssignmentForm,
@@ -16,14 +18,35 @@ from .models import Driver, StudentTransportAssignment, TransportRoute, TripLog,
 
 
 def safe_delete_object(request, obj, success_message, redirect_url):
+    old_values = model_to_dict_safe(obj)
+    app_label = obj._meta.app_label
+    model_name = obj._meta.model_name
+    object_id = str(obj.pk)
+    object_repr = str(obj)
+
     try:
         obj.delete()
+
+        log_audit(
+            request,
+            "delete",
+            app_label=app_label,
+            model_name=model_name,
+            object_id=object_id,
+            object_repr=object_repr,
+            message=f"Deleted {model_name}: {object_repr}",
+            old_values=old_values,
+            new_values={},
+        )
+
         messages.success(request, success_message)
+
     except ProtectedError:
         messages.error(
             request,
             "This record cannot be deleted because it is already used somewhere. You can edit it or mark it inactive instead."
         )
+
     except Exception:
         messages.error(
             request,
@@ -90,11 +113,22 @@ def vehicle_create(request):
         form = VehicleForm(request.POST)
 
         if form.is_valid():
-            form.save()
+            vehicle = form.save()
+
+            log_audit(
+                request,
+                "create",
+                obj=vehicle,
+                message=f"Created vehicle: {vehicle}",
+                old_values={},
+                new_values=model_to_dict_safe(vehicle),
+            )
+
             messages.success(request, "Vehicle added successfully.")
             return redirect("vehicle_list")
 
         messages.error(request, "Please correct the vehicle form.")
+
     else:
         form = VehicleForm()
 
@@ -109,16 +143,28 @@ def vehicle_create(request):
 @permission_required("transport.manage")
 def vehicle_update(request, pk):
     vehicle = get_object_or_404(Vehicle, pk=pk)
+    old_values = model_to_dict_safe(vehicle)
 
     if request.method == "POST":
         form = VehicleForm(request.POST, instance=vehicle)
 
         if form.is_valid():
-            form.save()
+            updated_vehicle = form.save()
+
+            log_audit(
+                request,
+                "update",
+                obj=updated_vehicle,
+                message=f"Updated vehicle: {updated_vehicle}",
+                old_values=old_values,
+                new_values=model_to_dict_safe(updated_vehicle),
+            )
+
             messages.success(request, "Vehicle updated successfully.")
             return redirect("vehicle_list")
 
         messages.error(request, "Please correct the vehicle form.")
+
     else:
         form = VehicleForm(instance=vehicle)
 
@@ -181,11 +227,22 @@ def driver_create(request):
         form = DriverForm(request.POST)
 
         if form.is_valid():
-            form.save()
+            driver = form.save()
+
+            log_audit(
+                request,
+                "create",
+                obj=driver,
+                message=f"Created driver: {driver}",
+                old_values={},
+                new_values=model_to_dict_safe(driver),
+            )
+
             messages.success(request, "Driver added successfully.")
             return redirect("driver_list")
 
         messages.error(request, "Please correct the driver form.")
+
     else:
         form = DriverForm()
 
@@ -200,16 +257,28 @@ def driver_create(request):
 @permission_required("transport.manage")
 def driver_update(request, pk):
     driver = get_object_or_404(Driver, pk=pk)
+    old_values = model_to_dict_safe(driver)
 
     if request.method == "POST":
         form = DriverForm(request.POST, instance=driver)
 
         if form.is_valid():
-            form.save()
+            updated_driver = form.save()
+
+            log_audit(
+                request,
+                "update",
+                obj=updated_driver,
+                message=f"Updated driver: {updated_driver}",
+                old_values=old_values,
+                new_values=model_to_dict_safe(updated_driver),
+            )
+
             messages.success(request, "Driver updated successfully.")
             return redirect("driver_list")
 
         messages.error(request, "Please correct the driver form.")
+
     else:
         form = DriverForm(instance=driver)
 
@@ -277,11 +346,22 @@ def route_create(request):
         form = TransportRouteForm(request.POST)
 
         if form.is_valid():
-            form.save()
+            route = form.save()
+
+            log_audit(
+                request,
+                "create",
+                obj=route,
+                message=f"Created transport route: {route}",
+                old_values={},
+                new_values=model_to_dict_safe(route),
+            )
+
             messages.success(request, "Route added successfully.")
             return redirect("transport_route_list")
 
         messages.error(request, "Please correct the route form.")
+
     else:
         form = TransportRouteForm()
 
@@ -296,16 +376,28 @@ def route_create(request):
 @permission_required("transport.manage")
 def route_update(request, pk):
     route = get_object_or_404(TransportRoute, pk=pk)
+    old_values = model_to_dict_safe(route)
 
     if request.method == "POST":
         form = TransportRouteForm(request.POST, instance=route)
 
         if form.is_valid():
-            form.save()
+            updated_route = form.save()
+
+            log_audit(
+                request,
+                "update",
+                obj=updated_route,
+                message=f"Updated transport route: {updated_route}",
+                old_values=old_values,
+                new_values=model_to_dict_safe(updated_route),
+            )
+
             messages.success(request, "Route updated successfully.")
             return redirect("transport_route_list")
 
         messages.error(request, "Please correct the route form.")
+
     else:
         form = TransportRouteForm(instance=route)
 
@@ -375,11 +467,22 @@ def assignment_create(request):
         form = StudentTransportAssignmentForm(request.POST)
 
         if form.is_valid():
-            form.save()
+            assignment = form.save()
+
+            log_audit(
+                request,
+                "create",
+                obj=assignment,
+                message=f"Created student transport assignment: {assignment}",
+                old_values={},
+                new_values=model_to_dict_safe(assignment),
+            )
+
             messages.success(request, "Student transport assignment added successfully.")
             return redirect("transport_assignment_list")
 
         messages.error(request, "Please correct the assignment form.")
+
     else:
         form = StudentTransportAssignmentForm()
 
@@ -394,16 +497,28 @@ def assignment_create(request):
 @permission_required("transport.manage")
 def assignment_update(request, pk):
     assignment = get_object_or_404(StudentTransportAssignment, pk=pk)
+    old_values = model_to_dict_safe(assignment)
 
     if request.method == "POST":
         form = StudentTransportAssignmentForm(request.POST, instance=assignment)
 
         if form.is_valid():
-            form.save()
+            updated_assignment = form.save()
+
+            log_audit(
+                request,
+                "update",
+                obj=updated_assignment,
+                message=f"Updated transport assignment: {updated_assignment}",
+                old_values=old_values,
+                new_values=model_to_dict_safe(updated_assignment),
+            )
+
             messages.success(request, "Transport assignment updated successfully.")
             return redirect("transport_assignment_list")
 
         messages.error(request, "Please correct the assignment form.")
+
     else:
         form = StudentTransportAssignmentForm(instance=assignment)
 
@@ -455,11 +570,22 @@ def trip_log_create(request):
         form = TripLogForm(request.POST)
 
         if form.is_valid():
-            form.save()
+            trip = form.save()
+
+            log_audit(
+                request,
+                "create",
+                obj=trip,
+                message=f"Created trip log: {trip}",
+                old_values={},
+                new_values=model_to_dict_safe(trip),
+            )
+
             messages.success(request, "Trip log added successfully.")
             return redirect("trip_log_list")
 
         messages.error(request, "Please correct the trip log form.")
+
     else:
         form = TripLogForm()
 
@@ -474,16 +600,28 @@ def trip_log_create(request):
 @permission_required("transport.manage")
 def trip_log_update(request, pk):
     trip = get_object_or_404(TripLog, pk=pk)
+    old_values = model_to_dict_safe(trip)
 
     if request.method == "POST":
         form = TripLogForm(request.POST, instance=trip)
 
         if form.is_valid():
-            form.save()
+            updated_trip = form.save()
+
+            log_audit(
+                request,
+                "update",
+                obj=updated_trip,
+                message=f"Updated trip log: {updated_trip}",
+                old_values=old_values,
+                new_values=model_to_dict_safe(updated_trip),
+            )
+
             messages.success(request, "Trip log updated successfully.")
             return redirect("trip_log_list")
 
         messages.error(request, "Please correct the trip log form.")
+
     else:
         form = TripLogForm(instance=trip)
 

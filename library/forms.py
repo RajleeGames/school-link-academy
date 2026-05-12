@@ -8,17 +8,20 @@ from .models import Book, BookCategory, BorrowRecord
 class BookCategoryForm(forms.ModelForm):
     class Meta:
         model = BookCategory
-        fields = ["name", "description"]
+        fields = [
+            "name",
+            "description",
+        ]
 
         widgets = {
             "name": forms.TextInput(attrs={
                 "class": "form-control",
-                "placeholder": "Example: Science, Mathematics, Story Books"
+                "placeholder": "Example: Science, Mathematics, Story Books",
             }),
             "description": forms.Textarea(attrs={
                 "class": "form-control",
                 "rows": 3,
-                "placeholder": "Optional description"
+                "placeholder": "Optional description",
             }),
         }
 
@@ -44,50 +47,60 @@ class BookForm(forms.ModelForm):
         widgets = {
             "title": forms.TextInput(attrs={
                 "class": "form-control",
-                "placeholder": "Book title"
+                "placeholder": "Book title",
             }),
+
+            # Searchable if categories become many.
             "category": forms.Select(attrs={
-                "class": "form-select"
+                "class": "form-select sl-search-select",
+                "data-placeholder": "Search book category...",
             }),
+
             "author": forms.TextInput(attrs={
                 "class": "form-control",
-                "placeholder": "Author name"
+                "placeholder": "Author name",
             }),
             "publisher": forms.TextInput(attrs={
                 "class": "form-control",
-                "placeholder": "Publisher"
+                "placeholder": "Publisher",
             }),
             "isbn": forms.TextInput(attrs={
                 "class": "form-control",
-                "placeholder": "ISBN number"
+                "placeholder": "ISBN number",
             }),
             "book_code": forms.TextInput(attrs={
                 "class": "form-control",
-                "placeholder": "Example: LIB-001"
+                "placeholder": "Example: LIB-001",
             }),
             "shelf_location": forms.TextInput(attrs={
                 "class": "form-control",
-                "placeholder": "Example: Shelf A2"
+                "placeholder": "Example: Shelf A2",
             }),
             "total_copies": forms.NumberInput(attrs={
                 "class": "form-control",
-                "min": 0
+                "min": 0,
             }),
             "available_copies": forms.NumberInput(attrs={
                 "class": "form-control",
-                "min": 0
+                "min": 0,
             }),
             "status": forms.Select(attrs={
-                "class": "form-select"
+                "class": "form-select",
             }),
             "description": forms.Textarea(attrs={
                 "class": "form-control",
-                "rows": 3
+                "rows": 3,
             }),
             "cover_image": forms.ClearableFileInput(attrs={
-                "class": "form-control"
+                "class": "form-control",
             }),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if "category" in self.fields:
+            self.fields["category"].empty_label = "Search / select category"
 
     def clean(self):
         cleaned_data = super().clean()
@@ -97,7 +110,9 @@ class BookForm(forms.ModelForm):
 
         if total_copies is not None and available_copies is not None:
             if available_copies > total_copies:
-                raise ValidationError("Available copies cannot be greater than total copies.")
+                raise ValidationError(
+                    "Available copies cannot be greater than total copies."
+                )
 
         return cleaned_data
 
@@ -114,25 +129,40 @@ class BorrowRecordForm(forms.ModelForm):
         ]
 
         widgets = {
+            # Searchable because books can become many.
             "book": forms.Select(attrs={
-                "class": "form-select"
+                "class": "form-select sl-search-select",
+                "data-placeholder": "Search book by title, code, or ISBN...",
             }),
+
+            # Searchable because students can become many.
             "student": forms.Select(attrs={
-                "class": "form-select"
+                "class": "form-select sl-search-select",
+                "data-placeholder": "Search student by name or admission number...",
             }),
+
             "borrowed_date": forms.DateInput(attrs={
                 "class": "form-control",
-                "type": "date"
+                "type": "date",
             }),
             "due_date": forms.DateInput(attrs={
                 "class": "form-control",
-                "type": "date"
+                "type": "date",
             }),
             "notes": forms.Textarea(attrs={
                 "class": "form-control",
-                "rows": 3
+                "rows": 3,
             }),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if "book" in self.fields:
+            self.fields["book"].empty_label = "Search / select book"
+
+        if "student" in self.fields:
+            self.fields["student"].empty_label = "Search / select student"
 
     def clean(self):
         cleaned_data = super().clean()
@@ -167,19 +197,19 @@ class BorrowReturnForm(forms.ModelForm):
         widgets = {
             "returned_date": forms.DateInput(attrs={
                 "class": "form-control",
-                "type": "date"
+                "type": "date",
             }),
             "status": forms.Select(attrs={
-                "class": "form-select"
+                "class": "form-select",
             }),
             "fine_amount": forms.NumberInput(attrs={
                 "class": "form-control",
                 "step": "0.01",
-                "min": 0
+                "min": 0,
             }),
             "notes": forms.Textarea(attrs={
                 "class": "form-control",
-                "rows": 3
+                "rows": 3,
             }),
         }
 

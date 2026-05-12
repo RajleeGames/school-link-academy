@@ -8,94 +8,115 @@
 
 {% block content %}
 
-<div class="sl-card mb-3">
-  <div class="sl-card-body d-flex flex-wrap justify-content-between align-items-center gap-2">
+<div class="sl-parent-result-head mb-3">
+  <div class="sl-parent-result-student">
+    <div class="sl-parent-result-avatar">
+      {% if student.photo %}
+        <img src="{{ student.photo.url }}" alt="{{ student.full_name }}">
+      {% else %}
+        <span>{{ student.first_name|slice:":1"|upper }}{{ student.last_name|slice:":1"|upper }}</span>
+      {% endif %}
+    </div>
+
     <div>
-      <h5 class="fw-bold mb-1">{{ student.full_name }}</h5>
-      <div class="small text-muted">
+      <h5 class="sl-parent-result-name">{{ student.full_name }}</h5>
+      <div class="sl-parent-result-meta">
         {{ student.admission_number }} · {{ student.class_level.name }}
         {% if student.stream %} {{ student.stream.name }}{% endif %}
       </div>
     </div>
-
-    <a href="{% url 'parent_portal_home' %}" class="btn btn-light border btn-sm">
-      Back to Children
-    </a>
   </div>
+
+  <a href="{% url 'parent_portal_home' %}" class="btn btn-light border btn-sm">
+    Back to Children
+  </a>
 </div>
 
-<div class="sl-card">
-  <div class="sl-card-body">
-    <div class="table-responsive">
-      <table class="table align-middle">
-        <thead>
-          <tr>
-            <th>Receipt</th>
-            <th>Date</th>
-            <th>Invoice</th>
-            <th>Method</th>
-            <th>Amount</th>
-          </tr>
-        </thead>
+<div class="sl-parent-results-card">
+  <div class="sl-parent-results-card-head">
+    <div>
+      <h5>Payment History</h5>
+      <p>All recorded payments and receipts for this student.</p>
+    </div>
 
-        <tbody>
-          {% for payment in payments %}
-            <tr>
-              <td class="fw-semibold">
+    <div class="sl-parent-highest-pill">
+      {{ payments|length }} Payment{% if payments|length != 1 %}s{% endif %}
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table align-middle sl-parent-results-table">
+      <thead>
+        <tr>
+          <th>Receipt</th>
+          <th>Date</th>
+          <th>Invoice</th>
+          <th>Method</th>
+          <th class="text-end">Amount</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for payment in payments %}
+          <tr>
+            <td>
+              <div class="sl-result-subject">
                 {% if payment.receipt_number %}
                   {{ payment.receipt_number }}
                 {% else %}
                   RCPT-{{ payment.id }}
                 {% endif %}
-              </td>
+              </div>
+            </td>
 
-              <td>
-                {% if payment.payment_date %}
-                  {{ payment.payment_date|date:"d M Y" }}
-                {% elif payment.created_at %}
-                  {{ payment.created_at|date:"d M Y" }}
-                {% else %}
-                  -
-                {% endif %}
-              </td>
+            <td>
+              {% if payment.payment_date %}
+                {{ payment.payment_date|date:"d M Y" }}
+              {% elif payment.created_at %}
+                {{ payment.created_at|date:"d M Y" }}
+              {% else %}
+                <span class="text-muted">-</span>
+              {% endif %}
+            </td>
 
-              <td>
-                {% if payment.invoice.invoice_number %}
-                  {{ payment.invoice.invoice_number }}
-                {% else %}
-                  INV-{{ payment.invoice.id }}
-                {% endif %}
-              </td>
+            <td>
+              {% if payment.invoice.invoice_number %}
+                {{ payment.invoice.invoice_number }}
+              {% else %}
+                INV-{{ payment.invoice.id }}
+              {% endif %}
+            </td>
 
-              <td>
-                {% if payment.payment_method %}
-                  {{ payment.payment_method|title }}
-                {% elif payment.method %}
-                  {{ payment.method|title }}
-                {% else %}
-                  -
-                {% endif %}
-              </td>
+            <td>
+              {% if payment.payment_method %}
+                <span class="sl-parent-payment-method">{{ payment.payment_method|title }}</span>
+              {% elif payment.method %}
+                <span class="sl-parent-payment-method">{{ payment.method|title }}</span>
+              {% else %}
+                <span class="text-muted">-</span>
+              {% endif %}
+            </td>
 
-              <td>
+            <td class="text-end">
+              <span class="sl-parent-payment-amount">
                 TZS
                 {% if payment.amount %}
                   {{ payment.amount|floatformat:0|intcomma }}
                 {% else %}
                   0
                 {% endif %}
-              </td>
-            </tr>
-          {% empty %}
-            <tr>
-              <td colspan="5" class="text-center text-muted py-4">
-                No payments found for this student.
-              </td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
+              </span>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="5" class="text-center text-muted py-4">
+              No payments found for this student.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
 </div>
 

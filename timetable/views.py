@@ -8,19 +8,42 @@ from accounts.decorators import permission_required
 from academics.models import ClassLevel, Stream
 from staff.models import StaffProfile
 
+from audit.utils import log_audit, model_to_dict_safe
+
 from .forms import RoomForm, TimeSlotForm, TimetableEntryForm
 from .models import Room, TimeSlot, TimetableEntry
 
 
 def safe_delete_object(request, obj, success_message, redirect_url):
+    old_values = model_to_dict_safe(obj)
+    app_label = obj._meta.app_label
+    model_name = obj._meta.model_name
+    object_id = str(obj.pk)
+    object_repr = str(obj)
+
     try:
         obj.delete()
+
+        log_audit(
+            request,
+            "delete",
+            app_label=app_label,
+            model_name=model_name,
+            object_id=object_id,
+            object_repr=object_repr,
+            message=f"Deleted {model_name}: {object_repr}",
+            old_values=old_values,
+            new_values={},
+        )
+
         messages.success(request, success_message)
+
     except ProtectedError:
         messages.error(
             request,
             "This record cannot be deleted because it is already used somewhere. You can edit it or mark it inactive instead."
         )
+
     except Exception:
         messages.error(
             request,
@@ -65,7 +88,17 @@ def room_list(request):
         form = RoomForm(request.POST)
 
         if form.is_valid():
-            form.save()
+            room = form.save()
+
+            log_audit(
+                request,
+                "create",
+                obj=room,
+                message=f"Created timetable room: {room}",
+                old_values={},
+                new_values=model_to_dict_safe(room),
+            )
+
             messages.success(request, "Room saved successfully.")
             return redirect("room_list")
 
@@ -82,12 +115,23 @@ def room_list(request):
 @permission_required("timetable.manage")
 def room_update(request, pk):
     room = get_object_or_404(Room, pk=pk)
+    old_values = model_to_dict_safe(room)
 
     if request.method == "POST":
         form = RoomForm(request.POST, instance=room)
 
         if form.is_valid():
-            form.save()
+            updated_room = form.save()
+
+            log_audit(
+                request,
+                "update",
+                obj=updated_room,
+                message=f"Updated timetable room: {updated_room}",
+                old_values=old_values,
+                new_values=model_to_dict_safe(updated_room),
+            )
+
             messages.success(request, "Room updated successfully.")
             return redirect("room_list")
 
@@ -126,7 +170,17 @@ def time_slot_list(request):
         form = TimeSlotForm(request.POST)
 
         if form.is_valid():
-            form.save()
+            slot = form.save()
+
+            log_audit(
+                request,
+                "create",
+                obj=slot,
+                message=f"Created timetable time slot: {slot}",
+                old_values={},
+                new_values=model_to_dict_safe(slot),
+            )
+
             messages.success(request, "Time slot saved successfully.")
             return redirect("time_slot_list")
 
@@ -143,12 +197,23 @@ def time_slot_list(request):
 @permission_required("timetable.manage")
 def time_slot_update(request, pk):
     slot = get_object_or_404(TimeSlot, pk=pk)
+    old_values = model_to_dict_safe(slot)
 
     if request.method == "POST":
         form = TimeSlotForm(request.POST, instance=slot)
 
         if form.is_valid():
-            form.save()
+            updated_slot = form.save()
+
+            log_audit(
+                request,
+                "update",
+                obj=updated_slot,
+                message=f"Updated timetable time slot: {updated_slot}",
+                old_values=old_values,
+                new_values=model_to_dict_safe(updated_slot),
+            )
+
             messages.success(request, "Time slot updated successfully.")
             return redirect("time_slot_list")
 
@@ -197,6 +262,8 @@ def auto_create_default_time_slots(request):
 
     created_count = 0
     updated_count = 0
+    created_slots = []
+    updated_slots = []
 
     for slot_data in default_slots:
         slot, created = TimeSlot.objects.get_or_create(
@@ -211,13 +278,54 @@ def auto_create_default_time_slots(request):
 
         if created:
             created_count += 1
+            created_slots.append(str(slot))
+
+            log_audit(
+                request,
+                "create",
+                obj=slot,
+                message=f"Auto-created default time slot: {slot}",
+                old_values={},
+                new_values=model_to_dict_safe(slot),
+            )
+
         else:
+            old_values = model_to_dict_safe(slot)
+
             slot.start_time = slot_data["start_time"]
             slot.end_time = slot_data["end_time"]
             slot.is_break = slot_data["is_break"]
             slot.is_active = True
             slot.save()
+
             updated_count += 1
+            updated_slots.append(str(slot))
+
+            log_audit(
+                request,
+                "update",
+                obj=slot,
+                message=f"Auto-updated default time slot: {slot}",
+                old_values=old_values,
+                new_values=model_to_dict_safe(slot),
+            )
+
+    log_audit(
+        request,
+        "generate",
+        obj=None,
+        app_label="timetable",
+        model_name="timeslot",
+        object_repr="Default Time Slots",
+        message=f"Generated default time slots. Created {created_count}, updated {updated_count}.",
+        old_values={},
+        new_values={
+            "created_count": created_count,
+            "updated_count": updated_count,
+            "created_slots": created_slots,
+            "updated_slots": updated_slots,
+        },
+    )
 
     messages.success(
         request,
@@ -282,7 +390,17 @@ def timetable_entry_create(request):
         form = TimetableEntryForm(request.POST)
 
         if form.is_valid():
-            form.save()
+            entry = form.save()
+
+            log_audit(
+                request,
+                "create",
+                obj=entry,
+                message=f"Created timetable entry: {entry}",
+                old_values={},
+                new_values=model_to_dict_safe(entry),
+            )
+
             messages.success(request, "Timetable entry saved successfully.")
             return redirect("timetable_entry_list")
 
@@ -301,12 +419,23 @@ def timetable_entry_create(request):
 @permission_required("timetable.manage")
 def timetable_entry_update(request, pk):
     entry = get_object_or_404(TimetableEntry, pk=pk)
+    old_values = model_to_dict_safe(entry)
 
     if request.method == "POST":
         form = TimetableEntryForm(request.POST, instance=entry)
 
         if form.is_valid():
-            form.save()
+            updated_entry = form.save()
+
+            log_audit(
+                request,
+                "update",
+                obj=updated_entry,
+                message=f"Updated timetable entry: {updated_entry}",
+                old_values=old_values,
+                new_values=model_to_dict_safe(updated_entry),
+            )
+
             messages.success(request, "Timetable entry updated successfully.")
             return redirect("timetable_entry_list")
 
@@ -327,8 +456,27 @@ def timetable_entry_update(request, pk):
 def timetable_entry_delete(request, pk):
     entry = get_object_or_404(TimetableEntry, pk=pk)
 
+    old_values = model_to_dict_safe(entry)
+    app_label = entry._meta.app_label
+    model_name = entry._meta.model_name
+    object_id = str(entry.pk)
+    object_repr = str(entry)
+
     if request.method == "POST":
         entry.delete()
+
+        log_audit(
+            request,
+            "delete",
+            app_label=app_label,
+            model_name=model_name,
+            object_id=object_id,
+            object_repr=object_repr,
+            message=f"Deleted timetable entry: {object_repr}",
+            old_values=old_values,
+            new_values={},
+        )
+
         messages.success(request, "Timetable entry deleted successfully.")
 
     return redirect("timetable_entry_list")

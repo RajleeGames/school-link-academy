@@ -14,6 +14,7 @@ from audit.utils import log_audit, model_to_dict_safe
 
 from .forms import PayrollGenerateForm, PayrollRecordForm, SalaryStructureForm
 from .models import PayrollRecord, SalaryStructure
+from .utils import sync_payroll_expense
 
 
 def safe_delete_object(request, obj, success_message, redirect_url, audit_message=None):
@@ -68,6 +69,56 @@ def payroll_record_audit_message(record, prefix):
     )
 
 
+def payroll_record_safe_values(record):
+    data = model_to_dict_safe(record)
+
+    if record.expense:
+        data["expense"] = str(record.expense)
+        data["expense_id"] = str(record.expense_id)
+    else:
+        data["expense"] = ""
+        data["expense_id"] = ""
+
+    return data
+
+
+def payroll_sync_recorded_by(request):
+    if request and request.user.is_authenticated:
+        return request.user.username
+
+    return ""
+
+
+def sync_payroll_expense_with_audit(request, payroll):
+    expense = sync_payroll_expense(
+        payroll,
+        recorded_by=payroll_sync_recorded_by(request),
+    )
+
+    if expense:
+        log_audit(
+            request,
+            action="pay",
+            obj=payroll,
+            message=(
+                f"Payroll expense synced for {payroll.staff.full_name} "
+                f"- {payroll.get_month_display()} {payroll.year}"
+            ),
+            old_values={},
+            new_values={
+                "staff": str(payroll.staff),
+                "month": payroll.get_month_display(),
+                "year": str(payroll.year),
+                "net_salary": str(payroll.net_salary),
+                "expense": str(expense),
+                "expense_number": expense.expense_number,
+                "expense_status": expense.status,
+            },
+        )
+
+    return expense
+
+
 @permission_required("payroll.view")
 def payroll_home(request):
     current_year = timezone.localdate().year
@@ -77,7 +128,7 @@ def payroll_home(request):
     staff_profile = user_staff_profile(request.user)
 
     structures = SalaryStructure.objects.select_related("staff")
-    records = PayrollRecord.objects.select_related("staff")
+    records = PayrollRecord.objects.select_related("staff", "expense")
 
     if not is_payroll_admin:
         if staff_profile:
@@ -259,7 +310,7 @@ def salary_structure_delete(request, pk):
 
 @permission_required("payroll.view")
 def payroll_record_list(request):
-    records = PayrollRecord.objects.select_related("staff")
+    records = PayrollRecord.objects.select_related("staff", "expense")
 
     is_payroll_admin = payroll_admin_required(request.user)
     staff_profile = user_staff_profile(request.user)
@@ -283,6 +334,7 @@ def payroll_record_list(request):
             | Q(staff__staff_id__icontains=search)
             | Q(staff__phone__icontains=search)
             | Q(reference__icontains=search)
+            | Q(expense__expense_number__icontains=search)
         )
 
     if status:
@@ -317,16 +369,31 @@ def payroll_record_create(request):
             payroll.net_salary = calculate_net_salary(payroll)
             payroll.save()
 
+            expense = sync_payroll_expense_with_audit(request, payroll)
+
+            new_values = payroll_record_safe_values(payroll)
+
+            if expense:
+                new_values["synced_expense"] = str(expense)
+                new_values["synced_expense_number"] = expense.expense_number
+
             log_audit(
                 request,
                 action="create",
                 obj=payroll,
                 message=payroll_record_audit_message(payroll, "Created"),
                 old_values={},
-                new_values=model_to_dict_safe(payroll),
+                new_values=new_values,
             )
 
-            messages.success(request, "Payroll record added successfully.")
+            if payroll.status == "paid" and expense:
+                messages.success(
+                    request,
+                    "Payroll record added successfully and salary expense was created."
+                )
+            else:
+                messages.success(request, "Payroll record added successfully.")
+
             return redirect("payroll_record_detail", pk=payroll.pk)
 
         messages.error(request, "Please correct the payroll record form.")
@@ -343,10 +410,13 @@ def payroll_record_create(request):
 
 @permission_required("payroll.manage")
 def payroll_record_update(request, pk):
-    record = get_object_or_404(PayrollRecord, pk=pk)
+    record = get_object_or_404(
+        PayrollRecord.objects.select_related("staff", "expense"),
+        pk=pk
+    )
 
     if request.method == "POST":
-        old_values = model_to_dict_safe(record)
+        old_values = payroll_record_safe_values(record)
         form = PayrollRecordForm(request.POST, instance=record)
 
         if form.is_valid():
@@ -354,16 +424,36 @@ def payroll_record_update(request, pk):
             payroll.net_salary = calculate_net_salary(payroll)
             payroll.save()
 
+            expense = sync_payroll_expense_with_audit(request, payroll)
+
+            new_values = payroll_record_safe_values(payroll)
+
+            if expense:
+                new_values["synced_expense"] = str(expense)
+                new_values["synced_expense_number"] = expense.expense_number
+
             log_audit(
                 request,
                 action="update",
                 obj=payroll,
                 message=payroll_record_audit_message(payroll, "Updated"),
                 old_values=old_values,
-                new_values=model_to_dict_safe(payroll),
+                new_values=new_values,
             )
 
-            messages.success(request, "Payroll record updated successfully.")
+            if payroll.status == "paid" and expense:
+                messages.success(
+                    request,
+                    "Payroll record updated successfully and salary expense was synced."
+                )
+            elif payroll.status != "paid":
+                messages.success(
+                    request,
+                    "Payroll record updated successfully. No paid expense is created until status is Paid."
+                )
+            else:
+                messages.success(request, "Payroll record updated successfully.")
+
             return redirect("payroll_record_detail", pk=payroll.pk)
 
         messages.error(request, "Please correct the payroll record form.")
@@ -380,7 +470,10 @@ def payroll_record_update(request, pk):
 
 @permission_required("payroll.manage")
 def payroll_record_delete(request, pk):
-    record = get_object_or_404(PayrollRecord, pk=pk)
+    record = get_object_or_404(
+        PayrollRecord.objects.select_related("staff", "expense"),
+        pk=pk
+    )
 
     if record.status == "paid":
         messages.error(
@@ -405,7 +498,7 @@ def payroll_record_delete(request, pk):
 @permission_required("payroll.view")
 def payroll_record_detail(request, pk):
     record = get_object_or_404(
-        PayrollRecord.objects.select_related("staff"),
+        PayrollRecord.objects.select_related("staff", "expense"),
         pk=pk
     )
 

@@ -3,7 +3,7 @@
 {% block title %}User Roles | School Link{% endblock %}
 
 {% block page_title %}User Roles{% endblock %}
-{% block page_subtitle %}Manage user login roles and system access levels.{% endblock %}
+{% block page_subtitle %}Manage user login roles, system access levels, and password resets.{% endblock %}
 
 {% block content %}
 
@@ -11,14 +11,19 @@
   <div class="sl-card-body">
     <form method="get" class="row g-2">
       <div class="col-md-6">
-        <input type="text" name="q" value="{{ query }}" class="form-control form-control-sm"
-               placeholder="Search username...">
+        <input
+          type="text"
+          name="q"
+          value="{{ query }}"
+          class="form-control form-control-sm"
+          placeholder="Search username..."
+        >
       </div>
 
       <div class="col-md-4">
         <select name="role" class="form-select form-select-sm">
           <option value="">All Roles</option>
-          {% for value,label in role_choices %}
+          {% for value, label in role_choices %}
             <option value="{{ value }}" {% if selected_role == value %}selected{% endif %}>
               {{ label }}
             </option>
@@ -27,7 +32,9 @@
       </div>
 
       <div class="col-md-2">
-        <button type="submit" class="btn btn-dark btn-sm w-100">Filter</button>
+        <button type="submit" class="btn btn-dark btn-sm w-100">
+          Filter
+        </button>
       </div>
     </form>
   </div>
@@ -43,6 +50,7 @@
             <th>Email</th>
             <th>Role</th>
             <th>Active</th>
+            <th>Password Change</th>
             <th class="text-end">Action</th>
           </tr>
         </thead>
@@ -50,8 +58,21 @@
         <tbody>
           {% for user in users %}
             <tr>
-              <td class="fw-semibold">{{ user.username }}</td>
+              <td>
+                <div class="fw-semibold">{{ user.username }}</div>
+                {% if user.is_superuser %}
+                  <span class="badge bg-warning-subtle text-warning border border-warning-subtle">
+                    Superuser
+                  </span>
+                {% elif user.is_staff %}
+                  <span class="badge bg-primary-subtle text-primary border border-primary-subtle">
+                    Staff
+                  </span>
+                {% endif %}
+              </td>
+
               <td>{{ user.email|default:"-" }}</td>
+
               <td>
                 {% if user.account_profile %}
                   {{ user.account_profile.get_role_display }}
@@ -59,22 +80,50 @@
                   -
                 {% endif %}
               </td>
+
               <td>
                 {% if user.is_active %}
-                  <span class="badge bg-success-subtle text-success border border-success-subtle">Active</span>
+                  <span class="badge bg-success-subtle text-success border border-success-subtle">
+                    Active
+                  </span>
                 {% else %}
-                  <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Inactive</span>
+                  <span class="badge bg-danger-subtle text-danger border border-danger-subtle">
+                    Inactive
+                  </span>
                 {% endif %}
               </td>
+
+              <td>
+                {% if user.account_profile and user.account_profile.must_change_password %}
+                  <span class="badge bg-warning-subtle text-warning border border-warning-subtle">
+                    Required
+                  </span>
+                {% else %}
+                  <span class="badge bg-light text-dark border">
+                    No
+                  </span>
+                {% endif %}
+              </td>
+
               <td class="text-end">
-                <a href="{% url 'user_role_update' user.pk %}" class="btn btn-light border btn-sm">
-                  Edit Role
-                </a>
+                <div class="d-inline-flex flex-wrap justify-content-end gap-1">
+                  {% if request.user.is_superuser or "users.roles.manage" in current_user_permissions %}
+                    <a href="{% url 'user_role_update' user.pk %}" class="btn btn-light border btn-sm">
+                      Edit Role
+                    </a>
+                  {% endif %}
+
+                  {% if request.user.is_superuser or "users.password.reset" in current_user_permissions %}
+                    <a href="{% url 'user_reset_password' user.pk %}" class="btn btn-sl-primary btn-sm">
+                      Reset Password
+                    </a>
+                  {% endif %}
+                </div>
               </td>
             </tr>
           {% empty %}
             <tr>
-              <td colspan="5" class="text-center text-muted py-4">
+              <td colspan="6" class="text-center text-muted py-4">
                 No users found.
               </td>
             </tr>
